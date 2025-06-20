@@ -697,22 +697,20 @@ def cart():
         cart_data.setdefault("products", [])
         
         # Calculate cart totals using the actual total field from each product
-        # Initialize variables with default values
-        subtotal = 0
-        gst_percent = 18  # Default GST percentage
-        gst_amount = 0
+        # Calculate total by summing up final prices from calculations
         total = 0
-        
-        # Only calculate if there are products
         if cart_data.get('products'):
-            subtotal = sum(
-                float(p.get('calculations', {}).get('final_total', p.get('total', 0)))
+            total = sum(
+                float(p.get('calculations', {}).get('final_total', 0))
                 for p in cart_data['products']
             )
             
-            # Calculate GST
-            gst_amount = (subtotal * gst_percent) / 100
-            total = subtotal + gst_amount
+            # If no calculations exist, fall back to total field
+            if not total:
+                total = sum(
+                    float(p.get('total', 0))
+                    for p in cart_data['products']
+                )
             
             # Calculate discount amount if needed
             discount_amount = sum(
@@ -722,10 +720,7 @@ def cart():
             
             # Add calculated totals to the cart data
             cart_data['calculations'] = {
-                'subtotal': round(subtotal, 2),
                 'discount_amount': round(discount_amount, 2),
-                'gst_percent': gst_percent,
-                'gst_amount': round(gst_amount, 2),
                 'total': round(total, 2)
             }
         
@@ -772,15 +767,14 @@ def clear_cart():
         if current_user.is_authenticated:
             # For logged-in users, clear the cart from the database
             if USE_MONGO and MONGO_AVAILABLE and mongo_db is not None:
-                cart_store.clear_cart(str(current_user.id))
+                mongo_db.carts.update_one(
+                    {'user_id': str(current_user.id)},
+                    {'$set': {'products': []}},
+                    upsert=True
+                )
             else:
                 # Fallback to session for non-MongoDB
-                if 'cart' in session:
-                    session['cart'] = {'products': []}
-                    session.modified = True
-            
-            # Also update the user's cart in the database
-            save_user_cart({'products': []})
+                session['cart'] = {'products': []}
         else:
             # For non-logged-in users, clear the session cart
             session['cart'] = {'products': []}
@@ -1283,7 +1277,7 @@ def quotation_preview():
                 'subtotal': round(subtotal, 2),
                 'discount_percent': discount_percent,
                 'discount_amount': round(discount_amount, 2),
-                'price_after_discount': round(price_after_discount, 2),
+                'discounted_subtotal': round(price_after_discount, 2),
                 'gst_percent': gst_percent,
                 'gst_amount': round(gst_amount, 2),
                 'final_total': round(final_total, 2)
@@ -1369,10 +1363,8 @@ def send_quotation():
         # Send to customer and MD's desk
         recipients = [customer_email, 'md.desk@chemo.in']
 
-        # Get current date and time
-        current_datetime = datetime.utcnow()
-        today = current_datetime.strftime('%d-%m-%Y')
-        current_time = current_datetime.strftime('%H:%M:%S')
+        # Get current date
+        today = datetime.utcnow().strftime('%d/%m/%Y')
 
         # Table rows
         rows_html = """
@@ -1410,163 +1402,168 @@ def send_quotation():
             
             qty = p.get('quantity', 1)
             
-            # Calculate total based on product type matching quotation_preview logic
-            p.setdefault('type', '')
-            p.setdefault('quantity', 1)
-            p.setdefault('discount_percent', 0)
-            p.setdefault('gst_percent', 18)  # Default GST for mpack
-            p.setdefault('unit_price', 0)
-            p.setdefault('base_price', 0)
-            p.setdefault('bar_price', 0)
+            # Calculate total based on product type
+            if prod_type == 'mpack':
+                # For mpack, use unit_price * quantity
+                unit_price = p.get('unit_price', 0)
+                discount_percent = p.get('discount_percent', 0)
+                gst_percent = p.get('gst_percent', 18)
+                
+                subtotal_val = unit_price * qty
+                discount_amount = (subtotal_val * discount_percent / 100) if discount_percent else 0
+                taxable_amount = subtotal_val - discount_amount
+                gst_amount = (taxable_amount * gst_percent / 100)
+                total_val = taxable_amount + gst_amount
+                
+            elif prod_type == 'blanket':
+                # For blanket, use calculations from the cart
+                calcs = p.get('calculations', {})
+                if calcs:
+                    total_val = calcs.get('final_total', 0)
+                else:
+                    unit_price = p.get('unit_price', 0)
+                    discount_percent = p.get('discount_percent', 0)
+                    gst_percent = p.get('gst_percent', 18)
+                    
+                    subtotal_val = unit_price * qty
+                    discount_amount = (subtotal_val * discount_percent / 100) if discount_percent else 0
+                    taxable_amount = subtotal_val - discount_amount
+                    gst_amount = (taxable_amount * gst_percent / 100)
+                    total_val = taxable_amount + gst_amount
             
-            if p['type'] == 'mpack':
-                # Calculate mpack total matching cart template's approach
-                price = float(p.get('unit_price', 0))
-                quantity = int(p.get('quantity', 1))
-                discount_percent = float(p.get('discount_percent', 0))
-                gst_percent = float(p.get('gst_percent', 18))
-                
-                item_subtotal = price * quantity
-                discount_amount = (item_subtotal * discount_percent / 100) if discount_percent else 0
-                price_after_discount = item_subtotal - discount_amount
-                gst_amount = (price_after_discount * gst_percent / 100) if gst_percent else 0
-                final_total = price_after_discount + gst_amount
-                
-                # Store calculations in the item
-                p['calculations'] = {
-                    'unit_price': round(price, 2),
-                    'quantity': quantity,
-                    'subtotal': round(item_subtotal, 2),
-                    'discount_percent': discount_percent,
-                    'discount_amount': round(discount_amount, 2),
-                    'price_after_discount': round(price_after_discount, 2),
-                    'gst_percent': gst_percent,
-                    'gst_amount': round(gst_amount, 2),
-                    'final_total': round(final_total, 2)
-                }
-                item_total = final_total
-                
-            elif p['type'] == 'blanket':
-                # Calculate blanket total matching cart template's approach
-                base_price = float(p.get('base_price', 0))
-                bar_price = float(p.get('bar_price', 0))
-                quantity = int(p.get('quantity', 1))
-                discount_percent = float(p.get('discount_percent', 0))
-                gst_percent = float(p.get('gst_percent', 18))
-                
-                # Calculate unit price as base + bar price
-                unit_price = base_price + bar_price
-                
-                # Calculate subtotal (unit price * quantity)
-                item_subtotal = unit_price * quantity
-                
-                # Calculate discount amount
-                discount_amount = (item_subtotal * discount_percent / 100) if discount_percent else 0
-                
-                # Calculate price after discount
-                price_after_discount = item_subtotal - discount_amount
-                
-                # Calculate GST on discounted amount
-                gst_amount = (price_after_discount * gst_percent / 100) if gst_percent else 0
-                
-                # Calculate final total including GST
-                final_total = price_after_discount + gst_amount
-                
-                # Store calculations in the item
-                p['calculations'] = {
-                    'base_price': round(base_price, 2),
-                    'bar_price': round(bar_price, 2),
-                    'unit_price': round(unit_price, 2),
-                    'quantity': quantity,
-                    'subtotal': round(item_subtotal, 2),
-                    'discount_percent': discount_percent,
-                    'discount_amount': round(discount_amount, 2),
-                    'price_after_discount': round(price_after_discount, 2),
-                    'gst_percent': gst_percent,
-                    'gst_amount': round(gst_amount, 2),
-                    'final_total': round(final_total, 2)
-                }
-                item_total = final_total
-            else:
-                # Handle other product types
-                price = float(p.get('unit_price', 0))
-                quantity = int(p.get('quantity', 1))
-                discount_percent = float(p.get('discount_percent', 0))
-                gst_percent = float(p.get('gst_percent', 0))
-                
-                item_subtotal = price * quantity
-                discount_amount = (item_subtotal * discount_percent / 100) if discount_percent else 0
-                discounted_subtotal = item_subtotal - discount_amount
-                gst_amount = (discounted_subtotal * gst_percent / 100) if gst_percent else 0
-                final_total = discounted_subtotal + gst_amount
-                
-                p['calculations'] = {
-                    'unit_price': round(price, 2),
-                    'quantity': quantity,
-                    'subtotal': round(item_subtotal, 2),
-                    'discount_percent': discount_percent,
-                    'discount_amount': round(discount_amount, 2),
-                    'gst_percent': gst_percent,
-                    'gst_amount': round(gst_amount, 2),
-                    'final_total': round(final_total, 2)
-                }
-                item_total = final_total
-            
-            # Add to running subtotal
-            subtotal += item_total
+            subtotal += total_val
             
             rows_html += f"""
                 <tr>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{idx}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{machine}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('product', '')}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{prod_type}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '')}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('blanket_type', '----') if prod_type == 'blanket' else '----'}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{dimensions}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('barring', '')}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>{int(p.get('quantity', 1))}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>{p.get('discount_percent', 0)}%</td>
-                    <td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>₹{p['calculations']['final_total']:,.2f}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('bar_type', '----') if prod_type == 'blanket' else '----'}</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{qty}</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{p.get('discount_percent', 0)}%</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>₹{total_val:,.2f}</td>
                 </tr>
             """
         
-        # Close table body and add totals row
+        # Add total row
         rows_html += f"""
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="8" style="text-align: right; padding: 8px; border: 1px solid #ddd;"><strong>Subtotal:</strong></td>
-                    <td style="text-align: right; padding: 8px; border: 1px solid #ddd; font-weight: bold;">₹{final_subtotal:,.2f}</td>
+                    <td colspan='8' style='border: none;'></td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd; font-weight: bold;'>Subtotal:</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd; font-weight: bold;'>₹{subtotal:,.2f}</td>
                 </tr>
                 <tr>
-                    <td colspan="8" style="text-align: right; padding: 8px; border: 1px solid #ddd;"><strong>Total:</strong></td>
-                    <td style="text-align: right; padding: 8px; border: 1px solid #ddd; font-weight: bold;">₹{final_subtotal:,.2f}</td>
+                    <td colspan='8' style='border: none;'></td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd; font-weight: bold;'>Total:</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd; font-weight: bold;'>₹{subtotal:,.2f}</td>
+                </tr>
+                <tr>
+                    <td colspan='9' style='padding: 8px; text-align: right; border: 1px solid #ddd;'><strong>Subtotal:</strong></td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'><strong>₹{subtotal:,.2f}</strong></td>
+                </tr>
+                <tr>
+                    <td colspan='9' style='padding: 8px; text-align: right; border: 1px solid #ddd;'><strong>Total:</strong></td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'><strong>₹{subtotal:,.2f}</strong></td>
                 </tr>
             </tfoot>
         </table>
-        
-        <div style="margin-top: 30px; margin-bottom: 30px;">
-            <p>Thank you for your business!<br>— Team CGI</p>
-            <p>For more information, please contact: info@chemo.in</p>
-            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
-                This quotation is not a contract or invoice. It is our best estimate.
+        <p>For more information, please contact: <a href='mailto:info@chemo.in'>info@chemo.in</a></p>
+        <p>This quotation is not a contract or invoice. It is our best estimate.</p>
+        """
+
+        # Build full HTML
+        quotation_html = """
+        <div style='font-family: Arial, sans-serif; color: #333; max-width: 800px; margin: auto; line-height: 1.6;'>
+          <h2 style='text-align: left; margin-bottom: 20px;'>QUOTATION</h2>
+          
+          <div style='margin-bottom: 20px;'>
+            <h4>Company Information</h4>
+            <p style='margin: 5px 0;'><strong>Company Name:</strong> Chemo Graphic International<br>
+            <strong>Address:</strong> 113, 114 High Tech Industrial Centre, Caves Rd, Jogeshwari East, Mumbai, Maharashtra 400060<br>
+            <strong>Email:</strong> operations@chemo.in</p>
+          </div>
+          
+          <div style='margin: 20px 0;'>
+            <h4>Customer Information</h4>
+            <p style='margin: 5px 0;'>
+              {selected_company.get('name', '')}<br>
+              {customer_email}
             </p>
-        </div>"""
-        
-        # Calculate final total by summing up all item final_totals to match quotation_preview
-        final_subtotal = 0
-        for p in products:
-            final_subtotal += p.get('calculations', {}).get('final_total', 0)
-        
-        # Round to 2 decimal places for display
-        final_subtotal = round(final_subtotal, 2)
-        total = final_subtotal
+          </div>
+          
+          <div style='margin: 20px 0;'>
+            <p>Hello,</p>
+            <p>This is test from CGI.</p>
+            <p>Here is the proposed quotation for the required products:</p>
+          </div>
+          <table style='width: 100%; margin-bottom: 20px;'>
+            <tr>
+              <td>
+                <strong>CGI - Chemo Graphics India</strong><br>
+                123 Print Lane, Mumbai, India<br>
+                Email: info@chemo.in
+              </td>
+              <td style='text-align: right;'>
+                <strong>Quote #:</strong> {quote_id}<br>
+                <strong>Date:</strong> {today}
+              </td>
+            </tr>
+          </table>
+          <div style='margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;'>
+            <p><strong>To:</strong> {selected_company.get('name', '')}</p>
+            <p><strong>Email:</strong> {customer_email}</p>
+          </div>
+          <p>Hello,<br><br>This is <strong>{current_user.username}</strong> from CGI.<br>Here is the proposed quotation for the required products:</p>
+          {f'<p><strong>Notes:</strong><br>{notes}</p>' if notes else ''}
+          <table style='width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;'>
+            <thead>
+              <tr style='background-color: #2c3e50; color: white;'>
+                <th style='padding: 10px; text-align: left;'>#</th>
+                <th style='padding: 10px; text-align: left;'>Machine</th>
+                <th style='padding: 10px; text-align: left;'>Product</th>
+                <th style='padding: 10px; text-align: left;'>Type</th>
+                <th style='padding: 10px; text-align: left;'>Size</th>
+                <th style='padding: 10px; text-align: left;'>Barring</th>
+                <th style='padding: 10px; text-align: right;'>Qty</th>
+                <th style='padding: 10px; text-align: right;'>Disc %</th>
+                <th style='padding: 10px; text-align: right;'>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows_html}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan='8' style='text-align: right; padding: 10px; border-top: 2px solid #ddd;'><strong>Subtotal:</strong></td>
+                <td style='text-align: right; padding: 10px; border-top: 2px solid #ddd;'><strong>₹{subtotal:,.2f}</strong></td>
+              </tr>
+              <tr>
+                <td colspan='8' style='text-align: right; padding: 10px;'><strong>Total:</strong></td>
+                <td style='text-align: right; padding: 10px; font-size: 1.1em;'><strong>₹{subtotal:,.2f}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+          <p style='margin-top: 20px;'>Thank you for your business!<br>— Team CGI</p>
+          <hr>
+          <small>
+            This quotation is not a contract or invoice. It is our best estimate.
+          </small>
+        </div>
+        """
+
+        # Total is same as subtotal since amounts already include any taxes
+        total = subtotal
         
         # Email sending
         if not email_config_valid:
             return jsonify({'error': 'Email configuration invalid'}), 500
 
-        subject = f"CGI Quotation - {quote_id}"
+        subject = f"CGI Quotation - {today}"
         try:
             # Create message container
             msg = MIMEMultipart('alternative')
@@ -1672,8 +1669,7 @@ def send_quotation():
                     
                     <div class="quote-info">
                         <p><strong>To:</strong> {selected_company.get('name', '')}<br>
-                        <strong>Email:</strong> {customer_email}<br>
-                        <strong>Date:</strong> {today}</p>
+                        <strong>Email:</strong> {customer_email}</p>
                     </div>
                     
                     <p>Hello,</p>
@@ -1705,22 +1701,23 @@ def send_quotation():
                         <td style="padding: 10px;">{idx}</td>
                         <td style="padding: 10px;">{p.get('machine', '')}</td>
                         <td style="padding: 10px;">{p.get('type', '')}</td>
-                        <td style="padding: 10px;">{p.get('blanket_type', '----')}</td>
+                        <td style="padding: 10px;">{p.get('blanket_type', '----') if p.get('type') == 'blanket' else '----'}</td>
                         <td style="padding: 10px;">{p.get('thickness', '----')}</td>
-                        <td style="padding: 10px;">{p.get('size', '') or (f"{p.get('length', '')} x {p.get('width', '')} {p.get('unit', '')}" if p.get('length') and p.get('width') else '')}</td>
-                        <td style="padding: 10px;">{p.get('bar_type', '----')}</td>
+                        <td style="padding: 10px;">
+                            {p.get('size', '').replace('.0 mm', ' mm').replace('.0mm', 'mm') if p.get('size') else 
+                            ('%sx%s mm' % (p.get('length', '').replace('.0', ''), p.get('width', '').replace('.0', '')) if p.get('type') == 'mpack' else 
+                            ('%sx%s%s' % (p.get('length', '').replace('.0', ''), p.get('width', '').replace('.0', ''), p.get('unit', '').replace('mm', ' mm')) if p.get('length') and p.get('width') else '----'))}
+                        </td>
+                        <td style="padding: 10px;">{p.get('bar_type', '----') if p.get('type') == 'blanket' else '----'}</td>
                         <td style="padding: 10px; text-align: right;">{p.get('quantity', 1)}</td>
                         <td style="padding: 10px; text-align: right;">{p.get('discount_percent', 0)}%</td>
-                        <td style="padding: 10px; text-align: right;">₹{p.get('total', 0):,.2f}</td>
-                      </tr>''' for idx, p in enumerate(products, 1)])}
+                        <td style="padding: 10px; text-align: right;">₹{p.get('calculations', {}).get('final_total', p.get('total', 0)):,.2f}</td>
+                      </tr>
+                      ''' for idx, p in enumerate(products, 1)])}
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td colspan="9" style="text-align: right; padding: 10px; border-top: 2px solid #ddd;"><strong>Subtotal:</strong></td>
-                        <td style="text-align: right; padding: 10px; border-top: 2px solid #ddd;"><strong>₹{subtotal:,.2f}</strong></td>
-                      </tr>
-                      <tr>
-                        <td colspan="9" style="text-align: right; padding: 10px;"><strong>Total:</strong></td>
+                        <td colspan="9" style="text-align: right; padding: 10px; font-weight: bold; border-top: 2px solid #ddd;"><strong>Total:</strong></td>
                         <td style="text-align: right; padding: 10px; font-size: 1.1em; border-top: 2px solid #2c3e50;"><strong>₹{total:,.2f}</strong></td>
                       </tr>
                     </tfoot>

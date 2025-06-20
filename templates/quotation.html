@@ -47,15 +47,12 @@
               {% endif %}
             </h4>
             {% if company_email and company_email != 'undefined' and company_email != 'email@example.com' %}
-              <p class="mb-1">
+              <p class="mb-0">
                 <a href="mailto:{{ company_email }}" class="text-decoration-none">
                   {{ company_email }}
                 </a>
               </p>
             {% endif %}
-            <p class="mb-0">
-              <strong>Date:</strong> {{ today }}
-            </p>
             {% if not company_name or not company_email %}
               <div class="alert alert-warning mt-2 mb-0 p-2" style="font-size: 0.9rem;">
                 <i class="fas fa-exclamation-triangle me-1"></i>
@@ -125,15 +122,7 @@
         </tr>
       {% endfor %}
       <tr>
-        <td colspan="9" style="text-align:right; border-top: 2px solid #dee2e6;">
-          <strong>Subtotal:</strong>
-        </td>
-        <td style="border-top: 2px solid #dee2e6;">
-          <strong>₹{{ '%.2f'|format(calculations.subtotal) }}</strong>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="9" style="text-align:right">
+        <td colspan="9" style="text-align:right; border-top: 2px solid #dee2e6; font-weight: bold;">
           <strong>Total:</strong>
         </td>
         <td style="font-size: 1.1em; border-top: 2px solid #2c3e50;">

@@ -10,18 +10,17 @@
         padding: 0;
         width: 100%;
         min-height: 100vh;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     /* Container styling */
     .cart-container {
         max-width: 1200px;
-        margin: 20px auto;
-        padding: 25px;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        min-height: calc(100vh - 100px);
+        margin: 0 auto;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        min-height: calc(100vh - 80px);
     }
 
     /* Header styling */
@@ -39,13 +38,12 @@
         height: 100%;
         padding: 20px;
         margin-bottom: 20px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #eee;
         border-radius: 8px;
         background-color: #fff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
         width: 100%;
-        position: relative;
     }
 
     /* Ensure all cart items have the same structure */
@@ -75,46 +73,27 @@
         box-shadow: none;
     }
 
-    .price-details {
-        background-color: #f8fafc;
-        border-radius: 8px;
-        padding: 18px;
-        margin-top: 18px;
-        border: 1px solid #e2e8f0;
-    }
-
+    /* Price Grid Layout */
     .price-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
     .price-row {
         display: flex;
         justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .price-row:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-        margin-bottom: -5px;
-    }
-
-    .price-row.fw-bold {
-        font-size: 1.05em;
-        color: #1e293b;
+        align-items: center;
+        padding: 0.25rem 0;
     }
 
     .price-label {
-        color: #64748b;
-        font-size: 0.95em;
+        color: #6c757d;
+        font-size: 0.875rem;
     }
 
     .price-value {
         font-weight: 500;
-        color: #1e293b;
         text-align: right;
     }
 
@@ -385,7 +364,9 @@
                                             </div>
                                             <div class="price-row">
                                                 <span class="price-label">Quantity:</span>
-                                                <span class="price-value">{{ item.quantity }}</span>
+                                                <span class="price-value">
+                                                    <span class="quantity-display">{{ item.quantity }}</span>
+                                                </span>
                                             </div>
                                             <div class="price-row">
                                                 <span class="price-label">Subtotal:</span>
@@ -409,8 +390,8 @@
                                     </div>
                                     <div class="mt-3 pt-3 border-top text-end">
                                         <form class="remove-item-form d-inline" data-index="{{ loop.index0 }}">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm" style="padding: 0.3rem 0.8rem; font-size: 0.85rem; border-radius: 4px;">
-                                                <i class="fas fa-trash me-1"></i> Remove Item
+                                            <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                                <i class="fas fa-trash"></i> Remove
                                             </button>
                                         </form>
                                     </div>
@@ -433,20 +414,8 @@
             {% endif %}
             
             {% if cart.products and cart.products|length > 0 %}
-            <div class="cart-summary mt-4 p-4 bg-light rounded" style="background-color: #f8fafc !important; border: 1px solid #e2e8f0;">
-                <h5 class="mb-4" style="color: #1e293b; font-weight: 600;">Order Summary</h5>
-                <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
-                    <span class="text-muted">Subtotal:</span>
-                    <span id="cartSubtotal" class="fw-medium">₹{{ "%.2f"|format(calculations.subtotal|default(0)) }}</span>
-                </div>
-                <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
-                    <span class="text-muted">GST ({{ calculations.gst_percent|default(18) }}%):</span>
-                    <span id="cartGst" class="fw-medium">₹{{ "%.2f"|format(calculations.gst_amount|default(0)) }}</span>
-                </div>
-                <div class="d-flex justify-content-between fw-bold mt-3 pt-2" style="font-size: 1.1em;">
-                    <span>Total:</span>
-                    <span id="cartTotal" style="color: #2563eb;">₹{{ "%.2f"|format(calculations.total|default(0)) }}</span>
-                </div>
+            <div class="cart-summary mt-4" id="cartSummary">
+                <!-- Cart summary will be dynamically updated -->
             </div>
             
             <!-- Cart Footer -->
@@ -517,10 +486,10 @@
             
             // Fallback to session storage
             if (!companyName || companyName === 'Your Company') {
-                companyName = '{{ company_name|default("")|safe }}';
+                companyName = sessionStorage.getItem('companyName') || '';
             }
             if (!companyEmail || companyEmail === 'No email provided') {
-                companyEmail = '{{ company_email|default("")|safe }}';
+                companyEmail = sessionStorage.getItem('companyEmail') || '';
             }
             
             // If still no company name, show error
@@ -768,29 +737,9 @@
             return false;
         }
 
-        // Function to update cart count in the UI
-        function updateCartCount(count) {
-            const countElements = document.querySelectorAll('.cart-count');
-            countElements.forEach(el => {
-                el.style.display = count > 0 ? 'inline' : 'none';
-            });
-        }
-        
-        // Function to update cart totals in the UI
-        function updateCartTotals() {
-            // This function is now handled server-side
-            // The totals are rendered directly in the template
-            const cartItems = document.querySelectorAll('.cart-item');
-            if (cartItems.length === 0) {
-                document.getElementById('cartItems').style.display = 'none';
-                document.getElementById('emptyCart').style.display = 'block';
-                updateCartCount(0);
-            }
-        }
-        
-        // Initialize event listeners
+        // Add event listeners when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle clear cart buttons
+            // Use event delegation for clear cart buttons
             document.addEventListener('click', function(event) {
                 const clearBtn = event.target.closest('#clearCartBtn, #clearCartBtnTop');
                 if (clearBtn) {
@@ -799,14 +748,12 @@
                 }
             });
 
-            // Handle remove item buttons
+            // Existing remove form listeners
             document.querySelectorAll('.remove-item-form').forEach(form => {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const index = this.getAttribute('data-index');
-                    if (index !== null) {
-                        removeFromCart(e, parseInt(index));
-                    }
+                    const index = parseInt(this.getAttribute('data-index'));
+                    removeFromCart(e, index);
                 });
             });
         });

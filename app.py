@@ -1168,9 +1168,13 @@ def quotation_preview():
         flash('Your cart is empty', 'warning')
         return redirect(url_for('cart'))
 
-    # Get company info from session or default to empty strings
-    customer_name = session.get('company_name', '')
-    customer_email = session.get('company_email', '')
+    # Get company info from URL parameters, then session, then default to empty strings
+    customer_name = request.args.get('company', session.get('company_name', ''))
+    customer_email = request.args.get('email', session.get('company_email', ''))
+    
+    # Update session with the latest values
+    session['company_name'] = customer_name
+    session['company_email'] = customer_email
 
     # Ensure all items have required fields and calculate subtotal
     subtotal = 0

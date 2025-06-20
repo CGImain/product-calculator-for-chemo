@@ -434,7 +434,7 @@
 
     <!-- Quotation Notes & Send Section (bottom) -->
     <div class="mt-4">
-        <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary" id="sendQuotationBtnBottom">
+        <a href="#" class="btn btn-primary" id="sendQuotationBtnBottom" onclick="return goToQuotationPreview()">
             <i class="fas fa-paper-plane me-1"></i> Send Quotation
         </a>
     </div>
@@ -479,8 +479,23 @@
 // ---------------------------------------------
             // Quotation preview redirection
             // ---------------------------------------------
-        async function goToQuotationPreview() {
-            window.location.href = '/quotation_preview';
+        function goToQuotationPreview() {
+            // Get company info from session storage
+            const companyName = sessionStorage.getItem('companyName') || '';
+            const companyEmail = sessionStorage.getItem('companyEmail') || '';
+            
+            // Build URL with company info as query parameters
+            let url = "{{ url_for('quotation_preview') }}";
+            const params = new URLSearchParams();
+            if (companyName) params.append('company', companyName);
+            if (companyEmail) params.append('email', companyEmail);
+            
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+            
+            window.location.href = url;
+            return false;
         }
 
         // Show quotation section if cart has items

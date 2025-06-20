@@ -533,9 +533,16 @@ function addBlanketToCart() {
     calculations: { ...product.calculations, barPrice: product.calculations.barPrice }
   }, null, 2));
 
-  // Save to localStorage cart
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  // Initialize cart as array if it doesn't exist
+  let cart = JSON.parse(localStorage.getItem('cart'));
+  if (!cart || !Array.isArray(cart)) {
+    cart = [];
+  }
+  
+  // Add product to cart
   cart.push(product);
+  
+  // Save updated cart
   localStorage.setItem('cart', JSON.stringify(cart));
 
   // --- NEW: persist to server cart as well ---

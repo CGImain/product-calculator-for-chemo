@@ -1417,10 +1417,13 @@ def send_quotation():
             machine = p.get('machine', '')
             prod_type = p.get('type', '')
             
-            # Dimensions
+            # Dimensions (for blanket)
             length = p.get('length', 0)
             width = p.get('width', 0)
             unit = p.get('unit', '')
+            
+            # Thickness
+            thickness = p.get('thickness', '')
             
             # Pricing
             quantity = p.get('quantity', 1)
@@ -1429,14 +1432,19 @@ def send_quotation():
             gst_percent = 18.0 if p.get('type') == 'blanket' else 12.0
             gst_amount = (total_price * gst_percent) / 100
             
+            # For mpack, show size instead of dimensions
+            size = p.get('size', '')
+            dimensions_str = f"Dimensions: {size}" if size else f"Dimensions: {length} x {width} {unit}"
+            
             rows_html += f"""
                 <tr style='border-bottom: 1px solid #ddd;'>
                     <td style='padding: 8px; border: 1px solid #ddd;'>
                         {idx}. {p.get('name', '')}<br>
                         Machine: {machine}<br>
                         Type: {prod_type}<br>
-                        Dimensions: {length} x {width} {unit}<br>
-                        Bar Type: {p.get('bar_type', '')}
+                        {dimensions_str}<br>
+                        {'Thickness: ' + str(thickness) if thickness else ''}<br>
+                        Bar Type: {p.get('bar_type', '')}<br>
                         GST: {gst_percent}%
                     </td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{quantity}</td>
@@ -1472,9 +1480,6 @@ def send_quotation():
           <div style='margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;'>
             <h4 style='margin: 0 0 10px 0;'>Total Amount</h4>
             <p style='margin: 0;'>₹{sum(p.get('total_price', 0) for p in products):,.2f}</p>
-            <h4 style='margin: 0 0 10px 0;'>GST Details</h4>
-            <p style='margin: 0;'>Blanket Products (18%): ₹{sum((p.get('total_price', 0) * 18.0 / 100) for p in products if p.get('type') == 'blanket'):,.2f}</p>
-            <p style='margin: 0;'>Mpack Products (12%): ₹{sum((p.get('total_price', 0) * 12.0 / 100) for p in products if p.get('type') != 'blanket'):,.2f}</p>
           </div>
 
           <div style='margin-top: 30px; text-align: right;'>
@@ -1560,16 +1565,21 @@ def send_quotation():
             
             # Calculate total based on product type
             if prod_type == 'mpack':
-                # For mpack, use unit_price * quantity
-                unit_price = p.get('unit_price', 0)
-                discount_percent = p.get('discount_percent', 0)
-                gst_percent = p.get('gst_percent', 18)
-                
-                subtotal_val = unit_price * qty
-                discount_amount = (subtotal_val * discount_percent / 100) if discount_percent else 0
-                taxable_amount = subtotal_val - discount_amount
-                gst_amount = (taxable_amount * gst_percent / 100)
-                total_val = taxable_amount + gst_amount
+                # For mpack, use calculations from the cart if available
+                calcs = p.get('calculations', {})
+                if calcs:
+                    total_val = calcs.get('final_total', 0)
+                else:
+                    # Fallback calculation
+                    unit_price = p.get('unit_price', 0)
+                    discount_percent = p.get('discount_percent', 0)
+                    gst_percent = p.get('gst_percent', 12)  # 12% GST for mpack
+                    
+                    subtotal_val = unit_price * qty
+                    discount_amount = (subtotal_val * discount_percent / 100) if discount_percent else 0
+                    taxable_amount = subtotal_val - discount_amount
+                    gst_amount = (taxable_amount * gst_percent / 100)
+                    total_val = taxable_amount + gst_amount
                 
             elif prod_type == 'blanket':
                 # For blanket, use calculations from the cart

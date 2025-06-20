@@ -542,7 +542,7 @@ function addBlanketToCart() {
   try {
     const payload = {
       type: 'blanket',
-      name: product.name, // Add the name field
+      name: product.name,
       machine: product.machine,
       thickness: product.thickness,
       length: product.length,
@@ -554,9 +554,8 @@ function addBlanketToCart() {
       base_price: product.base_price,
       discount_percent: product.discount_percent,
       gst_percent: product.gst_percent,
-      unit_price: product.unit_price, // final unit price incl. GST
+      unit_price: product.unit_price,
       total_price: product.total_price,
-      // Include all calculations for server-side verification
       calculations: product.calculations
     };
 
@@ -565,15 +564,30 @@ function addBlanketToCart() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        if (!data.success) {
-          console.error('Server cart add failed:', data);
+        if (data.success) {
+          showToast('Success', 'Blanket added to cart!', 'success');
+          if (typeof updateCartCount === 'function') {
+            updateCartCount();
+          }
+        } else {
+          showToast('Error', data.error || 'Failed to add to cart', 'error');
+          throw new Error(data.error || 'Failed to add to cart');
         }
       })
-      .catch(err => console.error('Error calling /add_to_cart:', err));
+      .catch(err => {
+        console.error('Error adding to cart:', err);
+        showToast('Error', 'Failed to add to cart. Please try again.', 'error');
+      });
   } catch (e) {
-    console.error('Unexpected error persisting cart to server:', e);
+    console.error('Unexpected error:', e);
+    showToast('Error', 'Failed to add to cart. Please try again.', 'error');
   }
 
   showToast('Success', 'Blanket added to cart!', 'success');

@@ -1,0 +1,732 @@
+{% extends "base.html" %}
+
+{% block title %}Your Cart - WQA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Reset body margin */
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    /* Container styling */
+    .cart-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        min-height: calc(100vh - 80px);
+    }
+
+    /* Header styling */
+    .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    /* Cart item container */
+    .cart-item {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    /* Ensure all cart items have the same structure */
+    .cart-item > .item-details,
+    .mpack-product {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* Remove button styles */
+    .remove-btn {
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        padding: 5px;
+        font-size: 1.25rem;
+    }
+
+    .remove-btn:hover {
+        color: #a02d36;
+    }
+
+    .remove-btn:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    /* Price Grid Layout */
+    .price-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.25rem 0;
+    }
+
+    .price-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .price-value {
+        font-weight: 500;
+        text-align: right;
+    }
+
+    /* Responsive design */
+    @media (max-width: 767.98px) {
+        .cart-item {
+            padding: 15px;
+        }
+        
+        .product-image {
+            width: 60px;
+            height: 60px;
+        }
+    }
+
+    /* Product details */
+    .product-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 15px;
+    }
+
+    .product-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .product-details {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* Quantity controls */
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+    }
+
+    .quantity-controls .btn {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .quantity-controls .form-control {
+        height: 28px;
+        text-align: center;
+        padding: 0.25rem;
+    }
+
+    /* Cart items grid */
+    .cart-items {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        align-items: start;
+    }
+
+    @media (max-width: 768px) {
+        .cart-items {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .details-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .price-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        margin-top: 15px;
+    }
+    
+    .price-grid {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .cart-summary {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+    .empty-cart {
+        text-align: center;
+        padding: 50px 20px;
+    }
+    .empty-cart h3 {
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+    .price-breakdown {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+    .price-breakdown div {
+        margin-bottom: 5px;
+    }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="cart-container">
+        <div class="cart-header">
+            <div>
+                <h2>Cart for <span id="companyName">{{ company_name if company_name and company_name != 'undefined' else 'Your Company' }}</span></h2>
+                {% if company_email and company_email != 'undefined' and company_email != 'email@example.com' %}
+                <a href="mailto:{{ company_email }}" id="companyEmail" class="text-muted mb-0" style="text-decoration: none;">
+                    {{ company_email }}
+                </a>
+                {% else %}
+                <p class="text-muted mb-0" id="companyEmail">No email provided</p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="#" id="continueShoppingBtn" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left me-1"></i> Continue Shopping
+                </a>
+                <script>
+                    document.getElementById('continueShoppingBtn').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const companyName = sessionStorage.getItem('companyName') || '';
+                        const companyEmail = sessionStorage.getItem('companyEmail') || '';
+                        
+                        // Save company info to localStorage for the home page to access
+                        if (companyName) {
+                            localStorage.setItem('selectedCompany', JSON.stringify({
+                                name: companyName,
+                                email: companyEmail
+                            }));
+                        }
+                        
+                        // Navigate to product selection page
+                        window.location.href = '{{ url_for("product_selection") }}';
+                    });
+                </script>
+                <button type="button" class="btn btn-outline-danger" id="clearCartBtnTop"><i class="fas fa-trash me-1"></i> Clear Cart</button>
+
+                <!-- Send Quotation Button (top) -->
+                <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary ms-2" id="sendQuotationBtnTop">
+                    <i class="fas fa-paper-plane me-1"></i> Send Quotation
+                </a>
+            </div>
+        </div>
+
+        <!-- Button to remove second MPack entry -->
+        <div class="mb-3" id="removeDuplicateMpackBtn" style="display: none;">
+            <button type="button" class="btn btn-warning" onclick="removeSecondMpack()">
+                <i class="fas fa-trash me-1"></i> Remove Duplicate MPack
+            </button>
+        </div>
+
+        <div id="cartItems" class="cart-items" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
+            {% if cart.products %}
+                {% for item in cart.products %}
+                {% if item %}
+                <div class="cart-item" data-type="{{ item.type|default('') }}" data-index="{{ loop.index0 }}" {% if item.type == 'blanket' %}data-base-price="{{ item.base_price|default(0) }}" data-bar-price="{{ item.bar_price|default(0) }}" data-quantity="{{ item.quantity|default(1) }}" data-discount-percent="{{ item.discount_percent|default(0) }}" data-gst-percent="{{ item.gst_percent|default(18) }}"{% elif item.type == 'mpack' %}data-unit-price="{{ item.unit_price|default(0) }}" data-quantity="{{ item.quantity|default(1) }}" data-discount-percent="{{ item.discount_percent|default(0) }}" data-gst-percent="{{ item.gst_percent|default(18) }}" data-machine="{{ item.machine|default('') }}" data-thickness="{{ item.thickness|default('') }}" data-size="{{ item.size|default('') }}"{% endif %}>
+                    <div class="item-details w-100">
+                        <div class="row">
+                            <div class="col-12">
+                                {% if item.type == 'blanket' %}
+                                <!-- Blanket Product -->
+                                <div class="blanket-product"
+                                     data-area="{{ item.calculations.areaSqM|default(0) if item.calculations else 0 }}"
+                                     data-rate="{{ item.calculations.ratePerSqMt|default(0) if item.calculations else 0 }}"
+                                     data-base-price="{{ item.base_price|default(0) }}"
+                                     data-bar-price="{{ item.bar_price|default(0) }}"
+                                     data-quantity="{{ item.quantity|default(1) }}"
+                                     data-discount-percent="{{ item.discount_percent|default(0) }}"
+                                     data-gst-percent="{{ item.gst_percent|default(18) }}">
+                                    <div class="d-flex flex-column">
+                                        <h5 class="product-title">{{ item.name }}</h5>
+                                        <div class="product-details mb-3">
+                                            {% if item.machine %}<p class="mb-1"><strong>Machine:</strong> {{ item.machine }}</p>{% endif %}
+                                            {% if item.thickness %}<p class="mb-1"><strong>Thickness:</strong> {{ item.thickness }}mm</p>{% endif %}
+                                            {% if item.size %}<p class="mb-1"><strong>Size:</strong> {{ item.size }}</p>
+                                            {% elif item.length and item.width %}<p class="mb-1"><strong>Size:</strong> {{ item.length }}x{{ item.width }} {{ item.unit|default('mm') }}</p>{% endif %}
+                                            {% if item.bar_type %}<p class="mb-1"><strong>Barring:</strong> {{ item.bar_type }} (₹{{ "%.2f"|format(item.bar_price|default(0)) }})</p>{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="price-details mt-3 p-3 bg-light rounded">
+                                        <div class="price-grid">
+                                            <div class="price-row">
+                                                <span class="price-label">Base Price:</span>
+                                                <span class="price-value">₹{{ "%.2f"|format(item.base_price|default(0)) }}</span>
+                                            </div>
+                                            {% if item.bar_price and item.bar_price > 0 %}
+                                            <div class="price-row">
+                                                <span class="price-label">Barring:</span>
+                                                <span class="price-value">+₹{{ "%.2f"|format(item.bar_price|default(0)) }}</span>
+                                            </div>
+                                            {% endif %}
+                                            <div class="price-row">
+                                                <span class="price-label">Unit Price:</span>
+                                                <span class="price-value">₹{{ "%.2f"|format(item.unit_price|default(0)) }}</span>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label">Subtotal:</span>
+                                                <span class="price-value">₹{{ "%.2f"|format(item.calculations.subtotal|default((item.unit_price|default(0)) * (item.quantity|default(1)))) }}</span>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label">Quantity:</span>
+                                                <span class="price-value">{{ item.quantity }}</span>
+                                                <div class="d-flex justify-content-between fw-bold mt-1">
+                                                    <span>After Discount:</span>
+                                                    <span>₹{{ "%.2f"|format(item.calculations.discounted_subtotal|default(0)) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-top text-end">
+                                        <form class="remove-item-form d-inline" data-index="{{ loop.index0 }}">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% elif item.type == 'mpack' %}
+                                <!-- MPack Product -->
+                                <div class="mpack-product"
+                                     data-unit-price="{{ item.unit_price|default(0) }}"
+                                     data-quantity="{{ item.quantity|default(1) }}"
+                                     data-discount-percent="{{ item.discount_percent|default(0) }}"
+                                     data-gst-percent="{{ item.gst_percent|default(18) }}"
+                                     data-machine="{{ item.machine|default('') }}"
+                                     data-thickness="{{ item.thickness|default('') }}"
+                                     data-size="{{ item.size|default('') }}">
+                                    <div class="d-flex flex-column">
+                                        <h5 class="product-title">MPack - {{ item.name|default('MPack') }}</h5>
+                                        <div class="product-details mb-3">
+                                            {% if item.machine %}
+                                                <p class="mb-1"><strong>Machine:</strong> {{ item.machine }}</p>
+                                            {% endif %}
+                                            
+                                            {% if item.thickness %}
+                                                {% set thickness = item.thickness|string %}
+                                                <p class="mb-1"><strong>Thickness:</strong> {{ thickness }}{% if not (thickness.endswith('mm') or thickness.endswith('in') or thickness.endswith('cm') or thickness.endswith('micron')) %}{% if thickness|float >= 1 %}mm{% else %}micron{% endif %}{% endif %}</p>
+                                            {% endif %}
+                                            
+                                            {% if item.size %}
+                                                <p class="mb-1"><strong>Size:</strong> {{ item.size }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="price-details mt-3 p-3 bg-light rounded">
+                                        <div class="price-grid">
+                                            <div class="price-row">
+                                                <span class="price-label">Unit Price:</span>
+                                                <span class="price-value">₹{{ "%.2f"|format(item.unit_price|default(0)) }}</span>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label">Quantity:</span>
+                                                <span class="price-value">
+                                                    <span class="quantity-display">{{ item.quantity }}</span>
+                                                </span>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label">Subtotal:</span>
+                                                <span class="price-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1))) }}</span>
+                                            </div>
+                                            {% if item.discount_percent and item.discount_percent > 0 %}
+                                            <div class="price-row">
+                                                <span class="price-label">Discount ({{ item.discount_percent|default(0) }}%):</span>
+                                                <span class="price-value">-₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}</span>
+                                            </div>
+                                            {% endif %}
+                                            <div class="price-row">
+                                                <span class="price-label">GST ({{ item.gst_percent|default(18) }}%):</span>
+                                                <span class="price-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (item.gst_percent|default(18)) / 100) }}</span>
+                                            </div>
+                                            <div class="price-row fw-bold border-top mt-2 pt-2">
+                                                <span>Total:</span>
+                                                <span>₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (1 + (item.gst_percent|default(18)) / 100)) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-top text-end">
+                                        <form class="remove-item-form d-inline" data-index="{{ loop.index0 }}">
+                                            <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                        </form>
+                                    </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% else %}
+                <div id="emptyCart" class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                    <h4>Your cart is empty</h4>
+                    <p class="text-muted">Browse our products and add some items to your cart</p>
+                    <a href="{{ url_for('product_selection') }}" class="btn btn-outline-secondary">Continue Shopping</a>
+                </div>
+            {% endif %}
+            
+            {% if cart.products and cart.products|length > 0 %}
+            <div class="cart-summary mt-4" id="cartSummary">
+                <!-- Cart summary will be dynamically updated -->
+            </div>
+            
+            <!-- Cart Footer -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('product_selection') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                </a>
+                <div>
+                    <button type="button" class="btn btn-danger" id="clearCartBtn">
+                        <i class="fas fa-trash me-1"></i> Clear Cart
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    <!-- Quotation Notes & Send Section (bottom) -->
+    <div class="mt-4">
+        <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary" id="sendQuotationBtnBottom">
+            <i class="fas fa-paper-plane me-1"></i> Send Quotation
+        </a>
+    </div>
+
+
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+
+    <!-- Function to update company info display -->
+    <script>
+        // DOM fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to check for duplicate MPack entries
+            function checkForDuplicateMpacks() {
+                const mpackItems = Array.from(document.querySelectorAll('.cart-item[data-type="mpack"]'));
+                const removeBtn = document.getElementById('removeDuplicateMpackBtn');
+                
+                if (mpackItems.length > 1) {
+                    removeBtn.style.display = 'block';
+                } else {
+                    removeBtn.style.display = 'none';
+                }
+            }
+            
+            // Function to remove the second MPack entry
+            async function removeSecondMpack() {
+                try {
+                    const mpackItems = Array.from(document.querySelectorAll('.cart-item[data-type="mpack"]'));
+                    if (mpackItems.length > 1) {
+                        const secondMpackIndex = mpackItems[1].getAttribute('data-index');
+                        await removeFromCart(null, secondMpackIndex);
+                    }
+                } catch (error) {
+                    console.error('Error removing duplicate MPack:', error);
+                    showToast('Error', 'Failed to remove duplicate MPack', 'error');
+                }
+            }
+
+// ---------------------------------------------
+            // Quotation preview redirection
+            // ---------------------------------------------
+        async function goToQuotationPreview() {
+            window.location.href = '/quotation_preview';
+        }
+
+        // Show quotation section if cart has items
+        function toggleQuotationSection() {
+            const cartItems = document.querySelectorAll('.cart-item');
+            const section = document.getElementById('quotationSection');
+            if (cartItems.length > 0) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        // Attach handlers for Send Quotation buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            // Attach click listeners to any present Send Quotation buttons
+           // .forEach(btn => {
+               // if (btn) btn.addEventListener('click', goToQuotationPreview);
+           // });
+        });
+
+        // Function to update company info display
+            function updateCompanyDisplay(name, email) {
+                // Update company name
+                const nameEl = document.getElementById('companyName');
+                if (nameEl) {
+                    nameEl.textContent = name && name !== 'undefined' ? name : 'Your Company';
+                }
+
+                // Update company email
+                const emailEl = document.getElementById('companyEmail');
+                if (!emailEl) return;
+
+                const validEmail = email && email !== 'undefined' && email !== 'null' && email !== 'email@example.com';
+
+                if (validEmail) {
+                    // If we already have an <a>, just update it; otherwise replace <p> with <a>
+                    if (emailEl.tagName.toLowerCase() === 'a') {
+                        emailEl.href = `mailto:${email}`;
+                        emailEl.textContent = email;
+                    } else {
+                        const link = document.createElement('a');
+                        link.id = 'companyEmail';
+                        link.className = emailEl.className || 'text-muted mb-0';
+                        link.style.cssText = emailEl.getAttribute('style') || 'text-decoration: none;';
+                        link.href = `mailto:${email}`;
+                        link.textContent = email;
+                        emailEl.replaceWith(link);
+                    }
+                } else {
+                    // Invalid or missing email: ensure plain text fallback
+                    if (emailEl.tagName.toLowerCase() === 'a') {
+                        emailEl.removeAttribute('href');
+                    }
+                    emailEl.textContent = 'No email provided';
+                }
+            }
+
+            // Get company info from URL parameters or session storage
+            const urlParams = new URLSearchParams(window.location.search);
+            let companyName = urlParams.get('company');
+            let companyEmail = urlParams.get('email');
+            
+            // If we have company info in URL, save it to session storage
+            if (companyName && companyName !== 'undefined') {
+                sessionStorage.setItem('companyName', companyName);
+            }
+            if (companyEmail && companyEmail !== 'undefined') {
+                sessionStorage.setItem('companyEmail', companyEmail);
+            }
+            
+            // Get company info from session storage if not in URL
+            companyName = companyName || sessionStorage.getItem('companyName') || 'Your Company';
+            companyEmail = companyEmail || sessionStorage.getItem('companyEmail') || '';
+            
+            // Update the display with the company info
+            updateCompanyDisplay(companyName, companyEmail);
+
+            // Load cart items from localStorage
+            async function loadCartItems() {
+                try {
+                    const savedCompany = localStorage.getItem('selectedCompany');
+                    if (savedCompany) {
+                        const company = JSON.parse(savedCompany);
+                        updateCompanyDisplay(company.name, company.email);
+                    }
+                } catch (e) {
+                    console.error('Error parsing saved company:', e);
+                }
+            }
+
+            // Initial load
+            loadCartItems();
+        });
+    </script>
+    
+    <script>
+        // Add event listener for remove forms
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.remove-item-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const index = parseInt(this.getAttribute('data-index'));
+                    removeFromCart(e, index);
+                });
+            });
+        });
+
+        // Function to handle remove from cart
+        async function removeFromCart(event, productIndex) {
+            try {
+                const response = await fetch('/remove_from_cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        index: productIndex
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message
+                    showToast('Success', 'Item removed from cart', 'success');
+                    // Reload the page to reflect the changes
+                    window.location.reload();
+                } else {
+                    // Show error message
+                    showToast('Error', data.error || 'Failed to remove item from cart', 'error');
+                }
+            } catch (error) {
+                console.error('Error removing item from cart:', error);
+                showToast('Error', 'An error occurred while removing the item', 'error');
+            }
+        }
+
+        // Function to show toast notifications
+        function showToast(title, message, type = 'info') {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.style.position = 'fixed';
+                toastContainer.style.top = '20px';
+                toastContainer.style.right = '20px';
+                toastContainer.style.zIndex = '1100';
+                document.body.appendChild(toastContainer);
+            }
+
+            // Create toast
+            const toast = document.createElement('div');
+            toast.className = `toast show align-items-center text-white bg-${type} border-0`;
+            toast.role = 'alert';
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.style.marginBottom = '10px';
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <strong>${title}</strong><br>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>`;
+            
+            // Add to container and auto-remove after 5 seconds
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        // Function to handle clearing the cart
+        function handleClearCart(event) {
+            if (event) event.preventDefault();
+            
+            if (!confirm('Are you sure you want to clear your cart?')) {
+                return false;
+            }
+            
+            const csrfToken = getCSRFToken();
+            
+            fetch('/clear_cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showToast('Success', 'Cart cleared successfully', 'success');
+                    
+                    // Hide cart items and show empty cart message
+                    const cartItems = document.getElementById('cartItems');
+                    const emptyCart = document.getElementById('emptyCart');
+                    
+                    if (cartItems) cartItems.style.display = 'none';
+                    if (emptyCart) emptyCart.style.display = 'block';
+                    
+                    // Update cart count and totals
+                    updateCartCount();
+                    updateCartTotals();
+                } else {
+                    throw new Error(data.error || 'Failed to clear cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', error.message || 'An error occurred while clearing the cart', 'error');
+            });
+            
+            return false;
+        }
+
+        // Add event listeners when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Use event delegation for clear cart buttons
+            document.addEventListener('click', function(event) {
+                const clearBtn = event.target.closest('#clearCartBtn, #clearCartBtnTop');
+                if (clearBtn) {
+                    event.preventDefault();
+                    handleClearCart(event);
+                }
+            });
+
+            // Existing remove form listeners
+            document.querySelectorAll('.remove-item-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const index = parseInt(this.getAttribute('data-index'));
+                    removeFromCart(e, index);
+                });
+            });
+        });
+    </script>
+{% endblock %}

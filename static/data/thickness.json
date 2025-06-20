@@ -1,0 +1,19 @@
+{
+  "thicknesses": [
+    { "label": "1.95 mm", "value": 1.95 },
+    { "label": "1.85 mm", "value": 1.85 },
+    { "label": "1.70 mm", "value": 1.70 },
+    { "label": "1.50 mm", "value": 1.50 },
+    { "label": "1.35 mm", "value": 1.35 },
+    { "label": "1.25 mm", "value": 1.25 },
+    { "label": "1.15 mm", "value": 1.15 },
+    { "label": "1.10 mm", "value": 1.10 },
+    { "label": "1.05 mm", "value": 1.05 },
+    { "label": "1.00 mm", "value": 1.00 },
+    { "label": "0.90 mm", "value": 0.90 },
+    { "label": "0.60 mm", "value": 0.60 },
+    { "label": "0.50 mm", "value": 0.50 },
+    { "label": "0.45 mm", "value": 0.45 },
+    { "label": "1.96 mm", "value": 1.96 }
+  ]
+}

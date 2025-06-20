@@ -39,9 +39,19 @@
         <div class="card-body">
           <h5 class="card-title mb-3">Customer Information</h5>
           <div class="mb-2">
-            <h4 class="mb-2">{{ company_name if company_name and company_name != 'undefined' else 'Company Name' }}</h4>
+            <h4 class="mb-2">
+              {% if company_name and company_name != 'undefined' and company_name != 'Company Name' %}
+                {{ company_name }}
+              {% else %}
+                <span class="text-muted">No company selected</span>
+              {% endif %}
+            </h4>
             {% if company_email and company_email != 'undefined' and company_email != 'email@example.com' %}
-            <p class="text-muted mb-0">{{ company_email }}</p>
+              <p class="mb-0">
+                <a href="mailto:{{ company_email }}" class="text-decoration-none">
+                  {{ company_email }}
+                </a>
+              </p>
             {% endif %}
           </div>
         </div>

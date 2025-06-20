@@ -1,7 +1,7 @@
 {
-  "name": "wqa-app",
+  "name": "product-calculator",
   "version": "1.0.0",
-  "description": "WQA Application",
+  "description": "Product Calculator Application",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",

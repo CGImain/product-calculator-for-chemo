@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Quotation Preview - WQA{% endblock %}
+{% block title %}Quotation Preview - Product Calculator{% endblock %}
 {% block extra_css %}
 <style>
     .quote-container{max-width:900px;margin:0 auto;padding:20px;border:1px solid #ddd;background:#fff}
@@ -39,14 +39,10 @@
         <div class="card-body">
           <h5 class="card-title mb-3">Customer Information</h5>
           <div class="mb-2">
-            <strong>Customer:</strong> {{ company_name if company_name and company_name != 'undefined' else 'Your Company' }}<br>
+            <h4 class="mb-2">{{ company_name if company_name and company_name != 'undefined' else 'Company Name' }}</h4>
             {% if company_email and company_email != 'undefined' and company_email != 'email@example.com' %}
-            <strong>Email:</strong> {{ company_email }}<br>
-            {% else %}
-            <strong>Email:</strong> Not provided<br>
+            <p class="text-muted mb-0">{{ company_email }}</p>
             {% endif %}
-            <strong>Date:</strong> {{ quote_date }}<br>
-            <strong>Time:</strong> {{ quote_time }}
           </div>
         </div>
       </div>
@@ -82,17 +78,17 @@
           <td>{{ item.get('machine', '') }}</td>
           <td>{{ prod_type }}</td>
           <td>{{ item.get('blanket_type') or item.get('name','----') if prod_type == 'blanket' else '----' }}</td>
-          <td>{% if item.get('thickness') %}{{ item.thickness }}{% if item.type == 'blanket' and not (item.thickness|string).endswith('mm') and not (item.thickness|string).endswith('in') and not (item.thickness|string).endswith('cm') and not (item.thickness|string).endswith('micron') %}mm{% elif item.type == 'mpack' and not (item.thickness|string).endswith('mm') and not (item.thickness|string).endswith('in') and not (item.thickness|string).endswith('cm') and not (item.thickness|string).endswith('micron') %} micron{% endif %}{% else %}N/A{% endif %}</td>
+          <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }}{% else %}{{ item.thickness }}{% endif %}{% else %}------{% endif %}</td>
           <td>
             {% if item.get('size') %}
               {{ item.size }}
             {% elif item.get('length') and item.get('width') %}
               {{ '%sx%s%s'|format(item.length, item.width, item.get('unit', '')) }}
             {% else %}
-              N/A
+              ------
             {% endif %}
           </td>
-          <td>{{ item.get('bar_type', 'N/A') if prod_type == 'blanket' else 'N/A' }}</td>
+          <td>{{ item.get('bar_type', '------') if prod_type == 'blanket' else '------' }}</td>
           <td>{{ item.get('quantity', 1) }}</td>
           <td>{{ item.get('discount_percent', 0) }}%</td>
           <td>₹{{ '%.2f'|format(item.calculations.final_total|default(item.total_price|default(0))) }}</td>

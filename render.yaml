@@ -27,7 +27,7 @@ services:
       - key: EMAIL_FROM
         value: noreply@yourdomain.com
       - key: EMAIL_FROM_NAME
-        value: WQA App
+        value: Product Calculator
 
       # SMTP Configuration
       # Note: Set these as secret environment variables in Render dashboard

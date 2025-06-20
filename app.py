@@ -728,7 +728,18 @@ def cart():
             'total': round(total, 2)
         }
         
-        return render_template('cart.html', cart=cart_data)
+        # Get company info from query parameters or use existing session
+        company_name = request.args.get('company', session.get('company_name', ''))
+        company_email = request.args.get('email', session.get('company_email', ''))
+        
+        # Store in session for quotation preview
+        session['company_name'] = company_name
+        session['company_email'] = company_email
+        
+        return render_template('cart.html', 
+                             cart=cart_data,
+                             company_name=company_name,
+                             company_email=company_email)
         
     except Exception as e:
         print(f"Error in cart route: {e}")
@@ -1157,9 +1168,9 @@ def quotation_preview():
         flash('Your cart is empty', 'warning')
         return redirect(url_for('cart'))
 
-    selected_company = session.get('selected_company', {})
-    customer_email = selected_company.get('email', '')
-    customer_name = selected_company.get('name', '')
+    # Get company info from session or default to empty strings
+    customer_name = session.get('company_name', '')
+    customer_email = session.get('company_email', '')
 
     # Ensure all items have required fields and calculate subtotal
     subtotal = 0
@@ -1282,8 +1293,8 @@ def quotation_preview():
         'cart': cart,
         'quote_date': quote_date,
         'quote_time': quote_time,
-        'company_name': selected_company.get('name', ''),
-        'company_email': selected_company.get('email', ''),
+        'company_name': customer_name,
+        'company_email': customer_email,
         'calculations': {
             'subtotal': final_subtotal,
             'total': total

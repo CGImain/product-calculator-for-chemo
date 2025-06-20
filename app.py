@@ -898,6 +898,9 @@ def add_to_cart():
                 final_unit_price = price_after_discount + gst_amount
                 final_total = final_unit_price * quantity
                 
+                # Set the total_price field
+                product['total_price'] = round(final_total, 2)
+                
                 product['calculations'] = {
                     'unit_price': round(price, 2),
                     'discount_amount': round(discount_amount, 2),

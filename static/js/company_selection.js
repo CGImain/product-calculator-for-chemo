@@ -56,8 +56,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                     email: companyEmail
                 }));
 
-                // Set hidden form field
+                // Set hidden form fields
                 document.getElementById('selectedCompanyId').value = companyId;
+                document.getElementById('selectedCompanyName').value = companyName;
+                document.getElementById('selectedCompanyEmail').value = companyEmail;
                 
                 // Hide search results
                 searchResults.innerHTML = '';

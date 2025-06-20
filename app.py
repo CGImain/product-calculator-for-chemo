@@ -696,50 +696,66 @@ def cart():
         # Ensure products list exists
         cart_data.setdefault("products", [])
         
-        # Calculate cart totals
-        subtotal = sum(
-            float(p.get('calculations', {}).get('subtotal', 
-                  p.get('calculations', {}).get('price_after_discount', 
-                  float(p.get('price', 0)) * int(p.get('quantity', 1)))))
-            for p in cart_data['products']
-        )
+        # Calculate cart totals using the actual total field from each product
+        # Initialize variables with default values
+        subtotal = 0
+        gst_percent = 18  # Default GST percentage
+        gst_amount = 0
+        total = 0
         
-        gst_amount = sum(
-            float(p.get('calculations', {}).get('gst_amount', 0))
-            for p in cart_data['products']
-        )
+        # Only calculate if there are products
+        if cart_data.get('products'):
+            subtotal = sum(
+                float(p.get('calculations', {}).get('final_total', p.get('total', 0)))
+                for p in cart_data['products']
+            )
+            
+            # Calculate GST
+            gst_amount = (subtotal * gst_percent) / 100
+            total = subtotal + gst_amount
+            
+            # Calculate discount amount if needed
+            discount_amount = sum(
+                float(p.get('calculations', {}).get('discount_amount', 0))
+                for p in cart_data['products']
+            )
+            
+            # Add calculated totals to the cart data
+            cart_data['calculations'] = {
+                'subtotal': round(subtotal, 2),
+                'discount_amount': round(discount_amount, 2),
+                'gst_percent': gst_percent,
+                'gst_amount': round(gst_amount, 2),
+                'total': round(total, 2)
+            }
         
-        total = sum(
-            float(p.get('calculations', {}).get('final_total', 0))
-            for p in cart_data['products']
-        )
+        # Get company info from session
+        selected_company = session.get('selected_company', {})
         
-        # Calculate discount amount if needed
-        discount_amount = sum(
-            float(p.get('calculations', {}).get('discount_amount', 0))
-            for p in cart_data['products']
-        )
+        # Fallback to direct session values if not in selected_company
+        company_name = selected_company.get('name') or session.get('company_name', '')
+        company_email = selected_company.get('email') or session.get('company_email', '')
         
-        # Add calculated totals to the cart data
-        cart_data['calculations'] = {
-            'subtotal': round(subtotal, 2),
-            'discount_amount': round(discount_amount, 2),
-            'gst_amount': round(gst_amount, 2),
-            'total': round(total, 2)
-        }
+        # Ensure values are stored in both places for consistency
+        if company_name and company_email:
+            session['selected_company'] = {
+                'name': company_name,
+                'email': company_email
+            }
+            session['company_name'] = company_name
+            session['company_email'] = company_email
         
-        # Get company info from query parameters or use existing session
-        company_name = request.args.get('company', session.get('company_name', ''))
-        company_email = request.args.get('email', session.get('company_email', ''))
-        
-        # Store in session for quotation preview
-        session['company_name'] = company_name
-        session['company_email'] = company_email
-        
-        return render_template('cart.html', 
-                             cart=cart_data,
-                             company_name=company_name,
-                             company_email=company_email)
+        return render_template('cart.html',
+                           cart=cart_data,
+                           products=cart_data.get('products', []),
+                           company_name=company_name,
+                           company_email=company_email,
+                           calculations=cart_data.get('calculations', {
+                               'subtotal': 0,
+                               'gst_percent': gst_percent,
+                               'gst_amount': 0,
+                               'total': 0
+                           }))
         
     except Exception as e:
         print(f"Error in cart route: {e}")
@@ -756,14 +772,15 @@ def clear_cart():
         if current_user.is_authenticated:
             # For logged-in users, clear the cart from the database
             if USE_MONGO and MONGO_AVAILABLE and mongo_db is not None:
-                mongo_db.carts.update_one(
-                    {'user_id': str(current_user.id)},
-                    {'$set': {'products': []}},
-                    upsert=True
-                )
+                cart_store.clear_cart(str(current_user.id))
             else:
                 # Fallback to session for non-MongoDB
-                session['cart'] = {'products': []}
+                if 'cart' in session:
+                    session['cart'] = {'products': []}
+                    session.modified = True
+            
+            # Also update the user's cart in the database
+            save_user_cart({'products': []})
         else:
             # For non-logged-in users, clear the session cart
             session['cart'] = {'products': []}
@@ -1062,11 +1079,21 @@ def select_company():
         flash('Please select a company', 'danger')
         return redirect(url_for('company_selection'))
     
-    # Save company in session as dict with name placeholder (lookup by id could be added)
+    # Get company details from the form
+    company_name = request.form.get('company_name', '')
+    company_email = request.form.get('company_email', '')
+    
+    # Save company in session with all details
     session['selected_company'] = {
-        'name': company_id,
-        'email': ''
+        'id': company_id,
+        'name': company_name,
+        'email': company_email
     }
+    
+    # Also save directly in session for backward compatibility
+    session['company_name'] = company_name
+    session['company_email'] = company_email
+    
     return redirect(url_for('product_selection'))
 
 @app.route('/get_companies')
@@ -1168,13 +1195,19 @@ def quotation_preview():
         flash('Your cart is empty', 'warning')
         return redirect(url_for('cart'))
 
-    # Get company info from URL parameters, then session, then default to empty strings
-    customer_name = request.args.get('company', session.get('company_name', ''))
-    customer_email = request.args.get('email', session.get('company_email', ''))
+    # Get company info from selected_company dict first, then fallback to direct session values
+    selected_company = session.get('selected_company', {})
+    customer_name = selected_company.get('name', session.get('company_name', ''))
+    customer_email = selected_company.get('email', session.get('company_email', ''))
     
-    # Update session with the latest values
-    session['company_name'] = customer_name
-    session['company_email'] = customer_email
+    # Ensure values are stored in both places for consistency
+    if customer_name and customer_email:
+        session['selected_company'] = {
+            'name': customer_name,
+            'email': customer_email
+        }
+        session['company_name'] = customer_name
+        session['company_email'] = customer_email
 
     # Ensure all items have required fields and calculate subtotal
     subtotal = 0
@@ -1250,7 +1283,7 @@ def quotation_preview():
                 'subtotal': round(subtotal, 2),
                 'discount_percent': discount_percent,
                 'discount_amount': round(discount_amount, 2),
-                'discounted_subtotal': round(price_after_discount, 2),
+                'price_after_discount': round(price_after_discount, 2),
                 'gst_percent': gst_percent,
                 'gst_amount': round(gst_amount, 2),
                 'final_total': round(final_total, 2)
@@ -1333,20 +1366,39 @@ def send_quotation():
         if not customer_email:
             return jsonify({'error': 'Customer email not available'}), 400
 
-        recipients = [customer_email, 'info@chemo.in']
+        # Send to customer and MD's desk
+        recipients = [customer_email, 'md.desk@chemo.in']
 
-        # Build quotation HTML
-        quote_id = f"CGI-{int(datetime.utcnow().timestamp()*1000)}"
-        today = datetime.utcnow().strftime('%d/%m/%Y')
-        valid_until = (datetime.utcnow() + timedelta(days=7)).strftime('%d/%m/%Y')
+        # Get current date and time
+        current_datetime = datetime.utcnow()
+        today = current_datetime.strftime('%d-%m-%Y')
+        current_time = current_datetime.strftime('%H:%M:%S')
 
         # Table rows
-        rows_html = ""
+        rows_html = """
+        <table style='width: 100%; border-collapse: collapse; margin: 20px 0; font-family: Arial, sans-serif;'>
+            <thead>
+                <tr>
+                    <th style='padding: 8px; text-align: left; border: 1px solid #ddd;'>#</th>
+                    <th style='padding: 8px; text-align: left; border: 1px solid #ddd;'>Machine</th>
+                    <th style='padding: 8px; text-align: left; border: 1px solid #ddd;'>Product</th>
+                    <th style='padding: 8px; text-align: left; border: 1px solid #ddd;'>Type</th>
+                    <th style='padding: 8px; text-align: left; border: 1px solid #ddd;'>Thickness</th>
+                    <th style='padding: 8px; text-align: left; border: 1px solid #ddd;'>Size</th>
+                    <th style='padding: 8px; text-align: left; border: 1px solid #ddd;'>Barring</th>
+                    <th style='padding: 8px; text-align: right; border: 1px solid #ddd;'>Qty</th>
+                    <th style='padding: 8px; text-align: right; border: 1px solid #ddd;'>Disc %</th>
+                    <th style='padding: 8px; text-align: right; border: 1px solid #ddd;'>Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+        """
+        
         subtotal = 0
         for idx, p in enumerate(products, start=1):
             machine = p.get('machine', '')
             prod_type = p.get('type', '')
-            blanket_type = p.get('blanket_type', '----') if prod_type == 'blanket' else '----'
+            
             # Dimensions
             if p.get('size'):
                 dimensions = p['size']
@@ -1354,93 +1406,161 @@ def send_quotation():
                 length = p.get('length') or ''
                 width = p.get('width') or ''
                 unit = p.get('unit', '')
-                dimensions = f"{length}x{width}{unit}" if length and width else ''
-            barring_type = p.get('bar_type', '----') if prod_type == 'blanket' else '----'
+                dimensions = f"{length} x {width} {unit}" if length and width else '----'
+            
             qty = p.get('quantity', 1)
-            discount_percent = p.get('discount_percent', 0)
-            # Total
-            total_val = 0
-            calcs = p.get('calculations', {})
-            if calcs:
-                total_val = calcs.get('final_total') or calcs.get('finalTotal') or calcs.get('discountedSubtotal') or 0
+            
+            # Calculate total based on product type matching quotation_preview logic
+            p.setdefault('type', '')
+            p.setdefault('quantity', 1)
+            p.setdefault('discount_percent', 0)
+            p.setdefault('gst_percent', 18)  # Default GST for mpack
+            p.setdefault('unit_price', 0)
+            p.setdefault('base_price', 0)
+            p.setdefault('bar_price', 0)
+            
+            if p['type'] == 'mpack':
+                # Calculate mpack total matching cart template's approach
+                price = float(p.get('unit_price', 0))
+                quantity = int(p.get('quantity', 1))
+                discount_percent = float(p.get('discount_percent', 0))
+                gst_percent = float(p.get('gst_percent', 18))
+                
+                item_subtotal = price * quantity
+                discount_amount = (item_subtotal * discount_percent / 100) if discount_percent else 0
+                price_after_discount = item_subtotal - discount_amount
+                gst_amount = (price_after_discount * gst_percent / 100) if gst_percent else 0
+                final_total = price_after_discount + gst_amount
+                
+                # Store calculations in the item
+                p['calculations'] = {
+                    'unit_price': round(price, 2),
+                    'quantity': quantity,
+                    'subtotal': round(item_subtotal, 2),
+                    'discount_percent': discount_percent,
+                    'discount_amount': round(discount_amount, 2),
+                    'price_after_discount': round(price_after_discount, 2),
+                    'gst_percent': gst_percent,
+                    'gst_amount': round(gst_amount, 2),
+                    'final_total': round(final_total, 2)
+                }
+                item_total = final_total
+                
+            elif p['type'] == 'blanket':
+                # Calculate blanket total matching cart template's approach
+                base_price = float(p.get('base_price', 0))
+                bar_price = float(p.get('bar_price', 0))
+                quantity = int(p.get('quantity', 1))
+                discount_percent = float(p.get('discount_percent', 0))
+                gst_percent = float(p.get('gst_percent', 18))
+                
+                # Calculate unit price as base + bar price
+                unit_price = base_price + bar_price
+                
+                # Calculate subtotal (unit price * quantity)
+                item_subtotal = unit_price * quantity
+                
+                # Calculate discount amount
+                discount_amount = (item_subtotal * discount_percent / 100) if discount_percent else 0
+                
+                # Calculate price after discount
+                price_after_discount = item_subtotal - discount_amount
+                
+                # Calculate GST on discounted amount
+                gst_amount = (price_after_discount * gst_percent / 100) if gst_percent else 0
+                
+                # Calculate final total including GST
+                final_total = price_after_discount + gst_amount
+                
+                # Store calculations in the item
+                p['calculations'] = {
+                    'base_price': round(base_price, 2),
+                    'bar_price': round(bar_price, 2),
+                    'unit_price': round(unit_price, 2),
+                    'quantity': quantity,
+                    'subtotal': round(item_subtotal, 2),
+                    'discount_percent': discount_percent,
+                    'discount_amount': round(discount_amount, 2),
+                    'price_after_discount': round(price_after_discount, 2),
+                    'gst_percent': gst_percent,
+                    'gst_amount': round(gst_amount, 2),
+                    'final_total': round(final_total, 2)
+                }
+                item_total = final_total
             else:
-                total_val = p.get('unit_price', 0) * qty
-            subtotal += total_val
+                # Handle other product types
+                price = float(p.get('unit_price', 0))
+                quantity = int(p.get('quantity', 1))
+                discount_percent = float(p.get('discount_percent', 0))
+                gst_percent = float(p.get('gst_percent', 0))
+                
+                item_subtotal = price * quantity
+                discount_amount = (item_subtotal * discount_percent / 100) if discount_percent else 0
+                discounted_subtotal = item_subtotal - discount_amount
+                gst_amount = (discounted_subtotal * gst_percent / 100) if gst_percent else 0
+                final_total = discounted_subtotal + gst_amount
+                
+                p['calculations'] = {
+                    'unit_price': round(price, 2),
+                    'quantity': quantity,
+                    'subtotal': round(item_subtotal, 2),
+                    'discount_percent': discount_percent,
+                    'discount_amount': round(discount_amount, 2),
+                    'gst_percent': gst_percent,
+                    'gst_amount': round(gst_amount, 2),
+                    'final_total': round(final_total, 2)
+                }
+                item_total = final_total
+            
+            # Add to running subtotal
+            subtotal += item_total
+            
             rows_html += f"""
-            <tr>
-                <td>{idx}</td>
-                <td>{machine}</td>
-                <td>{prod_type}</td>
-                <td>{blanket_type}</td>
-                <td>{dimensions}</td>
-                <td>{barring_type}</td>
-                <td>{qty}</td>
-                <td>{discount_percent}%</td>
-                <td>₹{total_val:,.2f}</td>
-            </tr>
+                <tr>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{idx}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{machine}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('product', '')}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{prod_type}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '')}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{dimensions}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('barring', '')}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>{int(p.get('quantity', 1))}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>{p.get('discount_percent', 0)}%</td>
+                    <td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>₹{p['calculations']['final_total']:,.2f}</td>
+                </tr>
             """
-
-        # Build full HTML
-        quotation_html = f"""
-        <div style='font-family: Arial, sans-serif; color: #333; border: 1px solid #ddd; padding: 20px; max-width: 800px; margin: auto;'>
-          <h2 style='text-align: center;'>QUOTATION</h2>
-          <table style='width: 100%; margin-bottom: 20px;'>
-            <tr>
-              <td>
-                <strong>CGI - Chemo Graphics India</strong><br>
-                123 Print Lane, Mumbai, India<br>
-                Email: info@chemo.in
-              </td>
-              <td style='text-align: right;'>
-                <strong>Quote #:</strong> {quote_id}<br>
-                <strong>Date:</strong> {today}
-              </td>
-            </tr>
-          </table>
-          <div style='margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;'>
-            <p><strong>To:</strong> {selected_company.get('name', '')}</p>
-            <p><strong>Email:</strong> {customer_email}</p>
-          </div>
-          <p>Hello,<br><br>This is <strong>{current_user.username}</strong> from CGI.<br>Here is the proposed quotation for the required products:</p>
-          {f'<p><strong>Notes:</strong><br>{notes}</p>' if notes else ''}
-          <table style='width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;'>
-            <thead>
-              <tr style='background-color: #2c3e50; color: white;'>
-                <th style='padding: 10px; text-align: left;'>#</th>
-                <th style='padding: 10px; text-align: left;'>Machine</th>
-                <th style='padding: 10px; text-align: left;'>Product</th>
-                <th style='padding: 10px; text-align: left;'>Type</th>
-                <th style='padding: 10px; text-align: left;'>Size</th>
-                <th style='padding: 10px; text-align: left;'>Barring</th>
-                <th style='padding: 10px; text-align: right;'>Qty</th>
-                <th style='padding: 10px; text-align: right;'>Disc %</th>
-                <th style='padding: 10px; text-align: right;'>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows_html}
+        
+        # Close table body and add totals row
+        rows_html += f"""
             </tbody>
             <tfoot>
-              <tr>
-                <td colspan='8' style='text-align: right; padding: 10px; border-top: 2px solid #ddd;'><strong>Subtotal:</strong></td>
-                <td style='text-align: right; padding: 10px; border-top: 2px solid #ddd;'><strong>₹{subtotal:,.2f}</strong></td>
-              </tr>
-              <tr>
-                <td colspan='8' style='text-align: right; padding: 10px;'><strong>Total:</strong></td>
-                <td style='text-align: right; padding: 10px; font-size: 1.1em;'><strong>₹{subtotal:,.2f}</strong></td>
-              </tr>
+                <tr>
+                    <td colspan="8" style="text-align: right; padding: 8px; border: 1px solid #ddd;"><strong>Subtotal:</strong></td>
+                    <td style="text-align: right; padding: 8px; border: 1px solid #ddd; font-weight: bold;">₹{final_subtotal:,.2f}</td>
+                </tr>
+                <tr>
+                    <td colspan="8" style="text-align: right; padding: 8px; border: 1px solid #ddd;"><strong>Total:</strong></td>
+                    <td style="text-align: right; padding: 8px; border: 1px solid #ddd; font-weight: bold;">₹{final_subtotal:,.2f}</td>
+                </tr>
             </tfoot>
-          </table>
-          <p style='margin-top: 20px;'>Thank you for your business!<br>— Team CGI</p>
-          <hr>
-          <small>
-            This quotation is not a contract or invoice. It is our best estimate.
-          </small>
-        </div>
-        """
-
-        # Total is same as subtotal since amounts already include any taxes
-        total = subtotal
+        </table>
+        
+        <div style="margin-top: 30px; margin-bottom: 30px;">
+            <p>Thank you for your business!<br>— Team CGI</p>
+            <p>For more information, please contact: info@chemo.in</p>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                This quotation is not a contract or invoice. It is our best estimate.
+            </p>
+        </div>"""
+        
+        # Calculate final total by summing up all item final_totals to match quotation_preview
+        final_subtotal = 0
+        for p in products:
+            final_subtotal += p.get('calculations', {}).get('final_total', 0)
+        
+        # Round to 2 decimal places for display
+        final_subtotal = round(final_subtotal, 2)
+        total = final_subtotal
         
         # Email sending
         if not email_config_valid:
@@ -1448,116 +1568,234 @@ def send_quotation():
 
         subject = f"CGI Quotation - {quote_id}"
         try:
+            # Create message container
             msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
-            msg['From'] = f"{EMAIL_FROM_NAME or 'CGI'} <{EMAIL_FROM}>"
+            msg['From'] = f"{EMAIL_FROM_NAME} <{EMAIL_FROM}>"
             msg['To'] = ', '.join(recipients)
             
-            # Build email body with proper styling
-            email_body = f"""
-            <div style="font-family: Arial, sans-serif; color: #333; max-width: 800px; margin: 0 auto;">
-                <h2 style="text-align: center; color: #2c3e50;">QUOTATION</h2>
-                
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
-                    <div>
-                        <strong>CGI - Chemo Graphics India</strong><br>
-                        123 Print Lane, Mumbai, India<br>
-                        Email: info@chemo.in
+            # Create the HTML version of the message
+            html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Quotation</title>
+                <style>
+                    body {{ 
+                        font-family: Arial, sans-serif; 
+                        line-height: 1.6;
+                        color: #333;
+                        margin: 0;
+                        padding: 0;
+                    }}
+                    .container {{ 
+                        max-width: 800px; 
+                        margin: 0 auto; 
+                        padding: 30px;
+                    }}
+                    .header {{ 
+                        margin-bottom: 20px;
+                        padding-bottom: 10px;
+                        border-bottom: 2px solid #eee;
+                    }}
+                    .header h2 {{
+                        margin: 0 0 10px 0;
+                        color: #2c3e50;
+                    }}
+                    .company-info {{
+                        margin-bottom: 20px;
+                        line-height: 1.5;
+                    }}
+                    .quote-info {{
+                        margin: 25px 0;
+                        padding: 15px;
+                        background-color: #f9f9f9;
+                        border-radius: 5px;
+                        border-left: 4px solid #3498db;
+                    }}
+                    table {{ 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin: 25px 0;
+                        font-size: 14px;
+                    }}
+                    th, td {{ 
+                        padding: 12px 8px; 
+                        text-align: left; 
+                        border: 1px solid #e0e0e0;
+                    }}
+                    th {{ 
+                        background-color: #f8f9fa;
+                        font-weight: 600;
+                        color: #2c3e50;
+                    }}
+                    tr:nth-child(even) {{
+                        background-color: #f9f9f9;
+                    }}
+                    .total-row {{ 
+                        font-weight: bold;
+                        background-color: #f1f8ff !important;
+                    }}
+                    .footer {{ 
+                        margin-top: 40px;
+                        padding-top: 20px;
+                        border-top: 1px solid #eee;
+                        font-size: 0.9em;
+                        color: #666;
+                    }}
+                    .signature {{
+                        margin: 30px 0 20px 0;
+                        padding-top: 20px;
+                        border-top: 1px solid #eee;
+                    }}
+                    .disclaimer {{
+                        font-size: 0.8em;
+                        color: #999;
+                        font-style: italic;
+                        margin-top: 30px;
+                        padding-top: 15px;
+                        border-top: 1px solid #f0f0f0;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h2>QUOTATION</h2>
+                        <div class="company-info">
+                            <strong>CGI - Chemo Graphics India</strong><br>
+                            123 Print Lane, Mumbai, India<br>
+                            Email: info@chemo.in
+                        </div>
                     </div>
-                    <div style="text-align: right;">
-                        <strong>Quote #:</strong> {quote_id}<br>
-                        <strong>Date:</strong> {today}<br>
-                        <strong>Customer ID:</strong> {customer_email}
+                    
+                    <div class="quote-info">
+                        <p><strong>To:</strong> {selected_company.get('name', '')}<br>
+                        <strong>Email:</strong> {customer_email}<br>
+                        <strong>Date:</strong> {today}</p>
                     </div>
-                </div>
-                
-                <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
-                    <p><strong>To:</strong> {selected_company.get('name', '')}</p>
-                    <p><strong>Email:</strong> {customer_email}</p>
-                </div>
-                
-                <p>Hello,<br><br>This is <strong>{current_user.username}</strong> from CGI.<br>Here is the proposed quotation for the required products:</p>
-                
-                {f'<p><strong>Notes:</strong><br>{notes}</p>' if notes else ''}
-                
-                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
-                    <thead>
-                        <tr style="background-color: #2c3e50; color: white;">
-                            <th style="padding: 10px; text-align: left;">#</th>
-                            <th style="padding: 10px; text-align: left;">Description</th>
-                            <th style="padding: 10px; text-align: right;">Qty</th>
-                            <th style="padding: 10px; text-align: right;">Rate</th>
-                            <th style="padding: 10px; text-align: right;">Amount</th>
-                        </tr>
+                    
+                    <p>Hello,</p>
+                    
+                    <p>This is test from CGI.<br>
+                    Here is the proposed quotation for the required products:</p>
+                    
+                    {rows_html}
+                    
+                    <div class="signature">
+                        <p>Thank you for your business!<br>
+                        <strong>— Team CGI</strong></p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>For more information, please contact: <a href="mailto:info@chemo.in" style="color: #3498db; text-decoration: none;">info@chemo.in</a></p>
+                        <p class="disclaimer">
+                            This quotation is not a contract or invoice. It is our best estimate.
+                        </p>
+                    </div>
+                        <th style="padding: 10px; text-align: right;">Qty</th>
+                        <th style="padding: 10px; text-align: right;">Disc %</th>
+                        <th style="padding: 10px; text-align: right;">Amount (₹)</th>
+                      </tr>
                     </thead>
                     <tbody>
-            """
-            
-            # Add products to email body
-            for idx, p in enumerate(products, 1):
-                description = f"{p.get('machine', '')} - {p.get('type', '')}"
-                if p.get('blanket_type'):
-                    description += f" ({p.get('blanket_type')})"
-                if p.get('size'):
-                    description += f" - {p['size']}"
-                elif p.get('length') and p.get('width'):
-                    description += f" - {p['length']}x{p['width']}{p.get('unit', '')}"
-                
-                qty = p.get('quantity', 1)
-                rate = p.get('unit_price', 0)
-                amount = p.get('total', 0) if p.get('type') == 'blanket' else rate * qty
-                
-                email_body += f"""
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 10px;">{idx}</td>
-                    <td style="padding: 10px;">{description}</td>
-                    <td style="padding: 10px; text-align: right;">{qty}</td>
-                    <td style="padding: 10px; text-align: right;">₹{rate:,.2f}</td>
-                    <td style="padding: 10px; text-align: right;">₹{amount:,.2f}</td>
-                </tr>
-                """
-            
-            # Add totals (GST already included in item totals)
-            email_body += f"""
+                      {''.join([f'''
+                      <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;">{idx}</td>
+                        <td style="padding: 10px;">{p.get('machine', '')}</td>
+                        <td style="padding: 10px;">{p.get('type', '')}</td>
+                        <td style="padding: 10px;">{p.get('blanket_type', '----')}</td>
+                        <td style="padding: 10px;">{p.get('thickness', '----')}</td>
+                        <td style="padding: 10px;">{p.get('size', '') or (f"{p.get('length', '')} x {p.get('width', '')} {p.get('unit', '')}" if p.get('length') and p.get('width') else '')}</td>
+                        <td style="padding: 10px;">{p.get('bar_type', '----')}</td>
+                        <td style="padding: 10px; text-align: right;">{p.get('quantity', 1)}</td>
+                        <td style="padding: 10px; text-align: right;">{p.get('discount_percent', 0)}%</td>
+                        <td style="padding: 10px; text-align: right;">₹{p.get('total', 0):,.2f}</td>
+                      </tr>''' for idx, p in enumerate(products, 1)])}
                     </tbody>
                     <tfoot>
-                        <tr>
-                            <td colspan="4" style="text-align: right; padding: 10px; border-top: 2px solid #ddd;"><strong>Subtotal:</strong></td>
-                            <td style="text-align: right; padding: 10px; border-top: 2px solid #ddd;"><strong>₹{subtotal:,.2f}</strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan="4" style="text-align: right; padding: 10px;"><strong>Total:</strong></td>
-                            <td style="text-align: right; padding: 10px; font-size: 1.1em; border-top: 2px solid #2c3e50;"><strong>₹{total:,.2f}</strong></td>
-                        </tr>
+                      <tr>
+                        <td colspan="9" style="text-align: right; padding: 10px; border-top: 2px solid #ddd;"><strong>Subtotal:</strong></td>
+                        <td style="text-align: right; padding: 10px; border-top: 2px solid #ddd;"><strong>₹{subtotal:,.2f}</strong></td>
+                      </tr>
+                      <tr>
+                        <td colspan="9" style="text-align: right; padding: 10px;"><strong>Total:</strong></td>
+                        <td style="text-align: right; padding: 10px; font-size: 1.1em; border-top: 2px solid #2c3e50;"><strong>₹{total:,.2f}</strong></td>
+                      </tr>
                     </tfoot>
-                </table>
-                
-                <div style="margin-top: 30px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; font-size: 0.9em; color: #666;">
-                    <p>Thank you for your business!<br>— Team CGI</p>
-                    <p style="margin-top: 10px; font-size: 0.9em;">
-                        <em>This quotation is not a contract or invoice. It is our best estimate.</em>
-                    </p>
+                  </table>
+                  
+                  <p style="margin-top: 20px;">Thank you for your business!<br>— Team CGI</p>
+                  <p>For more information, please contact: <a href="mailto:info@cgi.in">info@cgi.in</a></p>
+                  <hr>
+                  <small>This quotation is not a contract or invoice. It is our best estimate.</small>
                 </div>
-            </div>
+              </body>
+            </html>
             """
+
+            # Attach HTML version
+            part = MIMEText(html, 'html')
+            msg.attach(part)
+
+            # Send the email
+            if SMTP_PORT == 465:
+                server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            else:
+                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+                
+            # Set debug level to see SMTP communication
+            server.set_debuglevel(1)
             
-            msg.attach(MIMEText(email_body, 'html'))
-
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                if SMTP_USERNAME and SMTP_PASSWORD:
+            # Start TLS if needed (for ports 587 and 25)
+            if SMTP_PORT in [587, 25]:
+                server.starttls()
+                
+            # Login only if credentials are provided
+            if SMTP_USERNAME and SMTP_PASSWORD:
+                try:
                     server.login(SMTP_USERNAME, SMTP_PASSWORD)
-                server.sendmail(EMAIL_FROM, recipients, msg.as_string())
+                except smtplib.SMTPNotSupportedError as e:
+                    print(f"SMTP AUTH not supported by server: {e}")
+                    # Continue without authentication if not supported
+            
+            # Send the email
+            server.send_message(msg)
+            server.quit()
+            
+            # Clear the cart after successful email send
+            try:
+                if current_user.is_authenticated:
+                    if USE_MONGO and mongo_db:
+                        mongo_db.carts.delete_one({'user_id': str(current_user.id)})
+                    else:
+                        # Fallback to session-based cart
+                        if 'cart' in session:
+                            session.pop('cart')
+                return jsonify({'success': True, 'message': 'Quotation sent successfully'})
+            except Exception as clear_error:
+                app.logger.error(f"Error clearing cart after sending quotation: {clear_error}")
+                return jsonify({
+                    'success': True, 
+                    'message': 'Quotation sent but there was an error clearing the cart. Please clear it manually.'
+                })
+            
+        except smtplib.SMTPException as e:
+            print(f"SMTP Error: {e}")
+            return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
+            
         except Exception as e:
-            print(f"Error sending quotation email: {e}")
-            return jsonify({'error': 'Failed to send email'}), 500
-
-        return jsonify({'success': True})
-
+            print(f"Unexpected error sending email: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': 'Internal server error'}), 500
+            
     except Exception as e:
-        print(f"send_quotation error: {e}")
+        print(f"Error in send_quotation: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': 'An unexpected error occurred while processing your request'}), 500
 
 @app.route('/api/request-otp', methods=['POST'])
 def api_request_otp():

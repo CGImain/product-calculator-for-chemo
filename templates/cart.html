@@ -214,22 +214,12 @@
 
 {% block content %}
     <div class="cart-container">
+        <!-- Include company info component -->
+        {% include 'components/company_info.html' %}
+        
         <div class="cart-header">
             <div>
-                <h2>Cart for <span id="companyName">{{ company_name if company_name and company_name != 'undefined' else 'Your Company' }}</span></h2>
-                <div id="companyInfo">
-                    {% if company_email and company_email != 'undefined' and company_email != 'email@example.com' %}
-                    <a href="mailto:{{ company_email }}" id="companyEmail" class="text-muted mb-0" style="text-decoration: none;">
-                        {{ company_email }}
-                    </a>
-                    {% else %}
-                    <p class="text-muted mb-0" id="companyEmail">No email provided</p>
-                    {% endif %}
-                </div>
-                <button id="changeCompanyBtn" class="btn btn-sm btn-link p-0 mt-1" style="font-size: 0.85rem;">
-                    <i class="fas fa-edit me-1"></i>Change Company
-                </button>
-            </div>
+                <h2>Cart</h2>
             <div>
                 <a href="#" id="continueShoppingBtn" class="btn btn-outline-secondary me-2">
                     <i class="fas fa-arrow-left me-1"></i> Continue Shopping

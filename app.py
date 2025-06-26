@@ -780,55 +780,45 @@ def cart():
                 'total': round(total, 2)
             }
         
-        # Get company info with proper fallbacks
-        selected_company = session.get('selected_company', {})
-        
-        # Get company name with fallbacks
-        company_name = (
-            selected_company.get('name') or 
-            session.get('company_name') or 
-            (hasattr(current_user, 'company_name') and current_user.company_name) or
-            (current_user.company_id and get_company_name_by_id(current_user.company_id)) or 
-            'Your Company'
-        )
-        
-        # Get company email with fallbacks
-        company_email = (
-            selected_company.get('email') or 
-            session.get('company_email') or
-            (hasattr(current_user, 'company_email') and current_user.company_email) or
-            (current_user.company_id and get_company_email_by_id(current_user.company_id)) or 
-            ''
-        )
-        
-        # Ensure session is updated with the latest values
-        if company_name and company_name != 'Your Company':
-            session['company_name'] = company_name
-            session['company_email'] = company_email
-            session['selected_company'] = {
-                'name': company_name,
-                'email': company_email
-            }
-            session.modified = True
+        # Ensure company info is in session (same as product pages)
+        if 'selected_company' not in session:
+            # Try to get company info from user data
+            company_data = {}
+            if hasattr(current_user, 'company_id') and current_user.company_id:
+                company_data = {
+                    'id': current_user.company_id,
+                    'name': getattr(current_user, 'company_name', ''),
+                    'email': getattr(current_user, 'company_email', '')
+                }
+            else:
+                # Fallback to session values if available
+                company_data = {
+                    'id': session.get('company_id', ''),
+                    'name': session.get('company_name', 'Not selected'),
+                    'email': session.get('company_email', '')
+                }
             
+            session['selected_company'] = company_data
+            session['company_name'] = company_data['name']
+            session['company_email'] = company_data['email']
+            session.modified = True
+        
         # Log the company info for debugging
-        app.logger.info(f"Cart - Company: {company_name}, Email: {company_email}")
+        app.logger.info(f"Cart - Company: {session.get('company_name')}, Email: {session.get('company_email')}")
+        
         return render_template('cart.html',
                            cart=cart_data,
-                            products=cart_data.get('products', []),
-                            company_name=company_name,
-                            company_email=company_email,
-                            # Calculate GST rates for each product
-                            products_with_gst=[
-                                {**p, 'gst_percent': 18.0 if p.get('type') == 'blanket' else 12.0}
-                                for p in cart_data.get('products', [])
-                            ],
-                            calculations=cart_data.get('calculations', {
-                                'subtotal': 0,
-                                'gst_percent': 0,  # Will be calculated per product
-                                'gst_amount': 0,
-                                'total': 0
-                            }))
+                           products=cart_data.get('products', []),
+                           products_with_gst=[
+                               {**p, 'gst_percent': 18.0 if p.get('type') == 'blanket' else 12.0}
+                               for p in cart_data.get('products', [])
+                           ],
+                           calculations=cart_data.get('calculations', {
+                               'subtotal': 0,
+                               'gst_percent': 0,
+                               'gst_amount': 0,
+                               'total': 0
+                           }))
         
     except Exception as e:
         error_msg = f"Error in cart route: {str(e)}"

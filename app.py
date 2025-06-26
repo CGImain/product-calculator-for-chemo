@@ -1195,7 +1195,7 @@ def select_company():
                         'updated_at': datetime.utcnow()
                     }}
                 )
-                app.logger.info(f"MongoDB update result: {result.modified_count} documents modified")
+                app.logger.info(f"MongoDB update result: {result.matched_count} documents modified")
             else:
                 # Fallback to JSON storage
                 users = _load_users_json()
@@ -1404,7 +1404,7 @@ def update_user_company():
                 {'_id': current_user.id},
                 {'$set': {'company_id': company_id}}
             )
-            if result.modified_count == 0:
+            if result.matched_count == 0:
                 return jsonify({'status': 'error', 'message': 'User not found or no changes made'}), 404
         else:
             # Update in JSON file
@@ -1467,7 +1467,7 @@ def update_company():
                     'company_email': company_email
                 }}
             )
-            if result.modified_count == 0:
+            if result.matched_count == 0:
                 return jsonify({'status': 'error', 'message': 'User not found or no changes made'}), 404
         else:
             # Update in JSON file

@@ -492,19 +492,16 @@ logging.basicConfig(
 # Suppress Flask debug pin console output
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
-# Ensure app is only initialized once
-if not hasattr(sys, 'app_initialized'):
-    sys.app_initialized = True
-    app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
-    app.secret_key = os.getenv('SECRET_KEY', 'dev-key-123')
-    app.logger.info("Flask app initialized")
-    app.logger.info("Registering routes...")
-else:
-    app.logger.warning("App already initialized - skipping initialization")
-
-# Get the existing app instance
+# Create Flask app instance
 app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
+
+# Configure session
 app.secret_key = os.getenv('SECRET_KEY', 'dev-key-123')
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Helps with CSRF protection
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)  # Session expires after 1 day
 
 # Add regex_search filter to Jinja2 environment
 @app.template_filter('regex_search')
@@ -515,7 +512,6 @@ def regex_search_filter(s, pattern):
     return bool(re.search(pattern, str(s)))
 
 app.logger.info("Flask app initialized")
-app.logger.info("Registering routes...")
 
 # Initialize cart store
 # -------------------- Cart storage abstractions --------------------
@@ -1169,30 +1165,77 @@ def product_selection():
     return render_template('product_selection.html')
 
 
-@app.route('/select_company', methods=['POST'])
+@app.route('/select_company', methods=['GET', 'POST'])
 @login_required
 def select_company():
-    company_id = request.form.get('company')
-    if not company_id:
-        flash('Please select a company', 'danger')
-        return redirect(url_for('company_selection'))
+    app.logger.info(f"Select company request: {request.method}")
     
-    # Get company details from the form
-    company_name = request.form.get('company_name', '')
-    company_email = request.form.get('company_email', '')
+    if request.method == 'POST':
+        try:
+            # Verify CSRF token
+            if not request.form.get('csrf_token') or request.form.get('csrf_token') != session.get('_csrf_token'):
+                app.logger.warning("CSRF token validation failed")
+                flash('Invalid request. Please try again.', 'error')
+                return redirect(url_for('company_selection'))
+            
+            # Get form data
+            company_id = request.form.get('company_id')
+            company_name = request.form.get('company_name')
+            company_email = request.form.get('company_email')
+            
+            app.logger.info(f"Company selection - ID: {company_id}, Name: {company_name}")
+            
+            if not all([company_id, company_name, company_email]):
+                app.logger.warning("Missing company information in form")
+                flash('Please select a valid company', 'error')
+                return redirect(url_for('company_selection'))
+            
+            # Update user's company in the database
+            if USE_MONGO and MONGO_AVAILABLE:
+                result = users_col.update_one(
+                    {'_id': current_user.id},
+                    {'$set': {
+                        'company_id': company_id,
+                        'company_name': company_name,
+                        'company_email': company_email,
+                        'updated_at': datetime.utcnow()
+                    }}
+                )
+                app.logger.info(f"MongoDB update result: {result.modified_count} documents modified")
+            else:
+                # Fallback to JSON storage
+                users = _load_users_json()
+                user_id_str = str(current_user.id)
+                if user_id_str in users:
+                    users[user_id_str]['company_id'] = company_id
+                    users[user_id_str]['company_name'] = company_name
+                    users[user_id_str]['company_email'] = company_email
+                    _save_users_json(users)
+            
+            # Update session
+            session['company_id'] = company_id
+            session['company_name'] = company_name
+            session['company_email'] = company_email
+            session['selected_company'] = {
+                'id': company_id,
+                'name': company_name,
+                'email': company_email
+            }
+            
+            # Ensure session is saved
+            session.modified = True
+            
+            app.logger.info(f"Company selected: {company_name} ({company_id})")
+            flash('Company selected successfully!', 'success')
+            return redirect(url_for('product_selection'))
+            
+        except Exception as e:
+            app.logger.error(f"Error in select_company: {str(e)}", exc_info=True)
+            flash('An error occurred while processing your request. Please try again.', 'error')
+            return redirect(url_for('company_selection'))
     
-    # Save company in session with all details
-    session['selected_company'] = {
-        'id': company_id,
-        'name': company_name,
-        'email': company_email
-    }
-    
-    # Also save directly in session for backward compatibility
-    session['company_name'] = company_name
-    session['company_email'] = company_email
-    
-    return redirect(url_for('product_selection'))
+    # For GET requests, just render the template
+    return render_template('company_selection.html', csrf_token=session.get('_csrf_token', ''))
 
 # ------------------------------------------------------------------
 # AJAX endpoint used by company_selector.js to update selected company
@@ -1252,9 +1295,17 @@ def api_update_company():
 @app.route('/get_companies')
 @login_required
 def get_companies():
+    app.logger.info(f"Current user: {current_user}, is_authenticated: {current_user.is_authenticated}")
+    app.logger.info(f"Session data: {dict(session)}")
+    
+    if not current_user.is_authenticated:
+        app.logger.error("User not authenticated for /get_companies")
+        return jsonify({'error': 'Authentication required'}), 401
+        
     try:
         # Load companies from static JSON file
         file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+        app.logger.info(f"Loading companies from: {file_path}")
         with open(file_path, 'r', encoding='utf-8') as f:
             companies = json.load(f)
             

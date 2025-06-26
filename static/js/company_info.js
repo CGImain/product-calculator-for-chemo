@@ -122,6 +122,16 @@
       });
    }
 
+   function reset() {
+      bar.style.display = 'flex';
+      searchBox.style.display = 'none';
+      searchInput.value = '';
+      searchResults.innerHTML = '';
+      searchResults.style.display = 'none';
+      confirmBtn.disabled = true;
+      selected = null;
+   }
+
    async function updateCompany(company) {
       try {
         const response = await fetch('/update_company', {

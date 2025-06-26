@@ -26,12 +26,14 @@
     },
     {
       "id": 5,
+      "unused": true,
       "name": "Image Underlay Black - Indian",
       "ratePerSqMt": 1015,
       "ratePerSqYard": 849
     },
     {
       "id": 6,
+      "unused": true,
       "name": "Image Under Black - Imported",
       "ratePerSqMt": 2870,
       "ratePerSqYard": 2400
@@ -74,18 +76,21 @@
     },
     {
       "id": 13,
+      "unused": true,
       "name": "MTech Underlay - 0.6",
       "ratePerSqMt": 2870,
       "ratePerSqYard": 2400
     },
     {
       "id": 14,
+      "unused": true,
       "name": "MTech Underlay - 0.8",
       "ratePerSqMt": 2870,
       "ratePerSqYard": 2400
     },
     {
       "id": 15,
+      "unused": true,
       "name": "MTech Underlay - 1.0",
       "ratePerSqMt": 2870,
       "ratePerSqYard": 2400
@@ -116,6 +121,7 @@
     },
     {
       "id": 20,
+      "unused": true,
       "name": "Sava Advantage Plus",
       "ratePerSqMt": 7650,
       "ratePerSqYard": 6396
@@ -140,9 +146,66 @@
     },
     {
       "id": 24,
+      "unused": true,
       "name": "Sava Advantage UV Red",
       "ratePerSqMt": 8785,
       "ratePerSqYard": 7345
+    },
+    {
+      "id": 25,
+      "name": "MTech Primo SF",
+      "ratePerSqMt": null,
+      "ratePerSqYard": null,
+      "needsRates": true
+    },
+    {
+      "id": 26,
+      "name": "MTech Active PKG",
+      "ratePerSqMt": null,
+      "ratePerSqYard": null,
+      "needsRates": true
+    },
+    {
+      "id": 27,
+      "name": "MTech Web Press",
+      "ratePerSqMt": null,
+      "ratePerSqYard": null,
+      "needsRates": true
+    },
+    {
+      "id": 28,
+      "name": "MTech Web X Press",
+      "ratePerSqMt": null,
+      "ratePerSqYard": null,
+      "needsRates": true
+    },
+    {
+      "id": 29,
+      "name": "MTech Web Primo",
+      "ratePerSqMt": null,
+      "ratePerSqYard": null,
+      "needsRates": true
+    },
+    {
+      "id": 30,
+      "name": "MTech Strip Plate PLY",
+      "ratePerSqMt": null,
+      "ratePerSqYard": null,
+      "needsRates": true
+    },
+    {
+      "id": 31,
+      "name": "MTech Strip Plate PLR",
+      "ratePerSqMt": null,
+      "ratePerSqYard": null,
+      "needsRates": true
+    },
+    {
+      "id": 32,
+      "name": "MTech Strip Plate UV Black",
+      "ratePerSqMt": null,
+      "ratePerSqYard": null,
+      "needsRates": true
     }
   ]
 }

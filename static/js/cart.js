@@ -146,9 +146,64 @@ function showToast(title, message, type = 'info') {
     }, 5000);
 }
 
+// Update company display in the cart
+function updateCompanyDisplay(name, email) {
+    const companyNameEl = document.getElementById('companyName');
+    const companyInfoEl = document.getElementById('companyInfo');
+    
+    if (name && name !== 'undefined' && name !== 'Your Company') {
+        companyNameEl.textContent = name;
+    } else {
+        companyNameEl.textContent = 'Your Company';
+    }
+    
+    if (email && email !== 'undefined' && email !== 'email@example.com') {
+        companyInfoEl.innerHTML = `<a href="mailto:${email}" id="companyEmail" class="text-muted mb-0" style="text-decoration: none;">${email}</a>`;
+    } else {
+        companyInfoEl.innerHTML = '<p class="text-muted mb-0" id="companyEmail">No email provided</p>';
+    }
+}
+
+// Initialize company info from session storage
+function initCompanyInfo() {
+    const storedCompany = localStorage.getItem('selectedCompany');
+    if (storedCompany) {
+        try {
+            const company = JSON.parse(storedCompany);
+            updateCompanyDisplay(company.name, company.email);
+        } catch (e) {
+            console.error('Error parsing stored company:', e);
+        }
+    }
+}
+
 // Initialize cart when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing cart...');
+    
+    // Initialize company info
+    initCompanyInfo();
+    
+    // Handle change company button click
+    const changeCompanyBtn = document.getElementById('changeCompanyBtn');
+    if (changeCompanyBtn) {
+        changeCompanyBtn.addEventListener('click', function() {
+            // Redirect to product selection page which will handle company change
+            window.location.href = '/select-product';
+        });
+    }
+    
+    // Listen for storage events to update company info when changed in other tabs
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'selectedCompany') {
+            try {
+                const company = JSON.parse(event.newValue);
+                updateCompanyDisplay(company.name, company.email);
+            } catch (e) {
+                console.error('Error handling storage event:', e);
+            }
+        }
+    });
     
     // Initialize cart handlers
     initializeCartCalculations();

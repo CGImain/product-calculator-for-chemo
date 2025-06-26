@@ -217,13 +217,18 @@
         <div class="cart-header">
             <div>
                 <h2>Cart for <span id="companyName">{{ company_name if company_name and company_name != 'undefined' else 'Your Company' }}</span></h2>
-                {% if company_email and company_email != 'undefined' and company_email != 'email@example.com' %}
-                <a href="mailto:{{ company_email }}" id="companyEmail" class="text-muted mb-0" style="text-decoration: none;">
-                    {{ company_email }}
-                </a>
-                {% else %}
-                <p class="text-muted mb-0" id="companyEmail">No email provided</p>
-                {% endif %}
+                <div id="companyInfo">
+                    {% if company_email and company_email != 'undefined' and company_email != 'email@example.com' %}
+                    <a href="mailto:{{ company_email }}" id="companyEmail" class="text-muted mb-0" style="text-decoration: none;">
+                        {{ company_email }}
+                    </a>
+                    {% else %}
+                    <p class="text-muted mb-0" id="companyEmail">No email provided</p>
+                    {% endif %}
+                </div>
+                <button id="changeCompanyBtn" class="btn btn-sm btn-link p-0 mt-1" style="font-size: 0.85rem;">
+                    <i class="fas fa-edit me-1"></i>Change Company
+                </button>
             </div>
             <div>
                 <a href="#" id="continueShoppingBtn" class="btn btn-outline-secondary me-2">
@@ -450,6 +455,58 @@
     <script>
         // DOM fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize company info from session storage if available
+            function initCompanyInfo() {
+                const storedCompany = localStorage.getItem('selectedCompany');
+                if (storedCompany) {
+                    try {
+                        const company = JSON.parse(storedCompany);
+                        updateCompanyDisplay(company.name, company.email);
+                    } catch (e) {
+                        console.error('Error parsing stored company:', e);
+                    }
+                }
+            }
+
+            // Update company display
+            function updateCompanyDisplay(name, email) {
+                const companyNameEl = document.getElementById('companyName');
+                const companyEmailEl = document.getElementById('companyEmail');
+                const companyInfoEl = document.getElementById('companyInfo');
+                
+                if (name && name !== 'undefined' && name !== 'Your Company') {
+                    companyNameEl.textContent = name;
+                } else {
+                    companyNameEl.textContent = 'Your Company';
+                }
+                
+                if (email && email !== 'undefined' && email !== 'email@example.com') {
+                    companyInfoEl.innerHTML = `<a href="mailto:${email}" id="companyEmail" class="text-muted mb-0" style="text-decoration: none;">${email}</a>`;
+                } else {
+                    companyInfoEl.innerHTML = '<p class="text-muted mb-0" id="companyEmail">No email provided</p>';
+                }
+            }
+            
+            // Handle change company button click
+            document.getElementById('changeCompanyBtn').addEventListener('click', function() {
+                // Redirect to product selection page which will handle company change
+                window.location.href = '{{ url_for("product_selection") }}';
+            });
+            
+            // Listen for storage events to update company info when changed in other tabs
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'selectedCompany') {
+                    try {
+                        const company = JSON.parse(event.newValue);
+                        updateCompanyDisplay(company.name, company.email);
+                    } catch (e) {
+                        console.error('Error handling storage event:', e);
+                    }
+                }
+            });
+            
+            // Initialize company info
+            initCompanyInfo();
             // Function to check for duplicate MPack entries
             function checkForDuplicateMpacks() {
                 const mpackItems = Array.from(document.querySelectorAll('.cart-item[data-type="mpack"]'));

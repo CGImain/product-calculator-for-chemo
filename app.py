@@ -1491,10 +1491,15 @@ def update_company():
             users[user_id]['updated_at'] = datetime.utcnow().isoformat()
             save_users(users)
         
-        # Update session
+        # Update session with company information
         session['company_id'] = company_id
         session['company_name'] = company_name
         session['company_email'] = company_email
+        session['selected_company'] = {
+            'id': company_id,
+            'name': company_name,
+            'email': company_email
+        }
         session.modified = True  # Ensure session is saved
         
         return jsonify({

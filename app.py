@@ -1918,20 +1918,6 @@ def send_quotation():
         # Table rows
         rows_html = """
         <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
-            <thead>
-                <tr style='background-color: #f5f5f5; text-align: left;'>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Item</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Machine</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Product</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Type</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Thickness</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Size</th>
-                    <th style='padding: 8px; border: 1px solid #ddd;'>Barring</th>
-                    <th style='padding: 8px; text-align: right; border: 1px solid #ddd;'>Qty</th>
-                    <th style='padding: 8px; text-align: right; border: 1px solid #ddd;'>Disc %</th>
-                    <th style='padding: 8px; text-align: right; border: 1px solid #ddd;'>Amount (₹)</th>
-                </tr>
-            </thead>
             <tbody>
         """
         

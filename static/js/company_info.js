@@ -46,11 +46,12 @@
    }
 
    // Event handlers
-   changeBtn && changeBtn.addEventListener('click', async ()=>{
-     await loadCompanies();
-     bar.style.display='none';
-     searchBox.style.display='block';
-     searchInput.focus();
+   changeBtn && changeBtn.addEventListener('click', async () => {
+      await loadCompanies();
+      bar.style.display = 'none';
+      searchBox.style.display = 'block';
+      searchResults.style.display = 'block';
+      searchInput.focus();
    });
 
    cancelBtn && cancelBtn.addEventListener('click', ()=>{
@@ -62,30 +63,63 @@
      updateCompany(selected);
    });
 
-   searchInput && searchInput.addEventListener('input', e=>{
-     const term = e.target.value.toLowerCase();
-     const filtered = companies.filter(c=> (c.name && c.name.toLowerCase().includes(term)) || (c.email && c.email.toLowerCase().includes(term)));
-     renderResults(filtered);
-   });
-
-   function renderResults(list){
-     searchResults.innerHTML = list.map(c=>`<div class="search-item" data-id="${c.id}" data-name="${c.name}" data-email="${c.email||''}">${c.name}${c.email?`<br><small class='text-muted'>${c.email}</small>`:''}</div>`).join('');
-     searchResults.querySelectorAll('.search-item').forEach(item=>{
-        item.addEventListener('click', ()=>{
-          selected = {id:item.dataset.id,name:item.dataset.name,email:item.dataset.email};
-          searchInput.value = selected.name;
-          confirmBtn.disabled = false;
-        });
-     });
+   // Debounced search input handler
+   function debounce(fn, delay = 300) {
+      let t;
+      return (...args) => {
+         clearTimeout(t);
+         t = setTimeout(() => fn.apply(this, args), delay);
+      };
    }
 
-   function reset(){
-      bar.style.display='flex';
-      searchBox.style.display='none';
-      searchInput.value='';
-      searchResults.innerHTML='';
-      confirmBtn.disabled=true;
-      selected=null;
+   searchInput && searchInput.addEventListener('input', debounce(e => {
+      const term = e.target.value.trim().toLowerCase();
+
+      if (!term) {
+         searchResults.innerHTML = '';
+         searchResults.style.display = 'none';
+         confirmBtn.disabled = true;
+         return;
+      }
+
+      // Filter companies
+      const filtered = companies.filter(c => (c.name && c.name.toLowerCase().includes(term)) || (c.email && c.email.toLowerCase().includes(term)));
+
+      // Sort relevance (startsWith first)
+      filtered.sort((a, b) => {
+         const aName = a.name.toLowerCase();
+         const bName = b.name.toLowerCase();
+         const aMatch = aName.startsWith(term) ? 0 : 1;
+         const bMatch = bName.startsWith(term) ? 0 : 1;
+         if (aMatch !== bMatch) return aMatch - bMatch;
+         return aName.localeCompare(bName);
+      });
+
+      renderResults(filtered);
+   }));
+
+   function renderResults(list) {
+      if (!list.length) {
+         searchResults.innerHTML = '<div class="p-2 text-muted">No results found</div>';
+         searchResults.style.display = 'block';
+         return;
+      }
+
+      searchResults.innerHTML = list.map(c => `
+         <div class="search-item p-2 border-bottom" data-id="${c.id}" data-name="${c.name}" data-email="${c.email || ''}">
+            <div class="fw-bold">${c.name}</div>
+            <div class="small text-muted">${c.email || ''}</div>
+         </div>`).join('');
+      searchResults.style.display = 'block';
+
+      searchResults.querySelectorAll('.search-item').forEach(item => {
+         item.addEventListener('click', () => {
+            selected = { id: item.dataset.id, name: item.dataset.name, email: item.dataset.email };
+            searchInput.value = selected.name;
+            confirmBtn.disabled = false;
+            searchResults.style.display = 'none';
+         });
+      });
    }
 
    async function updateCompany(company) {
@@ -106,6 +140,15 @@
           // Update the display with the new company info
           nameDisplay.textContent = company.name || 'Not selected';
           emailDisplay.textContent = company.email || '';
+
+          // Persist on client side for other pages (cart, etc.)
+          if (window.sessionStorage) {
+             sessionStorage.setItem('companyName', company.name || '');
+             sessionStorage.setItem('companyEmail', company.email || '');
+          }
+          if (window.localStorage) {
+             localStorage.setItem('selectedCompany', JSON.stringify({ name: company.name, email: company.email, id: company.id }));
+          }
           
           // Show a success message (optional)
           showToast('Company updated successfully', 'success');

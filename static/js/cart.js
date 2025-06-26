@@ -68,8 +68,7 @@ function addToCart(item, event) {
     fetch('/add_to_cart', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken()
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(item)
     })
@@ -346,15 +345,6 @@ function removeCartItem(index) {
     });
 }
 
-function getCSRFToken() {
-    // Get CSRF token from cookie or meta tag
-    const cookieValue = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-    
-    return cookieValue || document.querySelector('meta[name="csrf-token"]')?.content;
-}
 
 // Calculate product prices based on type (without quantity handling)
 function calculateProductPrices(container) {

@@ -214,9 +214,6 @@
 
 {% block content %}
     <div class="cart-container">
-        <!-- Include company info component -->
-        {% include 'components/company_info.html' %}
-        
         <div class="cart-header">
             <div>
                 <h2>Cart</h2>
@@ -248,8 +245,7 @@
                 <!-- Send Quotation Button (top) -->
                 <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary ms-2" id="sendQuotationBtnTop">
                     <i class="fas fa-paper-plane me-1"></i> Send Quotation
-                </a>
-            </div>
+                </a>            </div>
         </div>
 
         <!-- Button to remove second MPack entry -->
@@ -415,12 +411,41 @@
             </div>
             
             <!-- Cart Footer -->
-            <div class="d-flex justify-content-end mt-4">
+            <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+                <a href="#" id="continueShoppingBtnBottom" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Continue Shopping
+                </a>
+
+                <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary" id="sendQuotationBtn">
+                    <i class="fas fa-paper-plane me-1"></i> Send Quotation
+                </a>
+
                 <button type="button" class="btn btn-danger" id="clearCartBtn">
                     <i class="fas fa-trash me-1"></i> Clear Cart
                 </button>
             </div>
-            {% endif %}
+
+            <script>
+                // Continue Shopping (bottom) click handler
+                document.addEventListener('DOMContentLoaded', function () {
+                    const btn = document.getElementById('continueShoppingBtnBottom');
+                    if (btn) {
+                        btn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            const companyName = sessionStorage.getItem('companyName') || '';
+                            const companyEmail = sessionStorage.getItem('companyEmail') || '';
+                            if (companyName) {
+                                localStorage.setItem('selectedCompany', JSON.stringify({
+                                    name: companyName,
+                                    email: companyEmail
+                                }));
+                            }
+                            window.location.href = '{{ url_for("product_selection") }}';
+                        });
+                    }
+                });
+            </script>
+            </div>            {% endif %}
         </div>
 
     </div>

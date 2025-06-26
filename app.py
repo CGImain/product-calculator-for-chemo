@@ -1208,7 +1208,8 @@ def api_update_company():
 
     # Load companies list from JSON file
     try:
-        with open('static/data/company_emails.json', 'r') as f:
+        file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+        with open(file_path, 'r') as f:
             companies = json.load(f)
     except Exception as e:
         app.logger.error(f"Error reading company_emails.json: {e}")
@@ -1253,7 +1254,8 @@ def api_update_company():
 def get_companies():
     try:
         # Load companies from static JSON file
-        with open('static/data/company_emails.json', 'r', encoding='utf-8') as f:
+        file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+        with open(file_path, 'r', encoding='utf-8') as f:
             companies = json.load(f)
             
         # Create a list to store unique companies (by email)
@@ -2560,7 +2562,8 @@ def reset_password_page():
 def get_company_name_by_id(company_id):
     """Get company name by ID from company_emails.json"""
     try:
-        with open('static/data/company_emails.json', 'r') as f:
+        file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+        with open(file_path, 'r') as f:
             companies = json.load(f)
             # Convert company_id to int if it's a string
             try:
@@ -2579,7 +2582,8 @@ def get_company_name_by_id(company_id):
 def get_company_email_by_id(company_id):
     """Get company email by ID from company_emails.json"""
     try:
-        with open('static/data/company_emails.json', 'r') as f:
+        file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+        with open(file_path, 'r') as f:
             companies = json.load(f)
             # Convert company_id to int if it's a string
             try:

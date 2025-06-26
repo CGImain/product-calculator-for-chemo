@@ -382,6 +382,17 @@ function updateCartItemQuantity(index, newQuantity) {
 
 function removeCartItem(index) {
     console.log('Attempting to remove item at index:', index);
+    const itemElement = document.querySelector(`.cart-item[data-index="${index}"]`);
+    
+    if (!itemElement) {
+        console.error('Item element not found in DOM');
+        showToast('Error', 'Item not found in cart', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const originalContent = itemElement.innerHTML;
+    itemElement.innerHTML = '<td colspan="10" class="text-center py-3"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div> Removing item...</td>';
     
     fetch('/remove_from_cart', {
         method: 'POST',
@@ -404,20 +415,56 @@ function removeCartItem(index) {
     .then(data => {
         console.log('Remove from cart response:', data);
         if (data.success) {
+            // Remove the item from the UI
+            itemElement.remove();
+            
+            // Update cart count
+            updateCartCount(data.cart_count || 0);
+            
+            // Update totals
+            updateCartTotals();
+            
             // Show success message
             showToast('Success', 'Item removed from cart', 'success');
             
-            // Reload the page to reflect changes
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            // Check if cart is empty and show empty message if needed
+            const cartItems = document.querySelectorAll('.cart-item');
+            if (cartItems.length === 0) {
+                document.getElementById('emptyCart').style.display = 'block';
+                document.getElementById('cartItems').style.display = 'none';
+                document.getElementById('cartTotals').style.display = 'none';
+                document.getElementById('checkoutSection').style.display = 'none';
+            }
+            
+            // Update any other UI elements that might depend on cart items
+            updateAllItemIndices();
         } else {
             throw new Error(data.error || 'Failed to remove item');
         }
     })
     .catch(error => {
         console.error('Error removing item:', error);
+        // Restore original content on error
+        itemElement.innerHTML = originalContent;
         showToast('Error', error.message || 'An error occurred while removing the item', 'error');
+    });
+}
+
+function updateAllItemIndices() {
+    // Update data-index attributes of all cart items to match their new positions
+    const items = document.querySelectorAll('.cart-item');
+    items.forEach((item, index) => {
+        item.setAttribute('data-index', index);
+        // Update any remove buttons or other elements that might reference the index
+        const removeBtn = item.querySelector('.remove-item-btn');
+        if (removeBtn) {
+            removeBtn.setAttribute('data-index', index);
+            removeBtn.onclick = function() {
+                if (confirm('Are you sure you want to remove this item from your cart?')) {
+                    removeCartItem(index);
+                }
+            };
+        }
     });
 }
 

@@ -1,0 +1,46 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #fff8e1 0%, #e0caa9 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 2rem 0;
+  min-height: 100vh;
+}
+
+select,
+.form-select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+/* Better responsiveness on small screens */
+@media (max-width: 600px) {
+  body {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  select,
+  .form-select {
+    font-size: 1rem;
+  }
+}

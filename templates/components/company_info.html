@@ -1,0 +1,23 @@
+{# Sleek company info bar with change and confirm flow #}
+<div id="companyInfoWrapper">
+    <!-- Display bar -->
+    <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
+        <div>
+            <span class="fw-semibold" id="companyNameDisplay">{{ session.get('company_name', 'Not selected') }}</span>
+            <small class="text-muted ms-2" id="companyEmailDisplay">{{ session.get('company_email', '') }}</small>
+        </div>
+        <button class="btn btn-sm btn-link" id="companyChangeBtn"><i class="bi bi-pencil"></i> Change</button>
+    </div>
+
+    <!-- Search box -->
+    <div id="companySearchBox" class="mb-3" style="display: none;">
+        <div class="position-relative">
+            <input type="text" class="form-control" id="companySearchInput" placeholder="Search company by name or email">
+            <div id="companySearchResults" class="search-results"></div>
+        </div>
+        <div class="mt-2 d-flex justify-content-end">
+            <button class="btn btn-outline-secondary btn-sm me-2" id="companyCancelBtn">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="companyConfirmBtn" disabled>Confirm</button>
+        </div>
+    </div>
+</div>

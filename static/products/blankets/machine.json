@@ -1,0 +1,32 @@
+{
+  "machines": [
+    { "id": 2, "name": "Heidelberg CD 102" },
+    { "id": 3, "name": "Heidelberg CD 74" },
+    { "id": 4, "name": "Heidelberg CS 92" },
+    { "id": 5, "name": "Heidelberg CX 102" },
+    { "id": 6, "name": "Heidelberg SM 102" },
+    { "id": 7, "name": "Heidelberg SM 72" },
+    { "id": 8, "name": "Heidelberg SORDZ" },
+    { "id": 9, "name": "Heidelberg" },
+    { "id": 10, "name": "KBA Rapida 104" },
+    { "id": 11, "name": "KBA Rapida 105" },
+    { "id": 12, "name": "KBA Rapida 106" },
+    { "id": 13, "name": "Komori" },
+    { "id": 14, "name": "Komori E 29" },
+    { "id": 15, "name": "Komori L 26" },
+    { "id": 16, "name": "Komori L 28" },
+    { "id": 17, "name": "Komori L 32" },
+    { "id": 18, "name": "Komori L 40" },
+    { "id": 19, "name": "Komori L 428" },
+    { "id": 20, "name": "Komori LS 629" },
+    { "id": 21, "name": "News Line" },
+    { "id": 22, "name": "Orient" },
+    { "id": 23, "name": "Man Roland 700" },
+    { "id": 24, "name": "Ryobi 920" },
+    { "id": 25, "name": "RYOBI" },
+    { "id": 26, "name": "CFC Grapha" },
+    { "id": 27, "name": "City Line" },
+    { "id": 28, "name": "Gravure Proofing Press" },
+    { "id": 29, "name": "Harris - V15D" }
+  ]
+}

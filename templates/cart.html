@@ -442,213 +442,35 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 
-    <!-- Function to update company info display -->
     <script>
         // DOM fully loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize company info from session storage if available
-            function initCompanyInfo() {
-                const storedCompany = localStorage.getItem('selectedCompany');
-                if (storedCompany) {
-                    try {
-                        const company = JSON.parse(storedCompany);
-                        updateCompanyDisplay(company.name, company.email);
-                    } catch (e) {
-                        console.error('Error parsing stored company:', e);
-                    }
-                }
-            }
-
-            // Update company display
-            function updateCompanyDisplay(name, email) {
-                const companyNameEl = document.getElementById('companyName');
-                const companyEmailEl = document.getElementById('companyEmail');
-                const companyInfoEl = document.getElementById('companyInfo');
-                
-                if (name && name !== 'undefined' && name !== 'Your Company') {
-                    companyNameEl.textContent = name;
-                } else {
-                    companyNameEl.textContent = 'Your Company';
-                }
-                
-                if (email && email !== 'undefined' && email !== 'email@example.com') {
-                    companyInfoEl.innerHTML = `<a href="mailto:${email}" id="companyEmail" class="text-muted mb-0" style="text-decoration: none;">${email}</a>`;
-                } else {
-                    companyInfoEl.innerHTML = '<p class="text-muted mb-0" id="companyEmail">No email provided</p>';
-                }
-            }
+            // Company info is now handled by the company_info.js component
+            // The component will handle initialization and updates from session storage
             
-            // Handle change company button click
-            document.getElementById('changeCompanyBtn').addEventListener('click', function() {
-                // Redirect to product selection page which will handle company change
-                window.location.href = '{{ url_for("product_selection") }}';
-            });
-            
-            // Listen for storage events to update company info when changed in other tabs
+            // Listen for storage events to update cart display if needed
             window.addEventListener('storage', function(event) {
                 if (event.key === 'selectedCompany') {
                     try {
                         const company = JSON.parse(event.newValue);
-                        updateCompanyDisplay(company.name, company.email);
+                        // The company info component will handle the display
+                        // This is just here for any cart-specific updates if needed
                     } catch (e) {
                         console.error('Error handling storage event:', e);
                     }
                 }
             });
             
-            // Initialize company info
-            initCompanyInfo();
-            // Function to check for duplicate MPack entries
-            function checkForDuplicateMpacks() {
-                const mpackItems = Array.from(document.querySelectorAll('.cart-item[data-type="mpack"]'));
-                const removeBtn = document.getElementById('removeDuplicateMpackBtn');
-                
-                if (mpackItems.length > 1) {
-                    removeBtn.style.display = 'block';
-                } else {
-                    removeBtn.style.display = 'none';
-                }
-            }
+            // Check for duplicate MPack entries
+            checkForDuplicateMpacks();
             
-            // Function to remove the second MPack entry
-            async function removeSecondMpack() {
-                try {
-                    const mpackItems = Array.from(document.querySelectorAll('.cart-item[data-type="mpack"]'));
-                    if (mpackItems.length > 1) {
-                        const secondMpackIndex = mpackItems[1].getAttribute('data-index');
-                        await removeFromCart(null, secondMpackIndex);
-                    }
-                } catch (error) {
-                    console.error('Error removing duplicate MPack:', error);
-                    showToast('Error', 'Failed to remove duplicate MPack', 'error');
-                }
-            }
-
-// ---------------------------------------------
-            // Quotation preview redirection
-            // ---------------------------------------------
-        function goToQuotationPreview() {
-            // First try to get from the page elements
-            let companyName = document.getElementById('companyName')?.textContent || '';
-            let companyEmail = document.getElementById('companyEmail')?.textContent || '';
+            // Handle remove duplicate MPack button click
+            document.getElementById('removeDuplicateMpackBtn')?.addEventListener('click', removeSecondMpack);
             
-            // Fallback to session storage
-            if (!companyName || companyName === 'Your Company') {
-                companyName = sessionStorage.getItem('companyName') || '';
-            }
-            if (!companyEmail || companyEmail === 'No email provided') {
-                companyEmail = sessionStorage.getItem('companyEmail') || '';
-            }
+            // Toggle quotation section based on cart items
+            toggleQuotationSection();
             
-            // If still no company name, show error
-            if (!companyName || companyName === 'Your Company') {
-                alert('Please select a company first');
-                window.location.href = '{{ url_for("company_selection") }}';
-                return false;
-            }
-            
-            // Build URL with company info as query parameters
-            let url = "{{ url_for('quotation_preview') }}";
-            const params = new URLSearchParams();
-            if (companyName) params.append('company', companyName);
-            if (companyEmail) params.append('email', companyEmail);
-            
-            // Add a timestamp to prevent caching
-            params.append('t', new Date().getTime());
-            
-            window.location.href = url + '?' + params.toString();
-            return false;
-        }
-
-        // Show quotation section if cart has items
-        function toggleQuotationSection() {
-            const cartItems = document.querySelectorAll('.cart-item');
-            const section = document.getElementById('quotationSection');
-            if (cartItems.length > 0) {
-                section.style.display = 'block';
-            } else {
-                section.style.display = 'none';
-            }
-        }
-
-        // Attach handlers for Send Quotation buttons
-        document.addEventListener('DOMContentLoaded', () => {
-            // Attach click listeners to any present Send Quotation buttons
-           // .forEach(btn => {
-               // if (btn) btn.addEventListener('click', goToQuotationPreview);
-           // });
-        });
-
-        // Function to update company info display
-            function updateCompanyDisplay(name, email) {
-                // Update company name
-                const nameEl = document.getElementById('companyName');
-                if (nameEl) {
-                    nameEl.textContent = name && name !== 'undefined' ? name : 'Your Company';
-                }
-
-                // Update company email
-                const emailEl = document.getElementById('companyEmail');
-                if (!emailEl) return;
-
-                const validEmail = email && email !== 'undefined' && email !== 'null' && email !== 'email@example.com';
-
-                if (validEmail) {
-                    // If we already have an <a>, just update it; otherwise replace <p> with <a>
-                    if (emailEl.tagName.toLowerCase() === 'a') {
-                        emailEl.href = `mailto:${email}`;
-                        emailEl.textContent = email;
-                    } else {
-                        const link = document.createElement('a');
-                        link.id = 'companyEmail';
-                        link.className = emailEl.className || 'text-muted mb-0';
-                        link.style.cssText = emailEl.getAttribute('style') || 'text-decoration: none;';
-                        link.href = `mailto:${email}`;
-                        link.textContent = email;
-                        emailEl.replaceWith(link);
-                    }
-                } else {
-                    // Invalid or missing email: ensure plain text fallback
-                    if (emailEl.tagName.toLowerCase() === 'a') {
-                        emailEl.removeAttribute('href');
-                    }
-                    emailEl.textContent = 'No email provided';
-                }
-            }
-
-            // Get company info from URL parameters or session storage
-            const urlParams = new URLSearchParams(window.location.search);
-            let companyName = urlParams.get('company');
-            let companyEmail = urlParams.get('email');
-            
-            // If we have company info in URL, save it to session storage
-            if (companyName && companyName !== 'undefined') {
-                sessionStorage.setItem('companyName', companyName);
-            }
-            if (companyEmail && companyEmail !== 'undefined') {
-                sessionStorage.setItem('companyEmail', companyEmail);
-            }
-            
-            // Get company info from session storage if not in URL
-            companyName = companyName || sessionStorage.getItem('companyName') || 'Your Company';
-            companyEmail = companyEmail || sessionStorage.getItem('companyEmail') || '';
-            
-            // Update the display with the company info
-            updateCompanyDisplay(companyName, companyEmail);
-
-            // Load cart items from localStorage
-            async function loadCartItems() {
-                try {
-                    const savedCompany = localStorage.getItem('selectedCompany');
-                    if (savedCompany) {
-                        const company = JSON.parse(savedCompany);
-                        updateCompanyDisplay(company.name, company.email);
-                    }
-                } catch (e) {
-                    console.error('Error parsing saved company:', e);
-                }
-            }
-
+            // Load cart items
             // Initial load
             loadCartItems();
         });

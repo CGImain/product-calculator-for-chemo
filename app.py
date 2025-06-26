@@ -1909,8 +1909,8 @@ def send_quotation():
         if not customer_email:
             return jsonify({'error': 'Customer email not available'}), 400
 
-        # Send to customer and CGI operations email
-        recipients = [customer_email, 'operations@chemo.in']
+        # Send to customer, CGI operations email, and the logged-in user
+        recipients = list({customer_email, 'operations@chemo.in', current_user.email})
 
         # Get current date
         today = datetime.utcnow().strftime('%d/%m/%Y')

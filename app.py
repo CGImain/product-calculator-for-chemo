@@ -1249,21 +1249,40 @@ def api_update_company():
     })
 
 @app.route('/get_companies')
+@login_required
 def get_companies():
     try:
         # Load companies from static JSON file
-        with open('static/data/company_emails.json', 'r') as f:
+        with open('static/data/company_emails.json', 'r', encoding='utf-8') as f:
             companies = json.load(f)
-            # Transform data to match expected format
-            formatted_companies = [{
-                'id': str(i + 1),
-                'name': company['Company Name'],
-                'email': company['EmailID']
-            } for i, company in enumerate(companies)]
-            return jsonify(formatted_companies)
+            
+        # Create a list to store unique companies (by email)
+        unique_companies = {}
+        
+        # Process companies and ensure unique emails
+        for i, company in enumerate(companies, 1):
+            email = company.get('EmailID', '').strip().lower()
+            name = company.get('Company Name', '').strip()
+            
+            # Skip if email is missing or already processed
+            if not email or email in unique_companies:
+                continue
+                
+            # Add to unique companies with a consistent ID based on email hash
+            unique_id = hashlib.md5(email.encode('utf-8')).hexdigest()
+            unique_companies[email] = {
+                'id': unique_id,
+                'name': name,
+                'email': email
+            }
+        
+        # Convert to list and sort by company name
+        result = sorted(unique_companies.values(), key=lambda x: x['name'].lower())
+        return jsonify(result)
+        
     except Exception as e:
-        print(f"Error loading companies: {e}")
-        return jsonify([]), 500
+        app.logger.error(f"Error loading companies: {str(e)}")
+        return jsonify({'error': 'Failed to load companies'}), 500
 
 # Redirect old forgot-password URL to reset-password
 @app.route('/forgot-password')

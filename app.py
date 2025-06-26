@@ -1168,38 +1168,6 @@ def product_selection():
     
     return render_template('product_selection.html')
 
-@app.route('/blankets')
-@login_required
-def blankets():
-    app.logger.info("\n=== ACCESSING BLANKETS ROUTE ===")
-    
-    # Debug: Log all session variables
-    app.logger.info(f"Session data: {dict(session)}")
-    
-    # Check if company and product type are selected
-    selected_company_id = session.get('selected_company')
-    product_type = session.get('product_type')
-    
-    app.logger.info(f"Selected Company ID: {selected_company_id}")
-    app.logger.info(f"Product type: {product_type}")
-    
-    if not selected_company_id or product_type != 'blanket':
-        app.logger.warning("\n!!! REDIRECTING TO PRODUCT SELECTION !!!")
-        app.logger.warning(f"Reason: selected_company_id={selected_company_id}, product_type={product_type}")
-        return redirect(url_for('product_selection'))
-    
-    # Get company info from database
-    # Try to fetch from DB; fallback to session
-    current_company = None
-    if MONGO_AVAILABLE and USE_MONGO and mongo_db is not None:
-        from bson import ObjectId
-        try:
-            current_company = mongo_db.companies.find_one({'_id': ObjectId(selected_company_id)})
-            if current_company:
-                current_company['id'] = str(current_company['_id'])
-        except Exception as e:
-            app.logger.warning(f"Mongo lookup failed: {e}")
-
 
 @app.route('/select_company', methods=['POST'])
 @login_required

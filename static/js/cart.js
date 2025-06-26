@@ -91,6 +91,23 @@ function addToCart(item, event) {
     });
 }
 
+// Function to get CSRF token from cookies
+function getCSRFToken() {
+    const name = 'csrf_token=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) === 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return '';
+}
+
 // Function to update cart count in the UI
 function updateCartCount() {
     fetch('/get_cart_count')
@@ -193,38 +210,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Listen for storage events to update company info when changed in other tabs
-    window.addEventListener('storage', function(event) {
-        if (event.key === 'selectedCompany') {
-            try {
-                const company = JSON.parse(event.newValue);
-                updateCompanyDisplay(company.name, company.email);
-            } catch (e) {
-                console.error('Error handling storage event:', e);
-            }
+    // Initialize all cart handlers
+    function initializeCart() {
+        // Set up event handlers first
+        setupQuantityHandlers();
+        setupRemoveHandlers();
+        
+        // Initialize calculations
+        initializeCartCalculations();
+        
+        // Update UI
+        updateCartCount();
+        updateCartTotals();
+        
+        // Check if we need to show the empty cart message
+        const cartItems = document.querySelectorAll('.cart-item');
+        const emptyCartDiv = document.getElementById('emptyCart');
+        const cartItemsDiv = document.getElementById('cartItems');
+        
+        if (cartItems.length === 0) {
+            if (emptyCartDiv) emptyCartDiv.style.display = 'block';
+            if (cartItemsDiv) cartItemsDiv.style.display = 'none';
+        } else {
+            if (emptyCartDiv) emptyCartDiv.style.display = 'none';
+            if (cartItemsDiv) cartItemsDiv.style.display = 'block';
+        }
+    }
+    
+    // Initialize the cart
+    initializeCart();
+    
+    // Add debug logs for remove button clicks
+    document.addEventListener('click', function(event) {
+        if (event.target.closest('.remove-item-form')) {
+            console.log('Remove button clicked');
         }
     });
-    
-    // Initialize cart handlers
-    initializeCartCalculations();
-    setupRemoveHandlers();
-    
-    // Update cart totals and UI
-    updateCartTotals();
-    updateCartCount();
-    
-    // Show/hide empty cart message based on initial cart state
-    const cartItems = document.querySelectorAll('.cart-item');
-    const emptyCart = document.getElementById('emptyCart');
-    const cartItemsContainer = document.getElementById('cartItems');
-    
-    if (cartItems.length === 0) {
-        if (emptyCart) emptyCart.style.display = 'block';
-        if (cartItemsContainer) cartItemsContainer.style.display = 'none';
-    } else {
-        if (emptyCart) emptyCart.style.display = 'none';
-        if (cartItemsContainer) cartItemsContainer.style.display = 'block';
-    }
 });
 
 function initializeCartCalculations() {
@@ -360,6 +381,8 @@ function updateCartItemQuantity(index, newQuantity) {
 }
 
 function removeCartItem(index) {
+    console.log('Attempting to remove item at index:', index);
+    
     fetch('/remove_from_cart', {
         method: 'POST',
         headers: {
@@ -369,34 +392,32 @@ function removeCartItem(index) {
         body: JSON.stringify({ index: parseInt(index) })
     })
     .then(response => {
+        console.log('Response status:', response.status);
         if (!response.ok) {
-            return response.json().then(err => { throw err; });
+            return response.json().then(err => { 
+                console.error('Server error:', err);
+                throw err; 
+            });
         }
         return response.json();
     })
     .then(data => {
+        console.log('Remove from cart response:', data);
         if (data.success) {
-            // Remove the item from the DOM
-            const item = document.querySelector(`.cart-item[data-index="${index}"]`);
-            if (item) {
-                item.remove();
-                updateCartTotals();
-                updateCartCount();
-                showToast('Success', 'Item removed from cart', 'success');
-                
-                // Show empty cart message if no items left
-                if (document.querySelectorAll('.cart-item').length === 0) {
-                    document.getElementById('emptyCart').style.display = 'block';
-                    document.getElementById('cartItems').style.display = 'none';
-                }
-            }
+            // Show success message
+            showToast('Success', 'Item removed from cart', 'success');
+            
+            // Reload the page to reflect changes
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
-            showToast('Error', data.error || 'Failed to remove item', 'error');
+            throw new Error(data.error || 'Failed to remove item');
         }
     })
     .catch(error => {
         console.error('Error removing item:', error);
-        showToast('Error', error.error || 'An error occurred while removing the item', 'error');
+        showToast('Error', error.message || 'An error occurred while removing the item', 'error');
     });
 }
 

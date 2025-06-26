@@ -780,30 +780,39 @@ def cart():
                 'total': round(total, 2)
             }
         
-        # Get company info from session with proper fallbacks
+        # Get company info with proper fallbacks
         selected_company = session.get('selected_company', {})
         
         # Get company name with fallbacks
         company_name = (
             selected_company.get('name') or 
             session.get('company_name') or 
+            (hasattr(current_user, 'company_name') and current_user.company_name) or
             (current_user.company_id and get_company_name_by_id(current_user.company_id)) or 
+            'Your Company'
+        )
+        
+        # Get company email with fallbacks
+        company_email = (
+            selected_company.get('email') or 
+            session.get('company_email') or
+            (hasattr(current_user, 'company_email') and current_user.company_email) or
+            (current_user.company_id and get_company_email_by_id(current_user.company_id)) or 
             ''
         )
         
-        # Get company email. If 'email' key exists in selected_company we trust it (even if empty string).
-        if 'email' in selected_company:
-            company_email = selected_company.get('email', '')
-        else:
-            company_email = session.get('company_email') or (
-                current_user.company_id and get_company_email_by_id(current_user.company_id)
-            ) or ''
-        
         # Ensure session is updated with the latest values
-        if company_name and company_name != session.get('company_name'):
+        if company_name and company_name != 'Your Company':
             session['company_name'] = company_name
             session['company_email'] = company_email
+            session['selected_company'] = {
+                'name': company_name,
+                'email': company_email
+            }
             session.modified = True
+            
+        # Log the company info for debugging
+        app.logger.info(f"Cart - Company: {company_name}, Email: {company_email}")
         return render_template('cart.html',
                            cart=cart_data,
                             products=cart_data.get('products', []),
@@ -2565,32 +2574,26 @@ def mpacks():
 @app.route('/blankets')
 @login_required
 def blankets():
-    # Get company info from session or user data
+    # Get company info - priority: selected_company > session > user data
     selected_company = session.get('selected_company', {})
-    company_name = session.get('company_name')
-    company_email = session.get('company_email')
+    company_name = selected_company.get('name') or session.get('company_name')
+    company_email = selected_company.get('email') or session.get('company_email')
     
-    # If we have a selected company but no session vars, update them
-    if selected_company and not company_name:
-        company_name = selected_company.get('name', 'Not selected')
-        company_email = selected_company.get('email', '')
-        session['company_name'] = company_name
-        session['company_email'] = company_email
-    # If we have no selected company but have user data, use that
-    elif not selected_company and current_user.is_authenticated:
-        if hasattr(current_user, 'company_name'):
-            company_name = current_user.company_name
-            company_email = getattr(current_user, 'company_email', '')
-            session['company_name'] = company_name
-            session['company_email'] = company_email
+    # Fall back to user's company info if not found
+    if not company_name and hasattr(current_user, 'company_name'):
+        company_name = current_user.company_name
+    if not company_email and hasattr(current_user, 'company_email'):
+        company_email = current_user.company_email
     
     # Ensure we have values in session
     if not company_name:
         company_name = 'Not selected'
-        session['company_name'] = company_name
     if not company_email:
         company_email = ''
-        session['company_email'] = company_email
+    
+    # Update session with final values
+    session['company_name'] = company_name
+    session['company_email'] = company_email
             
     # Log the company info being sent to template
     app.logger.info(f"Rendering blankets with company: {company_name}, email: {company_email}")

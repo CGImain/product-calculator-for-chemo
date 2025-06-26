@@ -1458,32 +1458,35 @@ def update_company():
     try:
         # Update user's company in the database
         if MONGO_AVAILABLE and USE_MONGO and users_col is not None:
-            # Update in MongoDB
+            # Update or create in MongoDB
             result = users_col.update_one(
                 {'_id': current_user.id},
                 {'$set': {
                     'company_id': company_id,
                     'company_name': company_name,
-                    'company_email': company_email
-                }}
+                    'company_email': company_email,
+                    'updated_at': datetime.utcnow()
+                }},
+                upsert=True  # Create user if not exists
             )
-            if result.matched_count == 0:
-                return jsonify({'status': 'error', 'message': 'User not found or no changes made'}), 404
         else:
             # Update in JSON file
             users = load_users()
-            if str(current_user.id) not in users:
-                return jsonify({'status': 'error', 'message': 'User not found'}), 404
+            user_id = str(current_user.id)
+            if user_id not in users:
+                users[user_id] = {}
                 
-            users[str(current_user.id)]['company_id'] = company_id
-            users[str(current_user.id)]['company_name'] = company_name
-            users[str(current_user.id)]['company_email'] = company_email
-            save_users()
+            users[user_id]['company_id'] = company_id
+            users[user_id]['company_name'] = company_name
+            users[user_id]['company_email'] = company_email
+            users[user_id]['updated_at'] = datetime.utcnow().isoformat()
+            save_users(users)
         
         # Update session
         session['company_id'] = company_id
         session['company_name'] = company_name
         session['company_email'] = company_email
+        session.modified = True  # Ensure session is saved
         
         return jsonify({
             'status': 'success',

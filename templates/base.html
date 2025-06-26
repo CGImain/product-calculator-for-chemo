@@ -94,8 +94,8 @@
             {% endif %}
         {% endwith %}
         
-        <!-- Company Information Section (shown only on product pages) -->
-        {% if request.endpoint in ['mpacks', 'blankets'] %}
+        <!-- Company Information Section (shown on product pages and cart) -->
+        {% if request.endpoint in ['mpacks', 'blankets', 'cart'] %}
             {% include 'components/company_info.html' %}
         {% endif %}
         

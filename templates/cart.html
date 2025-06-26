@@ -577,12 +577,21 @@
             }
             
             const csrfToken = getCSRFToken();
+            const clearButton = event.target.closest('button');
+            const originalHtml = clearButton ? clearButton.innerHTML : '';
+            
+            // Show loading state
+            if (clearButton) {
+                clearButton.disabled = true;
+                clearButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Clearing...';
+            }
             
             fetch('/clear_cart', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 credentials: 'same-origin'
             })
@@ -594,26 +603,50 @@
             })
             .then(data => {
                 if (data.success) {
-                    // Show success message
-                    showToast('Success', 'Cart cleared successfully', 'success');
+                    // Remove all cart items from the DOM
+                    const cartItemsContainer = document.getElementById('cartItems');
+                    if (cartItemsContainer) {
+                        // Remove all child elements except the first one (which contains the empty cart message)
+                        while (cartItemsContainer.firstChild) {
+                            cartItemsContainer.removeChild(cartItemsContainer.firstChild);
+                        }
+                        
+                        // Show empty cart message
+                        const emptyCart = document.getElementById('emptyCart');
+                        if (emptyCart) {
+                            emptyCart.style.display = 'block';
+                        }
+                        
+                        // Hide the cart items container
+                        cartItemsContainer.style.display = 'none';
+                    }
                     
-                    // Hide cart items and show empty cart message
-                    const cartItems = document.getElementById('cartItems');
-                    const emptyCart = document.getElementById('emptyCart');
-                    
-                    if (cartItems) cartItems.style.display = 'none';
-                    if (emptyCart) emptyCart.style.display = 'block';
-                    
-                    // Update cart count and totals
+                    // Update cart count
                     updateCartCount();
-                    updateCartTotals();
+                    
+                    // Reset cart totals
+                    const cartTotals = document.querySelectorAll('.cart-summary, .cart-total, .checkout-section');
+                    cartTotals.forEach(el => el.style.display = 'none');
+                    
+                    // Show success message
+                    showToast('Success', 'Your cart has been cleared', 'success');
+                    
+                    // Trigger an event that other components might be listening for
+                    document.dispatchEvent(new Event('cartCleared'));
                 } else {
                     throw new Error(data.error || 'Failed to clear cart');
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error clearing cart:', error);
                 showToast('Error', error.message || 'An error occurred while clearing the cart', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                if (clearButton) {
+                    clearButton.disabled = false;
+                    clearButton.innerHTML = originalHtml;
+                }
             });
             
             return false;

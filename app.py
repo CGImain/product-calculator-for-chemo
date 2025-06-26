@@ -1915,9 +1915,23 @@ def send_quotation():
         # Get current date
         today = datetime.utcnow().strftime('%d/%m/%Y')
 
-        # Table rows
+        # Table rows with header
         rows_html = """
         <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+            <thead>
+                <tr style='background-color: #1a5276; color: white;'>
+                    <th style='padding: 10px; text-align: left;'>Item</th>
+                    <th style='padding: 10px; text-align: left;'>Machine</th>
+                    <th style='padding: 10px; text-align: left;'>Product</th>
+                    <th style='padding: 10px; text-align: left;'>Type</th>
+                    <th style='padding: 10px; text-align: left;'>Thickness</th>
+                    <th style='padding: 10px; text-align: left;'>Size</th>
+                    <th style='padding: 10px; text-align: left;'>Barri...</th>
+                    <th style='padding: 10px; text-align: right;'>Qty</th>
+                    <th style='padding: 10px; text-align: right;'>Disc. %</th>
+                    <th style='padding: 10px; text-align: right;'>Amount (₹)</th>
+                </tr>
+            </thead>
             <tbody>
         """
         
@@ -2034,20 +2048,7 @@ def send_quotation():
           
           <div style='overflow-x: auto;'>
             <table style='width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;'>
-              <thead>
-                <tr style='background-color: #2c3e50; color: white;'>
-                  <th style='padding: 10px; text-align: left;'>Item</th>
-                  <th style='padding: 10px; text-align: left;'>Machine</th>
-                  <th style='padding: 10px; text-align: left;'>Product</th>
-                  <th style='padding: 10px; text-align: left;'>Type</th>
-                  <th style='padding: 10px; text-align: left;'>Thickness</th>
-                  <th style='padding: 10px; text-align: left;'>Size</th>
-                  <th style='padding: 10px; text-align: left;'>Barring</th>
-                  <th style='padding: 10px; text-align: right;'>Qty</th>
-                  <th style='padding: 10px; text-align: right;'>Disc %</th>
-                  <th style='padding: 10px; text-align: right;'>Amount (₹)</th>
-                </tr>
-              </thead>
+              <tbody>
               {rows_html}
             </table>
           </div>

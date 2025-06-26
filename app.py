@@ -1991,7 +1991,7 @@ def send_quotation():
                 <tr>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{idx}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{machine}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('Blanket', 'MPack')}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{prod_type if prod_type else '----'}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('name', '----') if prod_type == 'blanket' else '----'}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{dimensions}</td>

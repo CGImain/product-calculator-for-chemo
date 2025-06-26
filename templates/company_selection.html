@@ -4,7 +4,6 @@
 
 {% block extra_head %}
 {{ super() }}
-<meta name="csrf-token" content="{{ csrf_token() }}">
 {% endblock %}
 
 {% block extra_css %}
@@ -54,7 +53,6 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('select_company') }}" id="companyForm">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="company_id" id="companyId">
                         <input type="hidden" name="company_name" id="companyName">
                         <input type="hidden" name="company_email" id="companyEmail">

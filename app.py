@@ -1115,17 +1115,7 @@ def company_selection():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
     
-    # Generate a new CSRF token if one doesn't exist
-    if '_csrf_token' not in session:
-        session['_csrf_token'] = secrets.token_hex(16)
-    
     if request.method == 'POST':
-        # Verify CSRF token
-        if not request.form.get('csrf_token') or request.form.get('csrf_token') != session.get('_csrf_token'):
-            app.logger.warning("CSRF token validation failed")
-            flash('Invalid request. Please try again.', 'error')
-            return redirect(url_for('company_selection'))
-            
         company = request.form.get('company')
         email = request.form.get('email')
         
@@ -1146,8 +1136,7 @@ def company_selection():
         # Redirect to product selection
         return redirect(url_for('product_selection'))
     
-    # Pass the CSRF token to the template
-    return render_template('company_selection.html', csrf_token=session.get('_csrf_token', ''))
+    return render_template('company_selection.html')
 
 @app.route('/product_selection', methods=['GET', 'POST'])
 @login_required
@@ -1183,12 +1172,6 @@ def select_company():
     
     if request.method == 'POST':
         try:
-            # Verify CSRF token
-            if not request.form.get('csrf_token') or request.form.get('csrf_token') != session.get('_csrf_token'):
-                app.logger.warning("CSRF token validation failed")
-                flash('Invalid request. Please try again.', 'error')
-                return redirect(url_for('company_selection'))
-            
             # Get form data
             company_id = request.form.get('company_id')
             company_name = request.form.get('company_name')
@@ -1246,7 +1229,7 @@ def select_company():
             return redirect(url_for('company_selection'))
     
     # For GET requests, just render the template
-    return render_template('company_selection.html', csrf_token=session.get('_csrf_token', ''))
+    return render_template('company_selection.html')
 
 # ------------------------------------------------------------------
 # AJAX endpoint used by company_selector.js to update selected company

@@ -1200,27 +1200,6 @@ def blankets():
         except Exception as e:
             app.logger.warning(f"Mongo lookup failed: {e}")
 
-    # If not found in DB, use session data (selected_company stored earlier)
-    if not current_company and isinstance(selected_company_id, dict):
-        current_company = selected_company_id
-
-    if not current_company and 'selected_company' in session and isinstance(session['selected_company'], dict):
-        current_company = session['selected_company']
-
-    # Ensure company info is in session for the template
-    if current_company:
-        session['company_name'] = current_company.get('name', 'Not selected')
-        session['company_email'] = current_company.get('email', '')
-        session.modified = True
-    
-    app.logger.info(f"Resolved current_company: {current_company}")
-    app.logger.info(f"Session company info - name: {session.get('company_name')}, email: {session.get('company_email')}")
-
-    return render_template('products/blankets/blankets.html',
-                         current_company=current_company,
-                         current_user=current_user)
-
-
 
 @app.route('/select_company', methods=['POST'])
 @login_required
@@ -1400,7 +1379,7 @@ def update_user_company():
                 return jsonify({'status': 'error', 'message': 'User not found'}), 404
                 
             users[str(current_user.id)]['company_id'] = company_id
-            save_users(users)
+            save_users()
         
         # Update session
         session['company_id'] = company_id
@@ -1465,7 +1444,7 @@ def update_company():
             users[str(current_user.id)]['company_id'] = company_id
             users[str(current_user.id)]['company_name'] = company_name
             users[str(current_user.id)]['company_email'] = company_email
-            save_users(users)
+            save_users()
         
         # Update session
         session['company_id'] = company_id
@@ -1684,8 +1663,6 @@ def api_reset_password():
         
     except Exception as e:
         print(f"Password reset error: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return jsonify({'error': 'Internal server error'}), 500
 
 
@@ -2509,76 +2486,85 @@ def serve_blanket_files(filename):
 @app.route('/mpacks')
 @login_required
 def mpacks():
-    app.logger.info("\n=== ACCESSING MPACKS ROUTE ===")
+    # Get company info from session or user data
+    selected_company = session.get('selected_company', {})
+    company_name = session.get('company_name')
+    company_email = session.get('company_email')
+        
+    # If we have a selected company but no session vars, update them
+    if selected_company and not company_name:
+        company_name = selected_company.get('name', 'Not selected')
+        company_email = selected_company.get('email', '')
+        session['company_name'] = company_name
+        session['company_email'] = company_email
+    # If we have no selected company but have user data, use that
+    elif not selected_company and current_user.is_authenticated:
+        if hasattr(current_user, 'company_name'):
+            company_name = current_user.company_name
+            company_email = getattr(current_user, 'company_email', '')
+            session['company_name'] = company_name
+            session['company_email'] = company_email
     
-    # Debug: Log all session variables
-    app.logger.info(f"Session data: {dict(session)}")
+    # Ensure we have values in session
+    if not company_name:
+        company_name = 'Not selected'
+        session['company_name'] = company_name
+    if not company_email:
+        company_email = ''
+        session['company_email'] = company_email
+            
+    # Log the company info being sent to template
+    app.logger.info(f"Rendering mpacks with company: {company_name}, email: {company_email}")
     
-    # Check if company and product type are selected
-    company = session.get('selected_company')
-    product_type = session.get('product_type')
-    
-    app.logger.info(f"Company: {company}")
-    app.logger.info(f"Product type: {product_type}")
-    
-    if not company or product_type != 'mpack':
-        app.logger.warning("\n!!! REDIRECTING TO PRODUCT SELECTION !!!")
-        app.logger.warning(f"Reason: company={company}, product_type={product_type}")
-        return redirect(url_for('product_selection'))
-    
-    template_path = 'products/chemicals/mpack.html'
-    app.logger.info(f"\n--- RENDERING TEMPLATE ---")
-    app.logger.info(f"Template path: {template_path}")
-    
-    # Verify template exists
-    import os
-    template_full_path = os.path.join('templates', template_path)
-    template_exists = os.path.exists(template_full_path)
-    
-    app.logger.info(f"Template exists: {template_exists}")
-    app.logger.info(f"Absolute path: {os.path.abspath(template_full_path)}")
-    
-    if not template_exists:
-        app.logger.error("ERROR: Template not found!")
-        return "Template not found", 500
-    
-    # Resolve current company: prefer session-selected company first
-    current_company = None
-    if 'selected_company' in session and isinstance(session['selected_company'], dict):
-        current_company = session['selected_company']
-
-    # If not in session, fall back to user's associated company id
-    if not current_company and getattr(current_user, 'company_id', None):
-        if MONGO_AVAILABLE and USE_MONGO:
-            from bson import ObjectId
-            try:
-                current_company = mongo_db.companies.find_one({'_id': ObjectId(current_user.company_id)})
-                if current_company:
-                    current_company['_id'] = str(current_company['_id'])  # Convert ObjectId to string
-            except Exception as e:
-                app.logger.error(f"Error fetching company data: {e}")
-    
-    # Ensure company info is in session for the template
-    if current_company:
-        session['company_name'] = current_company.get('name', 'Not selected')
-        session['company_email'] = current_company.get('email', '')
-        session.modified = True
-    
-    app.logger.info(f"Current company data: {current_company}")
-    app.logger.info(f"Session company info - name: {session.get('company_name')}, email: {session.get('company_email')}")
-    app.logger.info("Attempting to render template...")
-    
-    # Pass current_company to the template
-    response = render_template(
-        template_path,
-        current_company=current_company,
-        current_user=current_user
-    )
+    response = render_template('products/chemicals/mpack.html', 
+                           current_company={
+                               'name': company_name,
+                               'email': company_email
+                           })
     
     app.logger.info("Template rendered successfully")
     return response
 
+@app.route('/blankets')
+@login_required
+def blankets():
+    # Get company info from session or user data
+    selected_company = session.get('selected_company', {})
+    company_name = session.get('company_name')
+    company_email = session.get('company_email')
+    
+    # If we have a selected company but no session vars, update them
+    if selected_company and not company_name:
+        company_name = selected_company.get('name', 'Not selected')
+        company_email = selected_company.get('email', '')
+        session['company_name'] = company_name
+        session['company_email'] = company_email
+    # If we have no selected company but have user data, use that
+    elif not selected_company and current_user.is_authenticated:
+        if hasattr(current_user, 'company_name'):
+            company_name = current_user.company_name
+            company_email = getattr(current_user, 'company_email', '')
+            session['company_name'] = company_name
+            session['company_email'] = company_email
+    
+    # Ensure we have values in session
+    if not company_name:
+        company_name = 'Not selected'
+        session['company_name'] = company_name
+    if not company_email:
+        company_email = ''
+        session['company_email'] = company_email
+            
+    # Log the company info being sent to template
+    app.logger.info(f"Rendering blankets with company: {company_name}, email: {company_email}")
+    
+    return render_template('products/blankets/blankets.html',
+                         current_company={
+                             'name': company_name,
+                             'email': company_email
+                         })
 
+# Reset password page
 @app.route('/reset-password')
 def reset_password_page():
     return render_template('reset_password.html')

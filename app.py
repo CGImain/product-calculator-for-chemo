@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_wtf import CSRFProtect, FlaskForm
+from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email
 from waitress import serve
@@ -46,7 +46,16 @@ print(f"DB_NAME: {os.getenv('DB_NAME', 'moneda_db')}")
 print(f"USE_MONGO: {os.getenv('USE_MONGO', 'Not set')}")
 print("===========================\n")
 
-# JWT Configuration
+# CORS Configuration
+from flask_cors import CORS
+app = Flask(__name__)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["*"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "supports_credentials": True
+    }
+})
 
 # -------------------- MongoDB configuration --------------------
 # Initialize MongoDB if available
@@ -751,8 +760,7 @@ def cart():
     The Jinja template expects a cart object with products list and calculated totals.
     """
     try:
-        # Get the current cart
-        cart_data = get_user_cart()
+        # No CSRF token needed
         if not isinstance(cart_data, dict):
             cart_data = {"products": []}
         
@@ -2288,15 +2296,26 @@ def api_register_complete():
         print(f"Registration error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-@app.route('/api/auth/login', methods=['POST'])
+@app.route('/api/auth/login', methods=['GET', 'POST', 'OPTIONS'])
 def api_login():
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        response = jsonify({'success': True})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+        return response
+        
     try:
-        if not request.is_json:
-            return jsonify({'error': 'Request must be JSON'}), 400
-
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Invalid JSON data'}), 400
+        # Handle both form data and JSON
+        if request.is_json:
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'Invalid JSON data'}), 400, {'Content-Type': 'application/json'}
+        else:
+            data = request.form
+            if not data:
+                return jsonify({'error': 'Invalid form data'}), 400, {'Content-Type': 'application/json'}
 
         identifier = (data.get('identifier') or data.get('email') or data.get('username', '')).strip()
         password = (data.get('password') or '').strip()
@@ -2372,16 +2391,27 @@ def api_login():
                 login_user(user)
                 print(f'User {user.username} logged in successfully')
                 
-                return jsonify({
-                    'success': True,
-                    'message': 'Login successful',
-                    'redirectTo': '/index',  # Changed to use index route
-                    'user': {
-                        'id': str(user.id),  # Ensure ID is string for JSON serialization
-                        'email': user.email,
-                        'username': user.username
-                    }
-                })
+                if request.is_json:
+                    response = jsonify({
+                        'success': True,
+                        'message': 'Login successful',
+                        'redirectTo': '/index',
+                        'user': {
+                            'id': str(user.id),
+                            'email': user.email,
+                            'username': user.username
+                        }
+                    })
+                else:
+                    # For form submission, redirect directly
+                    return redirect(url_for('index'))
+                
+                # Set session
+                session['user_id'] = str(user.id)
+                session['user_email'] = user.email
+                session['username'] = user.username
+                
+                return response
                 
             except Exception as e:
                 print(f'MongoDB login error: {str(e)}')

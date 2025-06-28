@@ -1,5 +1,5 @@
 // DOM Elements
-const loginForm = document.querySelector('.card');
+const loginForm = document.getElementById('loginForm');
 const loginBtn = document.getElementById('loginBtn');
 const loginInput = document.getElementById('login');
 const passwordInput = document.getElementById('password');
@@ -10,9 +10,6 @@ const togglePassword = document.querySelector('.toggle-password');
 // Initialize the login form
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
-  
-  // Reset loading state
-  setLoading(false);
   
   // Check for success message in URL (after registration)
   const urlParams = new URLSearchParams(window.location.search);
@@ -42,11 +39,6 @@ function setupEventListeners() {
   // Login form submission
   if (loginForm) {
     loginForm.addEventListener('submit', handleLogin);
-  }
-  
-  // Login button click
-  if (loginBtn) {
-    loginBtn.addEventListener('click', handleLogin);
   }
   
   // Toggle password visibility
@@ -91,56 +83,35 @@ async function handleLogin(e) {
     // Show loading state
     setLoading(true);
     
-    // Get CSRF token from form
-    const csrfToken = document.querySelector('input[name="csrf_token"]');
-    if (!csrfToken) {
-      console.error('CSRF token not found in form');
-      return;
-    }
-    const csrfHeader = { 'X-CSRFToken': csrfToken.value };
+    // Create form data
+    const formData = new FormData();
+    formData.append('identifier', login);
+    formData.append('password', password);
     
     // Send login request
     const response = await fetch('/api/auth/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...csrfHeader
-      },
-      body: JSON.stringify({
-        identifier: login,
-        password
-      })
+      body: formData
     });
-
-    try {
-      const data = await response.json();
-      
-      if (!response.ok) {
-        if (data.error) {
-          showError(data.error);
-          return;
-        }
-        showError('An error occurred. Please try again.');
-        return;
-      }
-    } catch (e) {
-      // If response is not JSON, show a generic error
-      console.error('Response is not JSON:', e);
-      showError('An error occurred. Please try again.');
+    
+    // Handle redirect for form submission
+    if (response.redirected) {
+      window.location.href = response.url;
       return;
     }
     
+    // Handle JSON response
+    const data = await response.json();
+    
     if (response.ok && data.success) {
-      // Store the token in localStorage
-      if (data.token) {
-        localStorage.setItem('auth_token', data.token);
-      }
-      
-      // Redirect to index page
-      window.location.href = data.redirectTo || '/index';
+      // Redirect to the provided URL or fallback to '/index'
+      const redirectTo = data.redirectTo || '/index';
+      console.log('Login successful, redirecting to:', redirectTo);
+      window.location.href = redirectTo;
     } else {
-      // Show error message
-      showError(data.error || 'Login failed. Please check your credentials.');
+      // Show error message from server or default message
+      const errorMessage = data.error || data.message || 'Login failed. Please check your credentials.';
+      showError(errorMessage);
       
       // Clear password field on failed login
       passwordInput.value = '';
@@ -196,20 +167,20 @@ function clearMessages() {
 }
 
 // Set loading state
-function setLoading(loading) {
-  if (loginBtn) {
-    const btnText = loginBtn.querySelector('.btn-text');
-    const btnLoader = loginBtn.querySelector('.btn-loader');
-    
-    if (loading) {
-      btnText.style.display = 'none';
-      btnLoader.style.display = 'flex';
-      loginBtn.disabled = true;
-    } else {
-      btnText.style.display = 'flex';
-      btnLoader.style.display = 'none';
-      loginBtn.disabled = false;
-    }
+function setLoading(isLoading) {
+  if (!loginBtn) return;
+  
+  const btnText = loginBtn.querySelector('.btn-text');
+  const btnLoader = loginBtn.querySelector('.btn-loader');
+  
+  if (isLoading) {
+    loginBtn.disabled = true;
+    if (btnText) btnText.style.visibility = 'hidden';
+    if (btnLoader) btnLoader.style.display = 'flex';
+  } else {
+    loginBtn.disabled = false;
+    if (btnText) btnText.style.visibility = 'visible';
+    if (btnLoader) btnLoader.style.display = 'none';
   }
 }
-// Password toggle functionality added
+// Password toggle functionality added 

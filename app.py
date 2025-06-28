@@ -1112,33 +1112,26 @@ def index():
 
 # Redirect any display requests to index
 @app.route('/display')
-@login_required
 def display():
-    return redirect(url_for('index'))
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 @app.route('/login')
 def login():
     if current_user.is_authenticated:
-        # If user is already logged in, redirect to display page
-        return redirect(url_for('display'))
+        return redirect(url_for('index'))
     return render_template('login.html')
-
-def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('display'))
-    return redirect(url_for('login'))
 
 @app.route('/signup')
 def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     return render_template('signup.html')
 
-@app.route('/company_selection', methods=['GET', 'POST'])
+@app.route('/company-selection', methods=['GET', 'POST'])
 @login_required
 def company_selection():
-    # If user is not authenticated, redirect to login
-    if not current_user.is_authenticated:
-        return redirect(url_for('login'))
-    
     if request.method == 'POST':
         company = request.form.get('company')
         email = request.form.get('email')

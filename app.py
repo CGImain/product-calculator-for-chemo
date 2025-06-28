@@ -1299,16 +1299,7 @@ def api_update_company():
         }
     })
 
-@app.route('/get_companies')
-@login_required
 def get_companies():
-    app.logger.info(f"Current user: {current_user}, is_authenticated: {current_user.is_authenticated}")
-    app.logger.info(f"Session data: {dict(session)}")
-    
-    if not current_user.is_authenticated:
-        app.logger.error("User not authenticated for /get_companies")
-        return jsonify({'error': 'Authentication required'}), 401
-        
     try:
         # Load companies from static JSON file
         file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
@@ -1338,11 +1329,11 @@ def get_companies():
         
         # Convert to list and sort by company name
         result = sorted(unique_companies.values(), key=lambda x: x['name'].lower())
-        return jsonify(result)
+        return result
         
     except Exception as e:
         app.logger.error(f"Error loading companies: {str(e)}")
-        return jsonify({'error': 'Failed to load companies'}), 500
+        return []
 
 # Redirect old forgot-password URL to reset-password
 @app.route('/forgot-password')

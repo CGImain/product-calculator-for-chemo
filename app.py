@@ -2523,6 +2523,13 @@ def static_chemicals(filename):
 def serve_blanket_files(filename):
     return send_from_directory('static/products/blankets', filename)
 
+# Profile page
+@app.route('/profile')
+@login_required
+def profile():
+    user = current_user
+    return render_template('profile.html', user=user)
+
 # Product pages
 @app.route('/mpacks')
 @login_required

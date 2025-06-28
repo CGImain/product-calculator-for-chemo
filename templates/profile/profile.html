@@ -132,6 +132,8 @@ async function handleApiResponse(response) {
         throw new Error(error.error || 'Unknown error');
     }
     return response.json();
+}
+
 // Load initial data if on the history tab
 if (window.location.hash === '#history') {
     document.getElementById('history-tab').click();

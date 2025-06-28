@@ -87,7 +87,7 @@
                     <h5 class="mb-0">Select Your Company</h5>
                 </div>
                 <div class="card-body">
-                    <form id="companyForm">
+                    <form id="companyForm" onsubmit="event.preventDefault();">
                         <input type="hidden" name="company_id" id="companyId">
                         <input type="hidden" name="company_name" id="companyName">
                         <input type="hidden" name="company_email" id="companyEmail">
@@ -98,7 +98,7 @@
                             <div id="searchResults" class="search-results"></div>
                         </div>
                         <div class="text-center">
-                            <button type="button" class="btn btn-primary btn-lg" id="selectCompanyBtn" disabled>
+                            <button type="button" id="selectCompanyBtn" class="btn btn-primary" disabled>
                                 Select Company
                             </button>
                         </div>
@@ -200,7 +200,27 @@ const ChemoApp = (function() {
         }
         
         if (elements.selectCompanyBtn) {
-            elements.selectCompanyBtn.addEventListener('click', selectCompany);
+            elements.selectCompanyBtn.addEventListener('click', async (e) => {
+                console.log('Select company button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                try {
+                    const success = await selectCompany();
+                    console.log('selectCompany result:', success);
+                    
+                    // Only update UI if company was successfully selected
+                    if (success) {
+                        // Update the URL to reflect the selected company
+                        const newUrl = new URL(window.location.href);
+                        newUrl.searchParams.set('company_id', state.selectedCompany.id);
+                        window.history.pushState({}, '', newUrl);
+                    }
+                } catch (error) {
+                    console.error('Error in select company handler:', error);
+                }
+            }, true); // Use capture phase to ensure we catch the event early
         }
         
         if (elements.mpacksLink) {
@@ -277,11 +297,15 @@ const ChemoApp = (function() {
 
     // Select company and save to session
     async function selectCompany() {
+        console.log('selectCompany called');
+        
         if (!state.selectedCompany) {
             console.error('No company selected');
             showAlert('Please select a company first.', 'danger');
-            return;
+            return false;
         }
+        
+        console.log('Selected company:', state.selectedCompany);
         
         // Show loading state
         const originalButtonText = elements.selectCompanyBtn ? elements.selectCompanyBtn.innerHTML : '';
@@ -291,61 +315,25 @@ const ChemoApp = (function() {
         }
         
         try {
-            // First try the new endpoint
-            let response = await fetch('/api/update_company', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    company_id: state.selectedCompany.id,
-                    company_name: state.selectedCompany.name,
-                    company_email: state.selectedCompany.email
-                }),
-                credentials: 'same-origin'  // Include cookies for session
-            });
-            
-            // If the first endpoint fails, try the old one as fallback
-            if (!response.ok) {
-                console.log('Trying fallback endpoint /api/user/update-company');
-                response = await fetch('/api/user/update-company', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        company_id: state.selectedCompany.id,
-                        company_name: state.selectedCompany.name,
-                        company_email: state.selectedCompany.email
-                    }),
-                    credentials: 'same-origin'
-                });
-            }
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to update company');
-            }
-            
-            const data = await response.json();
-            console.log('Company update response:', data);
-            
             // Store company in both session and local storage for redundancy
             const companyData = {
                 id: state.selectedCompany.id,
                 name: state.selectedCompany.name,
-                email: state.selectedCompany.email
+                email: state.selectedCompany.email || ''
             };
             
-            sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
-            localStorage.setItem('selectedCompany', JSON.stringify(companyData));
+            console.log('Storing company data:', companyData);
             
-            // Also store in session storage as individual items for backward compatibility
+            // Update session storage
+            sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
             sessionStorage.setItem('companyId', companyData.id);
             sessionStorage.setItem('companyName', companyData.name);
             if (companyData.email) {
                 sessionStorage.setItem('companyEmail', companyData.email);
             }
+            
+            // Update local storage as backup
+            localStorage.setItem('selectedCompany', JSON.stringify(companyData));
             
             // Update the state
             state.selectedCompany = companyData;
@@ -355,6 +343,51 @@ const ChemoApp = (function() {
             if (elements.companyIdInput) elements.companyIdInput.value = companyData.id || '';
             if (elements.companyNameInput) elements.companyNameInput.value = companyData.name || '';
             if (elements.companyEmailInput) elements.companyEmailInput.value = companyData.email || '';
+            
+            // Try to update the company on the server
+            try {
+                console.log('Updating company on server...');
+                let response = await fetch('/api/update_company', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        company_id: state.selectedCompany.id,
+                        company_name: state.selectedCompany.name,
+                        company_email: state.selectedCompany.email
+                    }),
+                    credentials: 'same-origin'  // Include cookies for session
+                });
+                
+                if (!response.ok) {
+                    console.log('Trying fallback endpoint /api/user/update-company');
+                    response = await fetch('/api/user/update-company', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            company_id: state.selectedCompany.id,
+                            company_name: state.selectedCompany.name,
+                            company_email: state.selectedCompany.email
+                        }),
+                        credentials: 'same-origin'
+                    });
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Failed to update company on server:', errorData);
+                    // Don't throw error, continue with client-side storage
+                } else {
+                    const data = await response.json();
+                    console.log('Company updated on server:', data);
+                }
+            } catch (error) {
+                console.error('Error updating company on server:', error);
+                // Continue with client-side storage even if server update fails
+            }
             
             // Hide company selection and show product selection
             const companySection = document.getElementById('companySelectionSection');
@@ -378,9 +411,13 @@ const ChemoApp = (function() {
             if (typeof updateCartCount === 'function') {
                 updateCartCount();
             }
+            
+            return true;
+            
         } catch (error) {
             console.error('Error selecting company:', error);
             showAlert(`Failed to select company: ${error.message || 'Please try again.'}`, 'danger');
+            return false;
         } finally {
             // Reset button state
             if (elements.selectCompanyBtn) {

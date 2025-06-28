@@ -184,14 +184,66 @@ const ChemoApp = (function() {
         cartCount: document.getElementById('cartCount')
     };
 
-    // Initialize the application
-    function init() {
-        // Clear any existing company selection when initializing
-        sessionStorage.removeItem('selectedCompany');
-        localStorage.removeItem('selectedCompany');
+    // Handle browser back/forward navigation
+    window.addEventListener('popstate', function(event) {
+        // Check if we have a company ID in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyId = urlParams.get('company_id');
         
+        if (companyId) {
+            // Find the company in our state
+            const company = state.companies.find(c => c.id === companyId);
+            if (company) {
+                state.selectedCompany = company;
+                showProductSelection(company);
+            } else {
+                // If company not found, show company selection
+                showCompanySelection();
+            }
+        } else {
+            // If no company ID in URL, show company selection
+            showCompanySelection();
+        }
+    });
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any necessary components
+        initializeApp();
+    });
+
+    // Initialize any necessary components
+    function initializeApp() {
+        console.log('Initializing application...');
+        
+        // Check if we have a company in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyId = urlParams.get('company_id');
+        
+        // If we have a company ID in the URL, use that
+        if (companyId) {
+            const company = state.companies.find(c => c.id === companyId);
+            if (company) {
+                state.selectedCompany = company;
+                // Store in both session and local storage
+                localStorage.setItem('selectedCompany', JSON.stringify(company));
+                sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+                showProductSelection(company);
+                return;
+            }
+        }
+        
+        // Otherwise, check for existing company selection
+        checkExistingCompany();
+        
+        // Set up event listeners
         setupEventListeners();
         setupProductButtons();
+        
+        // Update cart count
+        if (typeof updateCartCount === 'function') {
+            updateCartCount();
+        }
         
         // Show only company selection by default
         const companySection = document.getElementById('companySelectionSection');
@@ -223,40 +275,54 @@ const ChemoApp = (function() {
         // Add change company button click handler
         const changeCompanyBtn = document.getElementById('changeCompanyBtn');
         if (changeCompanyBtn) {
-            changeCompanyBtn.addEventListener('click', () => {
+            changeCompanyBtn.addEventListener('click', function handleChangeCompany() {
                 // Clear company selection from state
                 state.selectedCompany = null;
                 
-                // Clear session storage
+                // Clear storage
                 sessionStorage.removeItem('selectedCompany');
-                sessionStorage.removeItem('companyId');
-                sessionStorage.removeItem('companyName');
-                sessionStorage.removeItem('companyEmail');
-                
-                // Clear local storage
                 localStorage.removeItem('selectedCompany');
-                localStorage.removeItem('companyId');
-                localStorage.removeItem('companyName');
-                localStorage.removeItem('companyEmail');
                 
-                // Reset form
+                // Clear individual company properties from storage
+                ['companyId', 'companyName', 'companyEmail'].forEach(key => {
+                    sessionStorage.removeItem(key);
+                    localStorage.removeItem(key);
+                });
+                
+                // Reset form fields
                 if (elements.companyInput) elements.companyInput.value = '';
                 if (elements.companyIdInput) elements.companyIdInput.value = '';
                 if (elements.companyNameInput) elements.companyNameInput.value = '';
                 if (elements.companyEmailInput) elements.companyEmailInput.value = '';
                 
+                // Clear the company ID from the URL
+                const url = new URL(window.location.href);
+                url.searchParams.delete('company_id');
+                window.history.pushState({}, '', url);
+                
                 // Show company selection and hide product selection
                 const companySection = document.getElementById('companySelectionSection');
                 const productSection = document.getElementById('productSelectionSection');
+                
                 if (companySection) companySection.style.display = 'block';
                 if (productSection) productSection.style.display = 'none';
                 
-                // Focus on company input
-                if (elements.companyInput) elements.companyInput.focus();
+                // Update the page title
+                document.title = 'Select Company | Product Calculator';
                 
                 // Show a message
-                showAlert('Company selection has been cleared. Please select a company.', 'info');
-            });
+                showAlert('Please select a company to continue.', 'info');
+                
+                // Scroll to company selection
+                if (companySection) {
+                    companySection.scrollIntoView({ behavior: 'smooth' });
+                }
+                
+                // Focus the company input for better UX
+                if (elements.companyInput) {
+                    elements.companyInput.focus();
+                }
+            })
         }
         
         if (elements.companyInput) {
@@ -419,46 +485,62 @@ const ChemoApp = (function() {
             // Try to update the company on the server
             try {
                 console.log('Updating company on server...');
-                let response = await fetch('/api/update_company', {
+                const response = await fetch('/update_company', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
                     },
                     body: JSON.stringify({
                         company_id: state.selectedCompany.id,
                         company_name: state.selectedCompany.name,
                         company_email: state.selectedCompany.email
                     }),
-                    credentials: 'same-origin'  // Include cookies for session
+                    credentials: 'same-origin'
                 });
-                
-                if (!response.ok) {
-                    console.log('Trying fallback endpoint /api/user/update-company');
-                    response = await fetch('/api/user/update-company', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            company_id: state.selectedCompany.id,
-                            company_name: state.selectedCompany.name,
-                            company_email: state.selectedCompany.email
-                        }),
-                        credentials: 'same-origin'
-                    });
-                }
                 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     console.error('Failed to update company on server:', errorData);
-                    // Don't throw error, continue with client-side storage
-                } else {
-                    const data = await response.json();
-                    console.log('Company updated on server:', data);
+                    throw new Error(errorData.error || 'Failed to update company');
                 }
+                
+                const data = await response.json();
+                console.log('Company updated on server:', data);
+                
+                if (data.success && data.company) {
+                    // Update the company data with server response
+                    const updatedCompany = { ...companyData, ...data.company };
+                    
+                    // Update storage with the latest data
+                    const storageData = {
+                        id: updatedCompany.id,
+                        name: updatedCompany.name,
+                        email: updatedCompany.email
+                    };
+                    
+                    // Update both session and local storage
+                    const storageDataStr = JSON.stringify(storageData);
+                    localStorage.setItem('selectedCompany', storageDataStr);
+                    sessionStorage.setItem('selectedCompany', storageDataStr);
+                    
+                    // Also store individual properties for compatibility
+                    localStorage.setItem('companyId', updatedCompany.id);
+                    localStorage.setItem('companyName', updatedCompany.name);
+                    if (updatedCompany.email) {
+                        localStorage.setItem('companyEmail', updatedCompany.email);
+                    }
+                    
+                    // Update the state with the merged data
+                    companyData = { ...companyData, ...updatedCompany };
+                    state.selectedCompany = { ...companyData };
+                }
+                
             } catch (error) {
                 console.error('Error updating company on server:', error);
-                // Continue with client-side storage even if server update fails
+                // Show error but continue with client-side storage
+                showAlert(`Warning: Could not save company selection to server. ${error.message || ''}`, 'warning');
             }
             
             // Show product selection and hide company selection after successful selection
@@ -525,17 +607,51 @@ const ChemoApp = (function() {
 
     // Check if a company is already selected
     async function checkExistingCompany() {
-        // First check localStorage for existing company selection
+        // First check if we have a company in the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyId = urlParams.get('company_id');
+        
+        // Check localStorage for existing company selection
         const storedCompany = localStorage.getItem('selectedCompany');
+        
+        // If we have a company ID in the URL, use that
+        if (companyId) {
+            try {
+                const company = state.companies.find(c => c.id === companyId);
+                if (company) {
+                    state.selectedCompany = company;
+                    // Store in both session and local storage
+                    localStorage.setItem('selectedCompany', JSON.stringify(company));
+                    sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+                    showProductSelection(company);
+                    return;
+                }
+            } catch (e) {
+                console.error('Error processing URL company ID:', e);
+            }
+        }
+        
+        // Check localStorage for existing company selection
         if (storedCompany) {
             try {
                 const company = JSON.parse(storedCompany);
-                state.selectedCompany = company;
-                showProductSelection(company);
-                return; // Exit early if we found a stored company
+                // Verify the company still exists in our list
+                const validCompany = state.companies.find(c => c.id === company.id);
+                if (validCompany) {
+                    state.selectedCompany = validCompany;
+                    showProductSelection(validCompany);
+                    return; // Exit early if we found a valid stored company
+                } else {
+                    console.log('Stored company not found in available companies');
+                    // Clear invalid company from storage
+                    localStorage.removeItem('selectedCompany');
+                    sessionStorage.removeItem('selectedCompany');
+                }
             } catch (e) {
                 console.error('Error parsing stored company:', e);
-                // If there's an error, continue to check session
+                // Clear invalid company data
+                localStorage.removeItem('selectedCompany');
+                sessionStorage.removeItem('selectedCompany');
             }
         }
 
@@ -547,11 +663,23 @@ const ChemoApp = (function() {
         }
 
         function showProductSelection(company) {
+            if (!company) {
+                console.error('No company provided to showProductSelection');
+                return;
+            }
+            
+            console.log('Showing product selection for company:', company);
+            
             // Update form fields if they exist
             if (elements.companyInput) elements.companyInput.value = company.name || '';
             if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
             if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
             if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
+            
+            // Update the URL with the company ID
+            const url = new URL(window.location);
+            url.searchParams.set('company_id', company.id);
+            window.history.pushState({}, '', url);
             
             // Hide company selection and show product selection
             const companySection = document.getElementById('companySelectionSection');
@@ -564,12 +692,15 @@ const ChemoApp = (function() {
             document.title = `Products - ${company.name} | Product Calculator`;
             
             // Show a welcome message
-            showAlert(`Successfully Selected , ${company.name}! Please select a product category.`, 'info');
+            showAlert(`Successfully selected ${company.name}! Please select a product category.`, 'info');
             
             // Update cart count
             if (typeof updateCartCount === 'function') {
                 updateCartCount();
             }
+            
+            // Store the company in the state
+            state.selectedCompany = company;
         }
 
         try {

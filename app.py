@@ -1110,7 +1110,7 @@ def index():
 @app.route('/login')
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return jsonify({'success': True, 'redirectTo': '/index'})
     return render_template('login.html')
 
 @app.route('/signup')

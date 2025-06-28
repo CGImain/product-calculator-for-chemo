@@ -137,18 +137,23 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}" id="homeLink">Home</a>
+                        <a class="nav-link" id="homeLink" href="{{ url_for('index') }}" data-route="{{ url_for('index') }}">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="mpacksLink" data-route="{{ url_for('mpacks') }}">M-Packs</a>
+                        <a class="nav-link" id="mpacksLink" href="{{ url_for('mpacks') }}" data-route="{{ url_for('mpacks') }}">
+                            <i class="bi bi-box-seam"></i> M-Packs
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="blanketsLink" data-route="{{ url_for('blankets') }}">Blankets</a>
+                        <a class="nav-link" id="blanketsLink" href="{{ url_for('blankets') }}" data-route="{{ url_for('blankets') }}">
+                            <i class="bi bi-brightness-high"></i> Blankets
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="cartLink">
-                            <i class="bi bi-cart"></i> Cart
-                            <span id="cartCount" class="badge bg-danger rounded-pill ms-1">0</span>
+                        <a class="nav-link" id="cartLink" href="{{ url_for('cart') }}" data-route="{{ url_for('cart') }}">
+                            <i class="bi bi-cart"></i> Cart <span id="cartCount" class="badge bg-danger">0</span>
                         </a>
                     </li>
                 </ul>
@@ -307,35 +312,48 @@
             if (['mpacksLink', 'blanketsLink', 'cartLink', 'homeLink'].includes(link.id)) {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     
                     // Don't do anything if the link is already active
                     if (this.classList.contains('active')) {
                         return;
                     }
                     
-                    // Update active state
-                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                    
                     // Get the target route
                     let targetRoute = this.href;
                     
-                    // For product and cart links, check company first
-                    if (['mpacksLink', 'blanketsLink', 'cartLink'].includes(this.id)) {
-                        targetRoute = this.id === 'cartLink' ? '{{ url_for("cart") }}' : (this.dataset.route || this.href);
-                        checkCompanyAndNavigate(targetRoute);
-                    } else {
-                        // For home link, just navigate
-                        window.location.href = targetRoute;
+                    // For all links, check company first
+                    if (this.id === 'cartLink') {
+                        targetRoute = '{{ url_for("cart") }}';
+                    } else if (this.id === 'mpacksLink') {
+                        targetRoute = '{{ url_for("mpacks") }}';
+                    } else if (this.id === 'blanketsLink') {
+                        targetRoute = '{{ url_for("blankets") }}';
                     }
+                    
+                    // Always check company before navigation
+                    checkCompanyAndNavigate(targetRoute);
                 });
             }
         });
         
-        // Also handle direct URL access
+        // Handle direct URL access on page load
         window.addEventListener('load', function() {
             const currentPath = window.location.pathname;
-            if (currentPath !== '/' && currentPath !== '/index' && currentPath !== '') {
+            const publicPaths = ['/', '/index', '/login', '/register', '/api/'];
+            
+            // Only check company for non-public paths
+            if (!publicPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
+                checkCompanyAndNavigate(currentPath);
+            }
+        });
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function() {
+            const currentPath = window.location.pathname;
+            const publicPaths = ['/', '/index', '/login', '/register', '/api/'];
+            
+            if (!publicPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
                 checkCompanyAndNavigate(currentPath);
             }
         });
@@ -343,114 +361,121 @@
     
     // Function to check if company is selected before navigation
     async function checkCompanyAndNavigate(route) {
-        // Check if the current page is the home page (no need to check company)
-        if (window.location.pathname === '/' || window.location.pathname === '/index' || window.location.pathname === '') {
+        // Skip company check for these paths
+        const publicPaths = ['/', '/index', '/login', '/register', '/api/'];
+        const isPublicPath = publicPaths.some(path => 
+            route.startsWith(path) || 
+            window.location.pathname === path ||
+            window.location.pathname === ''
+        );
+
+        if (isPublicPath) {
             window.location.href = route;
             return;
         }
 
-        // Check multiple possible locations for company info
-        const companyIdInput = document.getElementById('companyId');
-        const hasCompany = (companyIdInput && companyIdInput.value) || 
-                         (typeof ChemoApp !== 'undefined' && ChemoApp.state && ChemoApp.state.selectedCompany) ||
-                         (sessionStorage.getItem('companyId') && sessionStorage.getItem('companyName')) ||
-                         (sessionStorage.getItem('selectedCompany')) ||
-                         (localStorage.getItem('selectedCompany'));
-        
-        if (hasCompany) {
-            // If we have company info in session/local storage but not in the current state, update it
-            if ((!companyIdInput || !companyIdInput.value) && 
-                (!window.ChemoApp || !window.ChemoApp.state || !window.ChemoApp.state.selectedCompany)) {
-                
-                // Try to get company from session storage first
-                let companyId = sessionStorage.getItem('companyId');
-                let companyName = sessionStorage.getItem('companyName');
-                let companyEmail = sessionStorage.getItem('companyEmail');
-                
-                // If not found in sessionStorage, try getting from localStorage
-                if ((!companyId || !companyName) && localStorage.getItem('selectedCompany')) {
-                    try {
-                        const storedCompany = JSON.parse(localStorage.getItem('selectedCompany'));
-                        companyId = companyId || storedCompany.id;
-                        companyName = companyName || storedCompany.name;
-                        companyEmail = companyEmail || storedCompany.email;
-                        
-                        // Update session storage for next time
-                        if (companyId) sessionStorage.setItem('companyId', companyId);
-                        if (companyName) sessionStorage.setItem('companyName', companyName);
-                        if (companyEmail) sessionStorage.setItem('companyEmail', companyEmail);
-                    } catch (e) {
-                        console.error('Error parsing stored company from localStorage:', e);
-                    }
-                }
-                
-                // If we have a company ID and name, update the UI state
-                if (companyId && companyName) {
-                    // Update the hidden input if it exists
-                    if (companyIdInput) {
-                        companyIdInput.value = companyId;
-                    }
-                    
-                    // Update ChemoApp state if it exists
-                    if (window.ChemoApp) {
-                        if (!window.ChemoApp.state) window.ChemoApp.state = {};
-                        if (!window.ChemoApp.state.selectedCompany) {
-                            window.ChemoApp.state.selectedCompany = {
-                                id: companyId,
-                                name: companyName,
-                                email: companyEmail || ''
-                            };
-                        }
-                    }
+        // Function to get company from storage
+        const getStoredCompany = () => {
+            // Check session storage first
+            const sessionCompany = sessionStorage.getItem('selectedCompany');
+            if (sessionCompany) {
+                try {
+                    return JSON.parse(sessionCompany);
+                } catch (e) {
+                    console.error('Error parsing session company:', e);
                 }
             }
             
-            // Now navigate to the requested page
-            window.location.href = route;
-        } else {
-            // If no company is selected, try to get user data first
-            try {
-                const response = await fetch('/api/auth/user', {
-                    credentials: 'same-origin'  // Include cookies for session
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.user && data.user.company_id) {
-                        // User has a company, save it and proceed
-                        const company = {
-                            id: data.user.company_id,
-                            name: data.user.company_name || 'Your Company',
-                            email: data.user.company_email || ''
-                        };
-                        
-                        // Save to storage
-                        sessionStorage.setItem('selectedCompany', JSON.stringify(company));
-                        sessionStorage.setItem('companyId', company.id);
-                        sessionStorage.setItem('companyName', company.name);
-                        if (company.email) {
-                            sessionStorage.setItem('companyEmail', company.email);
-                        }
-                        
-                        // Update the hidden input if it exists
-                        if (companyIdInput) {
-                            companyIdInput.value = company.id;
-                        }
-                        
-                        // Now navigate to the requested page
-                        window.location.href = route;
-                        return;
+            // Check local storage as fallback
+            const localCompany = localStorage.getItem('selectedCompany');
+            if (localCompany) {
+                try {
+                    const company = JSON.parse(localCompany);
+                    // Update session storage for next time
+                    sessionStorage.setItem('selectedCompany', localCompany);
+                    sessionStorage.setItem('companyId', company.id);
+                    sessionStorage.setItem('companyName', company.name);
+                    if (company.email) {
+                        sessionStorage.setItem('companyEmail', company.email);
                     }
+                    return company;
+                } catch (e) {
+                    console.error('Error parsing local company:', e);
                 }
-            } catch (error) {
-                console.error('Error checking user company:', error);
             }
+            return null;
+        };
+
+        // Check if we have a company in storage
+        let company = getStoredCompany();
+
+        // If no company in storage, check the DOM
+        if (!company) {
+            const companyIdInput = document.getElementById('companyId');
+            const companyNameInput = document.getElementById('companyName');
             
-            // If we get here, no company was found
-            sessionStorage.setItem('redirectAfterLogin', route);
-            alert('Please select a company before viewing products.');
-            window.location.href = '/';
+            if (companyIdInput && companyIdInput.value && companyNameInput && companyNameInput.value) {
+                company = {
+                    id: companyIdInput.value,
+                    name: companyNameInput.value,
+                    email: document.getElementById('companyEmail')?.value || ''
+                };
+                // Save to storage for next time
+                const companyStr = JSON.stringify(company);
+                sessionStorage.setItem('selectedCompany', companyStr);
+                sessionStorage.setItem('companyId', company.id);
+                sessionStorage.setItem('companyName', company.name);
+                if (company.email) {
+                    sessionStorage.setItem('companyEmail', company.email);
+                }
+            }
         }
+
+        // If we have a company, update the state and navigate
+        if (company) {
+            // Update ChemoApp state if it exists
+            if (window.ChemoApp) {
+                if (!window.ChemoApp.state) window.ChemoApp.state = {};
+                window.ChemoApp.state.selectedCompany = company;
+            }
+            
+            // Update the URL with company ID if not already present
+            if (route.includes('?')) {
+                if (!route.includes('company_id=')) {
+                    route += `&company_id=${company.id}`;
+                }
+            } else {
+                route += `?company_id=${company.id}`;
+            }
+            
+            window.location.href = route;
+            return;
+        }
+
+        // If we get here, no company was found
+        console.log('No company found, redirecting to home');
+        sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+        
+        // Show a more user-friendly message
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+            <strong>Company Selection Required</strong>
+            <p>Please select a company before accessing this page.</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Insert the alert at the top of the body
+        document.body.insertBefore(alertDiv, document.body.firstChild);
+        
+        // Scroll to top to show the alert
+        window.scrollTo(0, 0);
+        
+        // Redirect to home after a short delay
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 3000);
     }
     
     // Function to update cart count

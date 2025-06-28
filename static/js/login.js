@@ -88,12 +88,16 @@ async function handleLogin(e) {
     // Show loading state
     setLoading(true);
     
+    // Get CSRF token from form if available
+    const csrfToken = document.querySelector('input[name="csrf_token"]');
+    const csrfHeader = csrfToken ? { 'X-CSRFToken': csrfToken.value } : {};
+    
     // Send login request
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+        ...csrfHeader
       },
       body: JSON.stringify({
         email: login,

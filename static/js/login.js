@@ -11,9 +11,6 @@ const togglePassword = document.querySelector('.toggle-password');
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   
-  // Reset loading state
-  setLoading(false);
-  
   // Check for success message in URL (after registration)
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('registered') === 'true') {
@@ -91,44 +88,19 @@ async function handleLogin(e) {
     // Show loading state
     setLoading(true);
     
-    // Get CSRF token from form
-    const csrfToken = document.querySelector('input[name="csrf_token"]');
-    if (!csrfToken) {
-      console.error('CSRF token not found in form');
-      return;
-    }
-    const csrfHeader = { 'X-CSRFToken': csrfToken.value };
-    
     // Send login request
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...csrfHeader
       },
       body: JSON.stringify({
-        identifier: login,
+        email: login,
         password
       })
     });
-
-    try {
-      const data = await response.json();
-      
-      if (!response.ok) {
-        if (data.error) {
-          showError(data.error);
-          return;
-        }
-        showError('An error occurred. Please try again.');
-        return;
-      }
-    } catch (e) {
-      // If response is not JSON, show a generic error
-      console.error('Response is not JSON:', e);
-      showError('An error occurred. Please try again.');
-      return;
-    }
+    
+    const data = await response.json();
     
     if (response.ok && data.success) {
       // Store the token in localStorage
@@ -136,8 +108,8 @@ async function handleLogin(e) {
         localStorage.setItem('auth_token', data.token);
       }
       
-      // Redirect to index page
-      window.location.href = data.redirectTo || '/index';
+      // Redirect to display page
+      window.location.href = data.redirectTo || '/display';
     } else {
       // Show error message
       showError(data.error || 'Login failed. Please check your credentials.');
@@ -196,20 +168,20 @@ function clearMessages() {
 }
 
 // Set loading state
-function setLoading(loading) {
-  if (loginBtn) {
-    const btnText = loginBtn.querySelector('.btn-text');
-    const btnLoader = loginBtn.querySelector('.btn-loader');
-    
-    if (loading) {
-      btnText.style.display = 'none';
-      btnLoader.style.display = 'flex';
-      loginBtn.disabled = true;
-    } else {
-      btnText.style.display = 'flex';
-      btnLoader.style.display = 'none';
-      loginBtn.disabled = false;
-    }
+function setLoading(isLoading) {
+  if (!loginBtn) return;
+  
+  const btnText = loginBtn.querySelector('.btn-text');
+  const btnLoader = loginBtn.querySelector('.btn-loader');
+  
+  if (isLoading) {
+    loginBtn.disabled = true;
+    if (btnText) btnText.style.visibility = 'hidden';
+    if (btnLoader) btnLoader.style.display = 'flex';
+  } else {
+    loginBtn.disabled = false;
+    if (btnText) btnText.style.visibility = 'visible';
+    if (btnLoader) btnLoader.style.display = 'none';
   }
 }
-// Password toggle functionality added
+// Password toggle functionality added 

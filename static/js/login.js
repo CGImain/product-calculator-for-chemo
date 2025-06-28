@@ -88,9 +88,13 @@ async function handleLogin(e) {
     // Show loading state
     setLoading(true);
     
-    // Get CSRF token from form if available
+    // Get CSRF token from form
     const csrfToken = document.querySelector('input[name="csrf_token"]');
-    const csrfHeader = csrfToken ? { 'X-CSRFToken': csrfToken.value } : {};
+    if (!csrfToken) {
+      console.error('CSRF token not found in form');
+      return;
+    }
+    const csrfHeader = { 'X-CSRFToken': csrfToken.value };
     
     // Send login request
     const response = await fetch('/api/auth/login', {
@@ -105,26 +109,23 @@ async function handleLogin(e) {
       })
     });
 
-    // Check if response is HTML (status != 200)
-    if (!response.ok) {
-      const text = await response.text();
-      if (text.includes('<!doctype')) {
-        throw new Error('Unexpected HTML response');
-      }
-      try {
-        const data = JSON.parse(text);
+    try {
+      const data = await response.json();
+      
+      if (!response.ok) {
         if (data.error) {
           showError(data.error);
           return;
         }
-      } catch (e) {
-        // If we can't parse it as JSON, show a generic error
         showError('An error occurred. Please try again.');
         return;
       }
+    } catch (e) {
+      // If response is not JSON, show a generic error
+      console.error('Response is not JSON:', e);
+      showError('An error occurred. Please try again.');
+      return;
     }
-    
-    const data = await response.json();
     
     if (response.ok && data.success) {
       // Store the token in localStorage

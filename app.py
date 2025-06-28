@@ -1101,17 +1101,11 @@ def get_cart_count():
         return jsonify({'count': 0}), 500
 
 @app.route('/')
+@app.route('/index')
 @login_required
 def index():
     companies = get_companies()
     return render_template('index.html', companies=companies)
-
-# Redirect any display requests to index
-@app.route('/display')
-def display():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    return redirect(url_for('login'))
 
 @app.route('/login')
 def login():

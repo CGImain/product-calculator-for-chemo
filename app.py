@@ -15,7 +15,6 @@ import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import wraps
-import jwt
 import random
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
@@ -760,7 +759,8 @@ def cart():
     The Jinja template expects a cart object with products list and calculated totals.
     """
     try:
-        # No CSRF token needed
+        # Get the current cart
+        cart_data = get_user_cart()
         if not isinstance(cart_data, dict):
             cart_data = {"products": []}
         

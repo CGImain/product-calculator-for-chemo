@@ -1393,46 +1393,77 @@ def search_companies():
         app.logger.error(f"Error searching companies: {str(e)}")
         return jsonify({'error': 'Failed to search companies'}), 500
 
-# The /update_company endpoint now handles all company update cases
+@app.route('/api/update_company', methods=['POST'])
+@login_required
+def update_user_company():
+    """Update the current user's company"""
+    if not request.is_json:
+        return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
+    
+    data = request.get_json()
+    company_id = data.get('company_id')
+    
+    if not company_id:
+        return jsonify({'status': 'error', 'message': 'Company ID is required'}), 400
+    
+    try:
+        # Update user's company in the database
+        if MONGO_AVAILABLE and USE_MONGO and users_col is not None:
+            # Update in MongoDB
+            result = users_col.update_one(
+                {'_id': current_user.id},
+                {'$set': {'company_id': company_id}}
+            )
+            if result.matched_count == 0:
+                return jsonify({'status': 'error', 'message': 'User not found or no changes made'}), 404
+        else:
+            # Update in JSON file
+            users = load_users()
+            if str(current_user.id) not in users:
+                return jsonify({'status': 'error', 'message': 'User not found'}), 404
+                
+            users[str(current_user.id)]['company_id'] = company_id
+            save_users()
+        
+        # Update session
+        session['company_id'] = company_id
+        
+        # Get company details for response
+        company_name = get_company_name_by_id(company_id)
+        company_email = get_company_email_by_id(company_id)
+        
+        # Update session with company details
+        session['company_name'] = company_name
+        session['company_email'] = company_email
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Company updated successfully',
+            'company': {
+                'id': company_id,
+                'name': company_name,
+                'email': company_email
+            }
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error updating user company: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
+
 @app.route('/update_company', methods=['POST'])
 @login_required
 def update_company():
-    """
-    Update the current user's company information.
-    
-    This endpoint accepts either a company_id (which will be used to look up the company details)
-    or complete company details (id, name, email).
-    """
+    """Update the current user's company from product pages"""
     if not request.is_json:
-        return jsonify({'success': False, 'error': 'Request must be JSON'}), 400
+        return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
     
     data = request.get_json()
     company_id = data.get('company_id')
     company_name = data.get('company_name')
     company_email = data.get('company_email')
     
-    # If we only have company_id, try to look up the company details
-    if company_id and not (company_name and company_email):
-        try:
-            company_name = get_company_name_by_id(company_id)
-            company_email = get_company_email_by_id(company_id)
-            if not company_name or not company_email:
-                return jsonify({
-                    'success': False, 
-                    'error': 'Could not find company details. Please provide complete company information.'
-                }), 400
-        except Exception as e:
-            app.logger.error(f"Error looking up company: {str(e)}")
-            return jsonify({
-                'success': False, 
-                'error': 'Error looking up company details. Please provide complete company information.'
-            }), 400
-    
     if not all([company_id, company_name, company_email]):
-        return jsonify({
-            'success': False, 
-            'error': 'Company ID, name, and email are required'
-        }), 400
+        return jsonify({'status': 'error', 'message': 'Company ID, name, and email are required'}), 400
     
     try:
         # Update user's company in the database
@@ -1448,13 +1479,6 @@ def update_company():
                 }},
                 upsert=True  # Create user if not exists
             )
-            
-            if result.matched_count == 0 and not result.upserted_id:
-                return jsonify({
-                    'success': False, 
-                    'error': 'Failed to update company in database'
-                }), 500
-                
         else:
             # Update in JSON file
             users = load_users()
@@ -1468,9 +1492,6 @@ def update_company():
             users[user_id]['updated_at'] = datetime.utcnow().isoformat()
             save_users(users)
         
-        # Update the current_user object
-        current_user.company_id = company_id
-        
         # Update session with company information
         session['company_id'] = company_id
         session['company_name'] = company_name
@@ -1482,40 +1503,19 @@ def update_company():
         }
         session.modified = True  # Ensure session is saved
         
-        # Get the updated user data
-        user_data = {
-            'id': current_user.id,
-            'email': current_user.email,
-            'username': current_user.username,
-            'company': {
-                'id': company_id,
-                'name': company_name,
-                'email': company_email
-            }
-        }
-        
-        response_data = {
-            'success': True,
+        return jsonify({
+            'status': 'success',
             'message': 'Company updated successfully',
-            'user': user_data,
             'company': {
                 'id': company_id,
                 'name': company_name,
                 'email': company_email
             }
-        }
-        
-        app.logger.info(f"Updated company for user {current_user.id} to {company_name} ({company_id})")
-        return jsonify(response_data)
+        })
         
     except Exception as e:
-        error_msg = f"Error updating company: {str(e)}"
-        app.logger.error(error_msg, exc_info=True)
-        return jsonify({
-            'success': False, 
-            'error': 'An error occurred while updating company information',
-            'details': str(e) if app.debug else None
-        }), 500
+        app.logger.error(f"Error updating company: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
 # Step 1: Request Password Reset - Send OTP to email
 # Step 2: Verify OTP
@@ -2502,28 +2502,68 @@ def api_user():
     try:
         if current_user.is_authenticated:
             user_data = {
-                'id': current_user.id,
-                'email': current_user.email,
-                'username': current_user.username
-            }
-            
-            # Add company information if available
-            if hasattr(current_user, 'company_id') and current_user.company_id:
-                user_data['company'] = {
-                    'id': current_user.company_id,
-                    'name': get_company_name_by_id(current_user.company_id),
-                    'email': get_company_email_by_id(current_user.company_id)
-                }
-            
-            return jsonify({
                 'success': True,
-                'user': user_data
-            })
+                'user': {
+                    'id': current_user.id,
+                    'email': current_user.email,
+                    'username': current_user.username,
+                    'company_id': getattr(current_user, 'company_id', None)
+                }
+            }
+            return jsonify(user_data)
         else:
-            return jsonify({'success': False, 'error': 'Not logged in'}), 401
+            return jsonify({'error': 'Not logged in'}), 401
     except Exception as e:
         print(f"User error: {str(e)}")
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/user/update-company', methods=['POST'])
+@app.route('/api/update_company', methods=['POST'])
+@login_required
+def update_company():
+    try:
+        data = request.get_json()
+        company_id = data.get('company_id')
+        company_name = data.get('company_name')
+        company_email = data.get('company_email')
+
+        if not company_id:
+            return jsonify({'error': 'Company ID is required'}), 400
+
+        # Update user's company information in the database
+        if MONGO_AVAILABLE and USE_MONGO:
+            # Update in MongoDB
+            user_id = current_user.get_id()
+            user = mu_find_user_by_id(user_id)
+            if user:
+                user['company_id'] = company_id
+                if company_name:
+                    user['company_name'] = company_name
+                if company_email:
+                    user['company_email'] = company_email
+                mu_update_user(user_id, user)
+        else:
+            # Fallback to SQLAlchemy if needed
+            current_user.company_id = company_id
+            if company_name:
+                current_user.company_name = company_name
+            if company_email:
+                current_user.company_email = company_email
+            db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Company updated successfully',
+            'company': {
+                'id': company_id,
+                'name': company_name,
+                'email': company_email
+            }
+        })
+
+    except Exception as e:
+        print(f"Error updating company: {str(e)}")
+        return jsonify({'error': 'Failed to update company'}), 500
 
 @app.route('/chemicals/<filename>')
 def chemicals(filename):

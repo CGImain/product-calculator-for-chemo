@@ -425,19 +425,23 @@ const ChemoApp = (function() {
             // Try to update the company on the server
             try {
                 console.log('Updating company on server...');
+                const companyData = {
+                    company_id: state.selectedCompany.id,
+                    company_name: state.selectedCompany.name,
+                    company_email: state.selectedCompany.email
+                };
+
+                // Try the first endpoint
                 let response = await fetch('/api/update_company', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        company_id: state.selectedCompany.id,
-                        company_name: state.selectedCompany.name,
-                        company_email: state.selectedCompany.email
-                    }),
+                    body: JSON.stringify(companyData),
                     credentials: 'same-origin'  // Include cookies for session
                 });
                 
+                // If first endpoint fails, try the fallback
                 if (!response.ok) {
                     console.log('Trying fallback endpoint /api/user/update-company');
                     response = await fetch('/api/user/update-company', {
@@ -445,22 +449,20 @@ const ChemoApp = (function() {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            company_id: state.selectedCompany.id,
-                            company_name: state.selectedCompany.name,
-                            company_email: state.selectedCompany.email
-                        }),
+                        body: JSON.stringify(companyData),
                         credentials: 'same-origin'
                     });
                 }
                 
+                // Handle the response
+                const responseData = await response.json().catch(() => ({}));
+                
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    console.error('Failed to update company on server:', errorData);
+                    console.error('Failed to update company on server:', responseData);
                     // Don't throw error, continue with client-side storage
+                    console.log('Using client-side storage for company selection');
                 } else {
-                    const data = await response.json();
-                    console.log('Company updated on server:', data);
+                    console.log('Company updated on server:', responseData);
                 }
             } catch (error) {
                 console.error('Error updating company on server:', error);

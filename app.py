@@ -506,9 +506,8 @@ logging.getLogger('werkzeug').setLevel(logging.WARNING)
 # Create Flask app instance
 app = Flask(__name__)
 
-# Configure CSRF protection
+# Configure secret key
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
-csrf = CSRFProtect(app)
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])

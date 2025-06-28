@@ -103,7 +103,7 @@
                                        placeholder="Start typing company name..." autocomplete="off" required>
                                 <div id="searchResults" class="search-results mt-1"></div>
                             </div>
-                            <div class="form-text">Type at least 3 characters to see matching results</div>
+                            <div class="form-text">Type at least 2 characters to see matching results</div>
                         </div>
                         <div class="d-grid gap-2">
                             <button type="button" id="selectCompanyBtn" class="btn btn-primary btn-lg" disabled>
@@ -224,10 +224,20 @@ const ChemoApp = (function() {
         const changeCompanyBtn = document.getElementById('changeCompanyBtn');
         if (changeCompanyBtn) {
             changeCompanyBtn.addEventListener('click', () => {
-                // Clear company selection
+                // Clear company selection from state
                 state.selectedCompany = null;
+                
+                // Clear session storage
                 sessionStorage.removeItem('selectedCompany');
+                sessionStorage.removeItem('companyId');
+                sessionStorage.removeItem('companyName');
+                sessionStorage.removeItem('companyEmail');
+                
+                // Clear local storage
                 localStorage.removeItem('selectedCompany');
+                localStorage.removeItem('companyId');
+                localStorage.removeItem('companyName');
+                localStorage.removeItem('companyEmail');
                 
                 // Reset form
                 if (elements.companyInput) elements.companyInput.value = '';
@@ -243,6 +253,9 @@ const ChemoApp = (function() {
                 
                 // Focus on company input
                 if (elements.companyInput) elements.companyInput.focus();
+                
+                // Show a message
+                showAlert('Company selection has been cleared. Please select a company.', 'info');
             });
         }
         
@@ -335,7 +348,7 @@ const ChemoApp = (function() {
         elements.searchResults.style.display = 'block';
     }
 
-    // Select company from search results
+    // Select company from search results and show product selection
     function selectCompanyFromResults(company) {
         state.selectedCompany = company;
         elements.companyInput.value = company.name || '';
@@ -344,6 +357,9 @@ const ChemoApp = (function() {
         elements.companyEmailInput.value = company.email || '';
         elements.searchResults.style.display = 'none';
         elements.selectCompanyBtn.disabled = false;
+        
+        // Automatically show product selection
+        showProductSelection(company);
     }
 
     // Select company and save to session
@@ -383,8 +399,13 @@ const ChemoApp = (function() {
                 sessionStorage.setItem('companyEmail', companyData.email);
             }
             
-            // Update local storage as backup
+            // Update local storage for persistence across page reloads
             localStorage.setItem('selectedCompany', JSON.stringify(companyData));
+            localStorage.setItem('companyId', companyData.id);
+            localStorage.setItem('companyName', companyData.name);
+            if (companyData.email) {
+                localStorage.setItem('companyEmail', companyData.email);
+            }
             
             // Update the state
             state.selectedCompany = companyData;
@@ -504,6 +525,20 @@ const ChemoApp = (function() {
 
     // Check if a company is already selected
     async function checkExistingCompany() {
+        // First check localStorage for existing company selection
+        const storedCompany = localStorage.getItem('selectedCompany');
+        if (storedCompany) {
+            try {
+                const company = JSON.parse(storedCompany);
+                state.selectedCompany = company;
+                showProductSelection(company);
+                return; // Exit early if we found a stored company
+            } catch (e) {
+                console.error('Error parsing stored company:', e);
+                // If there's an error, continue to check session
+            }
+        }
+
         function showCompanySelection() {
             const companySection = document.getElementById('companySelectionSection');
             const productSection = document.getElementById('productSelectionSection');

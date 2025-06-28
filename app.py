@@ -1,5 +1,8 @@
-from flask import Flask, render_template, send_from_directory, request, redirect, url_for, jsonify, flash, session, make_response, send_file
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_wtf import CSRFProtect
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Email
 from waitress import serve
 import os
 import json
@@ -493,7 +496,16 @@ logging.basicConfig(
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
 # Create Flask app instance
-app = Flask(__name__, static_url_path='/static', static_folder='static', template_folder='templates')
+app = Flask(__name__)
+
+# Configure CSRF protection
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
+csrf = CSRFProtect(app)
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
 
 # Configure session
 app.secret_key = os.getenv('SECRET_KEY', 'dev-key-123')
@@ -1094,10 +1106,15 @@ def get_cart_count():
         print(f"Error in get_cart_count: {e}")
         return jsonify({'count': 0}), 500
 
-@app.route('/display')
+@app.route('/')
 @login_required
+def index():
+    return render_template('index.html')
+
+# Redirect any display requests to index
+@app.route('/display')
 def display():
-    return render_template('display.html')
+    return redirect(url_for('index'))
 
 @app.route('/login')
 def login():

@@ -139,14 +139,14 @@
     <div class="card">
       <div class="logo">
         <h2>Welcome Back</h2>
-        <p class="subtitle">Sign in to Product Calculator</p>
+        <p class="subtitle">Sign in to continue to Product Calculator</p>
       </div>
       
       <div id="message" class="message" style="display: none;"></div>
       <div id="error" class="error-message" style="display: none;"></div>
       
       <form id="loginForm" class="needs-validation" novalidate>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {{ csrf_token() }}
         <div class="form-group">
           <label for="login">Email or Username</label>
           <input 
@@ -155,10 +155,11 @@
             name="email" 
             class="form-control" 
             placeholder="Enter your email or username" 
-            required 
+            required
             autocomplete="username"
           >
         </div>
+        
         <div class="form-group">
           <label for="password">Password</label>
           <div class="password-input-group">
@@ -168,7 +169,7 @@
               name="password" 
               class="form-control" 
               placeholder="Enter your password" 
-              required 
+              required
               autocomplete="current-password"
             >
             <button type="button" class="toggle-password" data-toggle="password" aria-label="Toggle password visibility">
@@ -197,11 +198,6 @@
           Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a>
         </div>
       </form>
-      <div id="error" class="error-message"></div>
-      
-      <div class="signup-link">
-        Don't have an account? <a href="/signup">Sign up</a>
-      </div>
     </div>
   </div>
   

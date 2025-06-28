@@ -163,41 +163,11 @@
                             <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form id="logout-form" class="d-inline" onsubmit="handleLogout(event)">
-                                
+                                <form id="logout-form" class="d-inline" action="{{ url_for('api_logout') }}" method="POST">
                                     <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to sign out?');">
                                         <i class="bi bi-box-arrow-right me-2"></i>Sign Out
                                     </button>
                                 </form>
-                                <script>
-                                async function handleLogout(event) {
-                                    event.preventDefault();
-                                    const form = event.target;
-                                    const formData = new FormData(form);
-                                    
-                                    try {
-                                        const response = await fetch("{{ url_for('api_logout') }}", {
-                                            method: 'POST',
-                                            headers: {
-                                                'X-CSRFToken': formData.get('csrf_token'),
-                                                'X-Requested-With': 'XMLHttpRequest',
-                                                'Accept': 'application/json',
-                                                'Content-Type': 'application/json'
-                                            },
-                                            credentials: 'same-origin'
-                                        });
-                                        
-                                        const data = await response.json();
-                                        
-                                        if (response.ok && data.success) {
-                                            window.location.href = "{{ url_for('login') }}";
-                                        } else {
-                                            console.error('Logout failed:', data.error || 'Unknown error');
-                                            alert('Failed to log out. Please try again.');
-                                        }
-                                    } catch (error) {
-                                        console.error('Logout error:', error);
-                                        alert('An error occurred during logout. Please try again.');
                                     }
                                 }
                                 </script>

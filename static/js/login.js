@@ -100,7 +100,7 @@ async function handleLogin(e) {
         ...csrfHeader
       },
       body: JSON.stringify({
-        email: login,
+        identifier: login,
         password
       })
     });

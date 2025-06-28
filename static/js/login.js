@@ -65,44 +65,44 @@ function setupEventListeners() {
 async function handleLogin(e) {
   e.preventDefault();
   
-  // Get form data
-  const identifier = loginInput.value.trim();
+  const login = loginInput.value.trim();
   const password = passwordInput.value.trim();
-  
-  if (!identifier || !password) {
-    showError('Please enter both email/username and password');
-    return;
-  }
   
   // Clear previous errors
   clearMessages();
   
-  setLoading(true);
+  // Validate inputs
+  if (!login) {
+    showError('Please enter your email or username');
+    loginInput.focus();
+    return;
+  }
+  
+  if (!password) {
+    showError('Please enter your password');
+    passwordInput.focus();
+    return;
+  }
   
   try {
+    // Show loading state
+    setLoading(true);
+    
+    // Send login request
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
       },
       body: JSON.stringify({
-        identifier: identifier,
-        password: password
+        email: login,
+        password
       })
     });
-
-    // Check if response is HTML (status != 200)
-    if (!response.ok) {
-      const text = await response.text();
-      if (text.includes('<!doctype')) {
-        throw new Error('Unexpected HTML response');
-      }
-    }
     
     const data = await response.json();
     
-    if (data.success) {
+    if (response.ok && data.success) {
       // Store the token in localStorage
       if (data.token) {
         localStorage.setItem('auth_token', data.token);

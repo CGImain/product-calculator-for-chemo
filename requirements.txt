@@ -14,3 +14,4 @@ Flask_SQLAlchemy
 psycopg2-binary
 pymongo[srv]==4.7.1
 certifi==2024.6.2
+flask-wtf==1.2.2

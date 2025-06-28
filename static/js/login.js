@@ -102,21 +102,37 @@ async function handleLogin(e) {
     
     const data = await response.json();
     
-    if (response.ok && data.success) {
-      // Store the token in localStorage
-      if (data.token) {
-        localStorage.setItem('auth_token', data.token);
+    if (response.ok) {
+      try {
+        const data = await response.json();
+        if (data.success) {
+          // Store the token in localStorage
+          if (data.token) {
+            localStorage.setItem('auth_token', data.token);
+          }
+          
+          // Redirect to index page
+          window.location.href = data.redirectTo || '/index';
+        } else {
+          // Show error message
+          showError(data.error || 'Login failed. Please check your credentials.');
+          
+          // Clear password field on failed login
+          passwordInput.value = '';
+          passwordInput.focus();
+        }
+      } catch (jsonError) {
+        console.error('Error parsing response:', jsonError);
+        showError('An error occurred. Please try again.');
       }
-      
-      // Redirect to display page
-      window.location.href = data.redirectTo || '/display';
     } else {
-      // Show error message
-      showError(data.error || 'Login failed. Please check your credentials.');
-      
-      // Clear password field on failed login
-      passwordInput.value = '';
-      passwordInput.focus();
+      try {
+        const data = await response.json();
+        showError(data.error || 'Login failed. Please check your credentials.');
+      } catch (jsonError) {
+        console.error('Error parsing response:', jsonError);
+        showError('An error occurred. Please try again.');
+      }
     }
   } catch (error) {
     console.error('Login error:', error);

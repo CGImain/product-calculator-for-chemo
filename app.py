@@ -1107,10 +1107,15 @@ def index():
     companies = get_companies()
     return render_template('index.html', companies=companies)
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return jsonify({'success': True, 'redirectTo': '/index'})
+        return jsonify({'success': True, 'redirectTo': '/index'}) if request.method == 'POST' else redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        # Handle POST request - this should never happen since we use API route
+        return jsonify({'error': 'Use /api/auth/login for POST requests'}), 400
+    
     return render_template('login.html')
 
 @app.route('/signup')

@@ -93,12 +93,32 @@ async function handleLogin(e) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
       },
       body: JSON.stringify({
         email: login,
         password
       })
     });
+
+    // Check if response is HTML (status != 200)
+    if (!response.ok) {
+      const text = await response.text();
+      if (text.includes('<!doctype')) {
+        throw new Error('Unexpected HTML response');
+      }
+      try {
+        const data = JSON.parse(text);
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+      } catch (e) {
+        // If we can't parse it as JSON, show a generic error
+        showError('An error occurred. Please try again.');
+        return;
+      }
+    }
     
     const data = await response.json();
     

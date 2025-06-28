@@ -186,28 +186,25 @@ const ChemoApp = (function() {
 
     // Initialize the application
     function init() {
+        // Clear any stored company selection
+        sessionStorage.removeItem('selectedCompany');
+        localStorage.removeItem('selectedCompany');
+        state.selectedCompany = null;
+        
+        // Set up UI
         setupEventListeners();
         setupProductButtons();
         
-        // Check if we already have a selected company
-        const storedCompany = sessionStorage.getItem('selectedCompany') || localStorage.getItem('selectedCompany');
-        
-        if (storedCompany) {
-            try {
-                const company = JSON.parse(storedCompany);
-                state.selectedCompany = company;
-                showProductSelection(company);
-                return;
-            } catch (e) {
-                console.error('Error parsing stored company:', e);
-            }
-        }
-        
-        // If no company is selected, show the company selection
+        // Always show company selection first
         const companySection = document.getElementById('companySelectionSection');
         const productSection = document.getElementById('productSelectionSection');
         
-        if (companySection) companySection.style.display = 'block';
+        if (companySection) {
+            companySection.style.display = 'block';
+            // Focus the search input
+            const searchInput = companySection.querySelector('input[type="text"]');
+            if (searchInput) searchInput.focus();
+        }
         if (productSection) productSection.style.display = 'none';
         
         // Check for existing company (but don't auto-show products)

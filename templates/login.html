@@ -146,7 +146,7 @@
       <div id="error" class="error-message" style="display: none;"></div>
       
       <form id="loginForm" class="needs-validation" novalidate>
-        {{ csrf_token() }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
           <label for="login">Email or Username</label>
           <input 

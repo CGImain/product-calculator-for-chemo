@@ -11,6 +11,9 @@ const togglePassword = document.querySelector('.toggle-password');
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   
+  // Reset loading state
+  setLoading(false);
+  
   // Check for success message in URL (after registration)
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('registered') === 'true') {
@@ -193,20 +196,20 @@ function clearMessages() {
 }
 
 // Set loading state
-function setLoading(isLoading) {
-  if (!loginBtn) return;
-  
-  const btnText = loginBtn.querySelector('.btn-text');
-  const btnLoader = loginBtn.querySelector('.btn-loader');
-  
-  if (isLoading) {
-    loginBtn.disabled = true;
-    if (btnText) btnText.style.visibility = 'hidden';
-    if (btnLoader) btnLoader.style.display = 'flex';
-  } else {
-    loginBtn.disabled = false;
-    if (btnText) btnText.style.visibility = 'visible';
-    if (btnLoader) btnLoader.style.display = 'none';
+function setLoading(loading) {
+  if (loginBtn) {
+    const btnText = loginBtn.querySelector('.btn-text');
+    const btnLoader = loginBtn.querySelector('.btn-loader');
+    
+    if (loading) {
+      btnText.style.display = 'none';
+      btnLoader.style.display = 'flex';
+      loginBtn.disabled = true;
+    } else {
+      btnText.style.display = 'flex';
+      btnLoader.style.display = 'none';
+      loginBtn.disabled = false;
+    }
   }
 }
-// Password toggle functionality added 
+// Password toggle functionality added

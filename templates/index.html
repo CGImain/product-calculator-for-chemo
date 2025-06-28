@@ -1,0 +1,632 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Product Calculator for Chemo{% endblock %}
+
+{% block extra_css %}
+{{ super() }}
+<style>
+    .search-container {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    .search-results {
+        position: absolute;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        z-index: 1000;
+        margin-top: 5px;
+        display: none;
+    }
+    .search-item {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+    .search-item:hover {
+        background-color: #f5f5f5;
+    }
+    .product-nav {
+        margin: 2rem 0;
+        display: none;
+    }
+    .nav-pills .nav-link {
+        color: #0d6efd;
+        font-weight: 500;
+        padding: 0.5rem 1.5rem;
+        margin: 0 0.5rem;
+        border-radius: 20px;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .welcome-message {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Welcome Message -->
+    <div class="jumbotron text-center">
+        <h1 class="display-4">Welcome to Product Calculator for Chemo</h1>
+        <p class="lead">Your one-stop solution for chemotherapy product calculations</p>
+        <hr class="my-4">
+        <p>Get started by SELECTING COMPANY AND PRODUCT</p>
+    </div>
+
+    <!-- Company Selection -->
+    <div class="row justify-content-center" id="companySelectionSection">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Select Your Company</h5>
+                </div>
+                <div class="card-body">
+                    <form id="companyForm">
+                        <input type="hidden" name="company_id" id="companyId">
+                        <input type="hidden" name="company_name" id="companyName">
+                        <input type="hidden" name="company_email" id="companyEmail">
+                        <div class="form-group mb-3">
+                            <label for="companyInput">Search for your company</label>
+                            <input type="text" class="form-control search-input" id="companyInput" 
+                                   placeholder="Start typing company name..." autocomplete="off" required>
+                            <div id="searchResults" class="search-results"></div>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary btn-lg" id="selectCompanyBtn" disabled>
+                                Select Company
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Selection (initially hidden) -->
+    <div class="text-center mt-4" id="productSelectionSection" style="display: none;">
+        <h3 class="mb-4">Select Product Category</h3>
+        <div>
+            <a class="btn btn-primary btn-lg me-3" href="#" id="mpacksBtn" data-route="{{ url_for('mpacks') }}" role="button">View M-Packs</a>
+            <a class="btn btn-outline-primary btn-lg" href="#" id="blanketsBtn" data-route="{{ url_for('blankets') }}" role="button">View Blankets</a>
+        </div>
+    </div>
+
+    <!-- Products Display (initially hidden) -->
+    <div id="productsDisplay" style="display: none;">
+        <!-- M-Packs Section -->
+        <div class="product-section">
+            <h2 class="text-center mb-4">M-Packs</h2>
+            <div class="row">
+                <!-- M-Pack items will be dynamically loaded here -->
+            </div>
+        </div>
+
+        <!-- Blankets Section -->
+        <div class="product-section mt-4">
+            <h2 class="text-center mb-4">Blankets</h2>
+            <div class="row">
+                <!-- Blanket items will be dynamically loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<div id="companies-data" style="display: none;">{{ companies|tojson|safe }}</div>
+<script>
+// Main application module
+const ChemoApp = (function() {
+    // Initialize companies from template
+    const companiesData = JSON.parse(document.getElementById('companies-data').textContent || '[]');
+    
+    // State
+    const state = {
+        companies: Array.isArray(companiesData) ? companiesData : [],
+        selectedCompany: null,
+        products: {
+            mpacks: [],
+            blankets: []
+        },
+        cartCount: 0
+    };
+
+    // DOM Elements
+    const elements = {
+        companyInput: document.getElementById('companyInput'),
+        searchResults: document.getElementById('searchResults'),
+        selectCompanyBtn: document.getElementById('selectCompanyBtn'),
+        companyIdInput: document.getElementById('companyId'),
+        companyNameInput: document.getElementById('companyName'),
+        companyEmailInput: document.getElementById('companyEmail'),
+        productNav: document.getElementById('productNav'),
+        mpacksLink: document.getElementById('mpacksLink'),
+        blanketsLink: document.getElementById('blanketsLink'),
+        cartCount: document.getElementById('cartCount')
+    };
+
+    // Initialize the application
+    function init() {
+        setupEventListeners();
+        setupProductButtons();
+        checkExistingCompany();
+        updateCartCount();
+    }
+    
+    // Set up product button click handlers
+    function setupProductButtons() {
+        const mpacksBtn = document.getElementById('mpacksBtn');
+        const blanketsBtn = document.getElementById('blanketsBtn');
+        
+        if (mpacksBtn) {
+            mpacksBtn.addEventListener('click', handleProductButtonClick);
+        }
+        
+        if (blanketsBtn) {
+            blanketsBtn.addEventListener('click', handleProductButtonClick);
+        }
+    }
+
+    // Set up event listeners
+    function setupEventListeners() {
+        if (elements.companyInput) {
+            elements.companyInput.addEventListener('input', handleCompanySearch);
+        }
+        
+        if (elements.selectCompanyBtn) {
+            elements.selectCompanyBtn.addEventListener('click', selectCompany);
+        }
+        
+        if (elements.mpacksLink) {
+            elements.mpacksLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (state.selectedCompany) {
+                    window.location.href = `/mpacks?company_id=${state.selectedCompany.id}`;
+                }
+            });
+        }
+        
+        if (elements.blanketsLink) {
+            elements.blanketsLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (state.selectedCompany) {
+                    window.location.href = `/blankets?company_id=${state.selectedCompany.id}`;
+                }
+            });
+        }
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (elements.searchResults && 
+                !elements.searchResults.contains(e.target) && 
+                e.target !== elements.companyInput) {
+                elements.searchResults.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle company search input
+    function handleCompanySearch(e) {
+        const query = e.target.value.toLowerCase();
+        elements.searchResults.innerHTML = '';
+        elements.searchResults.style.display = 'none';
+        
+        if (query.length < 2) return;
+        
+        const results = state.companies.filter(company => 
+            company.name && company.name.toLowerCase().includes(query)
+        );
+        
+        if (results.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.className = 'search-item';
+            noResults.textContent = 'No companies found';
+            elements.searchResults.appendChild(noResults);
+        } else {
+            results.forEach(company => {
+                const item = document.createElement('div');
+                item.className = 'search-item';
+                item.innerHTML = `
+                    <strong>${company.name || 'Unnamed Company'}</strong><br>
+                    <small class="text-muted">${company.email || ''}</small>
+                `;
+                item.addEventListener('click', () => selectCompanyFromResults(company));
+                elements.searchResults.appendChild(item);
+            });
+        }
+        
+        elements.searchResults.style.display = 'block';
+    }
+
+    // Select company from search results
+    function selectCompanyFromResults(company) {
+        state.selectedCompany = company;
+        elements.companyInput.value = company.name || '';
+        elements.companyIdInput.value = company.id || '';
+        elements.companyNameInput.value = company.name || '';
+        elements.companyEmailInput.value = company.email || '';
+        elements.searchResults.style.display = 'none';
+        elements.selectCompanyBtn.disabled = false;
+    }
+
+    // Select company and save to session
+    async function selectCompany() {
+        if (!state.selectedCompany) return;
+        
+        try {
+            const response = await fetch('/api/user/update-company', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    company_id: state.selectedCompany.id,
+                    company_name: state.selectedCompany.name,
+                    company_email: state.selectedCompany.email
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Store company in session storage
+                sessionStorage.setItem('selectedCompany', JSON.stringify(state.selectedCompany));
+                
+                // Hide company selection and show product selection
+                document.getElementById('companySelectionSection').style.display = 'none';
+                document.getElementById('productSelectionSection').style.display = 'block';
+                
+                // Update the page title
+                document.title = `Products - ${state.selectedCompany.name} | Product Calculator`;
+                
+                // Show a success message
+                showAlert(`Welcome, ${state.selectedCompany.name}! Please select a product category.`, 'success');
+                
+                // Scroll to product selection
+                document.getElementById('productSelectionSection').scrollIntoView({ behavior: 'smooth' });
+                
+                // Update cart count
+                if (typeof updateCartCount === 'function') {
+                    updateCartCount();
+                }
+            } else {
+                throw new Error(data.message || 'Failed to select company');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Failed to select company. Please try again.', 'danger');
+        }
+    }
+    
+    // Function to check if company is selected before navigation
+    function checkCompanyAndNavigate(route) {
+        const companyIdInput = document.getElementById('companyId');
+        const hasCompany = (companyIdInput && companyIdInput.value) || 
+                         (typeof state !== 'undefined' && state.selectedCompany) ||
+                         sessionStorage.getItem('selectedCompany');
+        
+        if (hasCompany) {
+            window.location.href = route;
+        } else {
+            showAlert('Please select a company before viewing products.', 'warning');
+        }
+    }
+    
+    // Function to handle product button clicks
+    function handleProductButtonClick(e) {
+        e.preventDefault();
+        const route = this.getAttribute('data-route');
+        checkCompanyAndNavigate(route);
+    }
+    
+    // Make function available globally
+    window.checkCompanyAndNavigate = checkCompanyAndNavigate;
+
+    // Check if a company is already selected
+    async function checkExistingCompany() {
+        try {
+            const response = await fetch('/api/user');
+            const data = await response.json();
+            
+            if (data.company_id) {
+                const company = state.companies.find(c => c.id === data.company_id);
+                if (company) {
+                    state.selectedCompany = company;
+                    elements.companyInput.value = company.name || '';
+                    elements.companyIdInput.value = company.id || '';
+                    elements.companyNameInput.value = company.name || '';
+                    elements.companyEmailInput.value = company.email || '';
+                    
+                    // Store company in session storage
+                    sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+                    
+                    // Hide company selection and show product selection
+                    document.getElementById('companySelectionSection').style.display = 'none';
+                    document.getElementById('productSelectionSection').style.display = 'block';
+                    
+                    // Update the page title
+                    document.title = `Products - ${company.name} | Product Calculator`;
+                    
+                    // Show a welcome message
+                    showAlert(`Welcome back, ${company.name}! Please select a product category.`, 'info');
+                    
+                    // Update cart count
+                    if (typeof updateCartCount === 'function') {
+                        updateCartCount();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking company:', error);
+        }
+    }
+
+    // Load products for the selected company
+    async function loadProducts(companyId) {
+        try {
+            const productsDisplay = document.getElementById('productsDisplay');
+            if (!productsDisplay) return;
+            
+            // Show loading state
+            productsDisplay.innerHTML = `
+                <div class="text-center my-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading products...</p>
+                </div>
+            `;
+            productsDisplay.style.display = 'block';
+
+            // Load products from the server
+            const [mpacksResponse, blanketsResponse] = await Promise.all([
+                fetch('/static/data/mpack.json'),
+                fetch('/static/data/blankets.json')
+            ]);
+
+            if (!mpacksResponse.ok || !blanketsResponse.ok) {
+                throw new Error('Failed to load products');
+            }
+
+            state.products.mpacks = await mpacksResponse.json();
+            state.products.blankets = await blanketsResponse.json();
+
+            // Display products
+            displayProducts();
+        } catch (error) {
+            console.error('Error loading products:', error);
+            const productsDisplay = document.getElementById('productsDisplay');
+            if (productsDisplay) {
+                productsDisplay.innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load products. Please try again later.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    // Display products in the UI
+    function displayProducts() {
+        const productsDisplay = document.getElementById('productsDisplay');
+        if (!productsDisplay) return;
+        
+        // Create HTML for M-Packs
+        const mpacksHtml = state.products.mpacks.map(product => `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 product-card">
+                    <div class="card-body">
+                        <h5 class="card-title">${product.name || 'M-Pack'}</h5>
+                        <p class="card-text">${product.description || ''}</p>
+                        <p class="card-text"><strong>Price: $${product.price || '0.00'}</strong></p>
+                        <button class="btn btn-primary" onclick="ChemoApp.addToCart('mpack', '${product.id}')">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Create HTML for Blankets
+        const blanketsHtml = state.products.blankets.map(product => `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 product-card">
+                    <div class="card-body">
+                        <h5 class="card-title">${product.name || 'Blanket'}</h5>
+                        <p class="card-text">${product.description || ''}</p>
+                        <p class="card-text"><strong>Base Price: $${product.base_price || '0.00'}</strong></p>
+                        <button class="btn btn-primary" onclick="ChemoApp.addToCart('blanket', '${product.id}')">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Update the DOM
+        productsDisplay.innerHTML = `
+            <!-- M-Packs Section -->
+            <div class="product-section">
+                <h2 class="text-center mb-4">M-Packs</h2>
+                <div class="row">
+                    ${mpacksHtml || '<div class="col-12 text-center">No M-Packs available</div>'}
+                </div>
+            </div>
+
+            <!-- Blankets Section -->
+            <div class="product-section mt-4">
+                <h2 class="text-center mb-4">Blankets</h2>
+                <div class="row">
+                    ${blanketsHtml || '<div class="col-12 text-center">No Blankets available</div>'}
+                </div>
+            </div>
+        `;
+    }
+
+    // Add product to cart
+    async function addToCart(productType, productId) {
+        // Find the product in our local data
+        const product = state.products[productType === 'mpack' ? 'mpacks' : 'blankets']
+            .find(p => p.id === productId);
+        
+        if (!product) {
+            console.error('Product not found');
+            return;
+        }
+
+        try {
+            // Prepare the cart item
+            const cartItem = {
+                id: product.id,
+                name: product.name,
+                type: productType,
+                quantity: 1,
+                unit_price: product.price || 0,
+                base_price: product.base_price || 0,
+                bar_price: product.bar_price || 0,
+                discount_percent: 0,
+                gst_percent: 18
+            };
+
+            // Add to cart via API
+            const response = await fetch('/add-to-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cartItem)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update cart count
+                updateCartCount(data.cart_count || 0);
+                
+                // Show success message
+                showAlert('Product added to cart!', 'success');
+            } else {
+                throw new Error(data.error || 'Failed to add to cart');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            showAlert('Failed to add product to cart. Please try again.', 'danger');
+        }
+    }
+
+    // Update cart count
+    async function updateCartCount() {
+        try {
+            const response = await fetch('/get_cart_count');
+            const data = await response.json();
+            if (elements.cartCount && data.count !== undefined) {
+                elements.cartCount.textContent = data.count;
+                state.cartCount = data.count;
+            }
+        } catch (error) {
+            console.error('Error loading cart count:', error);
+        }
+    }
+
+    // Show alert message
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'message';
+        alertDiv.role = 'alert';
+        
+        // Style to match our flash messages
+        Object.assign(alertDiv.style, {
+            background: 'white',
+            color: type === 'success' ? '#27ae60' : (type === 'error' ? '#e74c3c' : '#333'),
+            padding: '12px 20px',
+            borderRadius: '6px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            textAlign: 'center',
+            margin: '0 auto 20px',
+            display: 'block',
+            fontSize: '14px',
+            transition: 'opacity 0.3s ease-in-out',
+            maxWidth: '420px',
+            width: '100%',
+            opacity: '1'
+        });
+        
+        alertDiv.textContent = message;
+        
+        // Get or create flash messages container
+        let flashContainer = document.getElementById('flash-messages');
+        if (!flashContainer) {
+            flashContainer = document.createElement('div');
+            flashContainer.id = 'flash-messages';
+            Object.assign(flashContainer.style, {
+                position: 'fixed',
+                top: '20px',
+                left: '0',
+                right: '0',
+                zIndex: '1100',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                pointerEvents: 'none',
+                padding: '0 15px'
+            });
+            document.body.appendChild(flashContainer);
+        }
+        
+        // Add the alert to the container
+        flashContainer.appendChild(alertDiv);
+        
+        // Auto-dismiss after 2 seconds with fade out
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+            setTimeout(() => {
+                if (alertDiv.parentNode === flashContainer) {
+                    flashContainer.removeChild(alertDiv);
+                }
+            }, 300);
+        }, 2000);
+    }
+
+    // Public API
+    return {
+        init,
+        addToCart,
+        updateCartCount,
+        showAlert
+    };
+})();
+
+// Initialize the application when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    ChemoApp.init();
+});
+
+// All functionality is now handled within the ChemoApp module
+</script>
+{% endblock %}

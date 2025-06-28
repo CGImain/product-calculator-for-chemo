@@ -743,11 +743,6 @@ def load_user(user_id):
             )
         return None
 
-@app.route('/')
-@login_required
-def index():
-    return render_template('index.html')
-
 @app.route('/cart')
 @login_required
 def cart():

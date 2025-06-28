@@ -277,10 +277,22 @@ const ChemoApp = (function() {
 
     // Select company and save to session
     async function selectCompany() {
-        if (!state.selectedCompany) return;
+        if (!state.selectedCompany) {
+            console.error('No company selected');
+            showAlert('Please select a company first.', 'danger');
+            return;
+        }
+        
+        // Show loading state
+        const originalButtonText = elements.selectCompanyBtn ? elements.selectCompanyBtn.innerHTML : '';
+        if (elements.selectCompanyBtn) {
+            elements.selectCompanyBtn.disabled = true;
+            elements.selectCompanyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+        }
         
         try {
-            const response = await fetch('/api/update_company', {
+            // First try the new endpoint
+            let response = await fetch('/api/update_company', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -293,36 +305,88 @@ const ChemoApp = (function() {
                 credentials: 'same-origin'  // Include cookies for session
             });
             
+            // If the first endpoint fails, try the old one as fallback
+            if (!response.ok) {
+                console.log('Trying fallback endpoint /api/user/update-company');
+                response = await fetch('/api/user/update-company', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        company_id: state.selectedCompany.id,
+                        company_name: state.selectedCompany.name,
+                        company_email: state.selectedCompany.email
+                    }),
+                    credentials: 'same-origin'
+                });
+            }
+            
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Failed to update company');
             }
             
             const data = await response.json();
+            console.log('Company update response:', data);
             
-            // Store company in session storage
-            sessionStorage.setItem('selectedCompany', JSON.stringify(state.selectedCompany));
+            // Store company in both session and local storage for redundancy
+            const companyData = {
+                id: state.selectedCompany.id,
+                name: state.selectedCompany.name,
+                email: state.selectedCompany.email
+            };
+            
+            sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
+            localStorage.setItem('selectedCompany', JSON.stringify(companyData));
+            
+            // Also store in session storage as individual items for backward compatibility
+            sessionStorage.setItem('companyId', companyData.id);
+            sessionStorage.setItem('companyName', companyData.name);
+            if (companyData.email) {
+                sessionStorage.setItem('companyEmail', companyData.email);
+            }
+            
+            // Update the state
+            state.selectedCompany = companyData;
+            
+            // Update form fields if they exist
+            if (elements.companyInput) elements.companyInput.value = companyData.name || '';
+            if (elements.companyIdInput) elements.companyIdInput.value = companyData.id || '';
+            if (elements.companyNameInput) elements.companyNameInput.value = companyData.name || '';
+            if (elements.companyEmailInput) elements.companyEmailInput.value = companyData.email || '';
             
             // Hide company selection and show product selection
-            document.getElementById('companySelectionSection').style.display = 'none';
-            document.getElementById('productSelectionSection').style.display = 'block';
+            const companySection = document.getElementById('companySelectionSection');
+            const productSection = document.getElementById('productSelectionSection');
+            
+            if (companySection) companySection.style.display = 'none';
+            if (productSection) productSection.style.display = 'block';
             
             // Update the page title
-            document.title = `Products - ${state.selectedCompany.name} | Product Calculator`;
+            document.title = `Products - ${companyData.name} | Product Calculator`;
             
             // Show a success message
-            showAlert(`Welcome, ${state.selectedCompany.name}! Please select a product category.`, 'success');
+            showAlert(`Welcome, ${companyData.name}! Please select a product category.`, 'success');
             
             // Scroll to product selection
-            document.getElementById('productSelectionSection').scrollIntoView({ behavior: 'smooth' });
+            if (productSection) {
+                productSection.scrollIntoView({ behavior: 'smooth' });
+            }
             
             // Update cart count
             if (typeof updateCartCount === 'function') {
                 updateCartCount();
             }
         } catch (error) {
-            console.error('Error:', error);
-            showAlert('Failed to select company. Please try again.', 'danger');
+            console.error('Error selecting company:', error);
+            showAlert(`Failed to select company: ${error.message || 'Please try again.'}`, 'danger');
+        } finally {
+            // Reset button state
+            if (elements.selectCompanyBtn) {
+                elements.selectCompanyBtn.disabled = false;
+                elements.selectCompanyBtn.innerHTML = originalButtonText || 'Select Company';
+            }
         }
     }
     
@@ -353,29 +417,77 @@ const ChemoApp = (function() {
     // Check if a company is already selected
     async function checkExistingCompany() {
         try {
-            const response = await fetch('/api/auth/user');
+            const response = await fetch('/api/auth/user', {
+                credentials: 'same-origin'  // Include cookies for session
+            });
+            
             if (!response.ok) {
-                console.log('No user session found');
+                console.log('No user session found or error fetching user data');
                 return;
             }
-            const data = await response.json();
             
-            // Check if user data is available and has a company ID
+            const data = await response.json();
+            console.log('User data:', data);
+            
+            // Check if we have a valid company in the session storage
+            const storedCompany = sessionStorage.getItem('selectedCompany') || localStorage.getItem('selectedCompany');
+            
+            if (storedCompany) {
+                try {
+                    const company = JSON.parse(storedCompany);
+                    state.selectedCompany = company;
+                    
+                    // Update form fields if they exist
+                    if (elements.companyInput) elements.companyInput.value = company.name || '';
+                    if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
+                    if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
+                    if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
+                    
+                    // Hide company selection and show product selection
+                    const companySection = document.getElementById('companySelectionSection');
+                    const productSection = document.getElementById('productSelectionSection');
+                    
+                    if (companySection) companySection.style.display = 'none';
+                    if (productSection) productSection.style.display = 'block';
+                    
+                    // Update the page title
+                    document.title = `Products - ${company.name} | Product Calculator`;
+                    
+                    // Show a welcome message
+                    showAlert(`Welcome back, ${company.name}! Please select a product category.`, 'info');
+                    
+                    // Update cart count
+                    if (typeof updateCartCount === 'function') {
+                        updateCartCount();
+                    }
+                    
+                    return;
+                } catch (e) {
+                    console.error('Error parsing stored company:', e);
+                }
+            }
+            
+            // If we have a company ID in the user data, try to use that
             if (data.user && data.user.company_id) {
-                const company = state.companies.find(c => c.id === data.company_id);
+                const company = state.companies.find(c => c.id === data.user.company_id);
                 if (company) {
                     state.selectedCompany = company;
-                    elements.companyInput.value = company.name || '';
-                    elements.companyIdInput.value = company.id || '';
-                    elements.companyNameInput.value = company.name || '';
-                    elements.companyEmailInput.value = company.email || '';
+                    
+                    // Update form fields if they exist
+                    if (elements.companyInput) elements.companyInput.value = company.name || '';
+                    if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
+                    if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
+                    if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
                     
                     // Store company in session storage
                     sessionStorage.setItem('selectedCompany', JSON.stringify(company));
                     
                     // Hide company selection and show product selection
-                    document.getElementById('companySelectionSection').style.display = 'none';
-                    document.getElementById('productSelectionSection').style.display = 'block';
+                    const companySection = document.getElementById('companySelectionSection');
+                    const productSection = document.getElementById('productSelectionSection');
+                    
+                    if (companySection) companySection.style.display = 'none';
+                    if (productSection) productSection.style.display = 'block';
                     
                     // Update the page title
                     document.title = `Products - ${company.name} | Product Calculator`;
@@ -391,6 +503,29 @@ const ChemoApp = (function() {
             }
         } catch (error) {
             console.error('Error checking company:', error);
+            // If there's an error, check session storage as a fallback
+            try {
+                const storedCompany = sessionStorage.getItem('selectedCompany') || localStorage.getItem('selectedCompany');
+                if (storedCompany) {
+                    const company = JSON.parse(storedCompany);
+                    state.selectedCompany = company;
+                    
+                    // Update form fields if they exist
+                    if (elements.companyInput) elements.companyInput.value = company.name || '';
+                    if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
+                    if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
+                    if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
+                    
+                    // Hide company selection and show product selection
+                    const companySection = document.getElementById('companySelectionSection');
+                    const productSection = document.getElementById('productSelectionSection');
+                    
+                    if (companySection) companySection.style.display = 'none';
+                    if (productSection) productSection.style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Error falling back to stored company:', e);
+            }
         }
     }
 

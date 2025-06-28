@@ -146,7 +146,7 @@
                         <a class="nav-link" href="#" id="blanketsLink" data-route="{{ url_for('blankets') }}">Blankets</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('cart') }}">
+                        <a class="nav-link" href="#" id="cartLink">
                             <i class="bi bi-cart"></i> Cart
                             <span id="cartCount" class="badge bg-danger rounded-pill ms-1">0</span>
                         </a>
@@ -304,33 +304,57 @@
     function setupNavigation() {
         // Handle all nav link clicks
         document.querySelectorAll('.nav-link').forEach(link => {
-            if (link.id === 'mpacksLink' || link.id === 'blanketsLink' || link.id === 'homeLink') {
+            if (['mpacksLink', 'blanketsLink', 'cartLink', 'homeLink'].includes(link.id)) {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
+                    
+                    // Don't do anything if the link is already active
+                    if (this.classList.contains('active')) {
+                        return;
+                    }
                     
                     // Update active state
                     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // For product links, check company first
-                    if (this.id === 'mpacksLink' || this.id === 'blanketsLink') {
-                        checkCompanyAndNavigate(this.dataset.route);
+                    // Get the target route
+                    let targetRoute = this.href;
+                    
+                    // For product and cart links, check company first
+                    if (['mpacksLink', 'blanketsLink', 'cartLink'].includes(this.id)) {
+                        targetRoute = this.id === 'cartLink' ? '{{ url_for("cart") }}' : (this.dataset.route || this.href);
+                        checkCompanyAndNavigate(targetRoute);
                     } else {
                         // For home link, just navigate
-                        window.location.href = this.href;
+                        window.location.href = targetRoute;
                     }
                 });
+            }
+        });
+        
+        // Also handle direct URL access
+        window.addEventListener('load', function() {
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/' && currentPath !== '/index' && currentPath !== '') {
+                checkCompanyAndNavigate(currentPath);
             }
         });
     }
     
     // Function to check if company is selected before navigation
-    function checkCompanyAndNavigate(route) {
+    async function checkCompanyAndNavigate(route) {
+        // Check if the current page is the home page (no need to check company)
+        if (window.location.pathname === '/' || window.location.pathname === '/index' || window.location.pathname === '') {
+            window.location.href = route;
+            return;
+        }
+
         // Check multiple possible locations for company info
         const companyIdInput = document.getElementById('companyId');
         const hasCompany = (companyIdInput && companyIdInput.value) || 
                          (typeof ChemoApp !== 'undefined' && ChemoApp.state && ChemoApp.state.selectedCompany) ||
                          (sessionStorage.getItem('companyId') && sessionStorage.getItem('companyName')) ||
+                         (sessionStorage.getItem('selectedCompany')) ||
                          (localStorage.getItem('selectedCompany'));
         
         if (hasCompany) {
@@ -339,10 +363,28 @@
                 (!window.ChemoApp || !window.ChemoApp.state || !window.ChemoApp.state.selectedCompany)) {
                 
                 // Try to get company from session storage first
-                const companyId = sessionStorage.getItem('companyId');
-                const companyName = sessionStorage.getItem('companyName');
-                const companyEmail = sessionStorage.getItem('companyEmail');
+                let companyId = sessionStorage.getItem('companyId');
+                let companyName = sessionStorage.getItem('companyName');
+                let companyEmail = sessionStorage.getItem('companyEmail');
                 
+                // If not found in sessionStorage, try getting from localStorage
+                if ((!companyId || !companyName) && localStorage.getItem('selectedCompany')) {
+                    try {
+                        const storedCompany = JSON.parse(localStorage.getItem('selectedCompany'));
+                        companyId = companyId || storedCompany.id;
+                        companyName = companyName || storedCompany.name;
+                        companyEmail = companyEmail || storedCompany.email;
+                        
+                        // Update session storage for next time
+                        if (companyId) sessionStorage.setItem('companyId', companyId);
+                        if (companyName) sessionStorage.setItem('companyName', companyName);
+                        if (companyEmail) sessionStorage.setItem('companyEmail', companyEmail);
+                    } catch (e) {
+                        console.error('Error parsing stored company from localStorage:', e);
+                    }
+                }
+                
+                // If we have a company ID and name, update the UI state
                 if (companyId && companyName) {
                     // Update the hidden input if it exists
                     if (companyIdInput) {
@@ -350,31 +392,14 @@
                     }
                     
                     // Update ChemoApp state if it exists
-                    if (window.ChemoApp && window.ChemoApp.state) {
-                        window.ChemoApp.state.selectedCompany = {
-                            id: companyId,
-                            name: companyName,
-                            email: companyEmail || ''
-                        };
-                    }
-                } else {
-                    // Try to get from localStorage as fallback
-                    const storedCompany = localStorage.getItem('selectedCompany');
-                    if (storedCompany) {
-                        try {
-                            const company = JSON.parse(storedCompany);
-                            if (companyIdInput) companyIdInput.value = company.id;
-                            if (window.ChemoApp && window.ChemoApp.state) {
-                                window.ChemoApp.state.selectedCompany = company;
-                            }
-                            // Update session storage for next time
-                            sessionStorage.setItem('companyId', company.id);
-                            sessionStorage.setItem('companyName', company.name);
-                            if (company.email) {
-                                sessionStorage.setItem('companyEmail', company.email);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing stored company:', e);
+                    if (window.ChemoApp) {
+                        if (!window.ChemoApp.state) window.ChemoApp.state = {};
+                        if (!window.ChemoApp.state.selectedCompany) {
+                            window.ChemoApp.state.selectedCompany = {
+                                id: companyId,
+                                name: companyName,
+                                email: companyEmail || ''
+                            };
                         }
                     }
                 }
@@ -383,8 +408,46 @@
             // Now navigate to the requested page
             window.location.href = route;
         } else {
-            // If no company is selected, redirect to home with a message
-            sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+            // If no company is selected, try to get user data first
+            try {
+                const response = await fetch('/api/auth/user', {
+                    credentials: 'same-origin'  // Include cookies for session
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.user && data.user.company_id) {
+                        // User has a company, save it and proceed
+                        const company = {
+                            id: data.user.company_id,
+                            name: data.user.company_name || 'Your Company',
+                            email: data.user.company_email || ''
+                        };
+                        
+                        // Save to storage
+                        sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+                        sessionStorage.setItem('companyId', company.id);
+                        sessionStorage.setItem('companyName', company.name);
+                        if (company.email) {
+                            sessionStorage.setItem('companyEmail', company.email);
+                        }
+                        
+                        // Update the hidden input if it exists
+                        if (companyIdInput) {
+                            companyIdInput.value = company.id;
+                        }
+                        
+                        // Now navigate to the requested page
+                        window.location.href = route;
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking user company:', error);
+            }
+            
+            // If we get here, no company was found
+            sessionStorage.setItem('redirectAfterLogin', route);
             alert('Please select a company before viewing products.');
             window.location.href = '/';
         }

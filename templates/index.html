@@ -186,16 +186,27 @@ const ChemoApp = (function() {
 
     // Initialize the application
     function init() {
-        // Clear any existing company selection when initializing
-        sessionStorage.removeItem('selectedCompany');
-        localStorage.removeItem('selectedCompany');
-        
         setupEventListeners();
         setupProductButtons();
         
-        // Show only company selection by default
+        // Check if we already have a selected company
+        const storedCompany = sessionStorage.getItem('selectedCompany') || localStorage.getItem('selectedCompany');
+        
+        if (storedCompany) {
+            try {
+                const company = JSON.parse(storedCompany);
+                state.selectedCompany = company;
+                showProductSelection(company);
+                return;
+            } catch (e) {
+                console.error('Error parsing stored company:', e);
+            }
+        }
+        
+        // If no company is selected, show the company selection
         const companySection = document.getElementById('companySelectionSection');
         const productSection = document.getElementById('productSelectionSection');
+        
         if (companySection) companySection.style.display = 'block';
         if (productSection) productSection.style.display = 'none';
         
@@ -223,7 +234,10 @@ const ChemoApp = (function() {
         // Add change company button click handler
         const changeCompanyBtn = document.getElementById('changeCompanyBtn');
         if (changeCompanyBtn) {
-            changeCompanyBtn.addEventListener('click', () => {
+            changeCompanyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 // Clear company selection
                 state.selectedCompany = null;
                 sessionStorage.removeItem('selectedCompany');
@@ -238,11 +252,24 @@ const ChemoApp = (function() {
                 // Show company selection and hide product selection
                 const companySection = document.getElementById('companySelectionSection');
                 const productSection = document.getElementById('productSelectionSection');
-                if (companySection) companySection.style.display = 'block';
-                if (productSection) productSection.style.display = 'none';
+                
+                if (productSection) {
+                    productSection.style.display = 'none';
+                }
+                
+                if (companySection) {
+                    companySection.style.display = 'block';
+                    // Scroll to company section
+                    companySection.scrollIntoView({ behavior: 'smooth' });
+                }
                 
                 // Focus on company input
-                if (elements.companyInput) elements.companyInput.focus();
+                if (elements.companyInput) {
+                    elements.companyInput.focus();
+                }
+                
+                // Show a message
+                showAlert('Please select a company to continue', 'info');
             });
         }
         
@@ -440,46 +467,16 @@ const ChemoApp = (function() {
                 // Continue with client-side storage even if server update fails
             }
             
-            // Show product selection and hide company selection after successful selection
+            // Immediately hide company selection and show product selection
             const companySection = document.getElementById('companySelectionSection');
             const productSection = document.getElementById('productSelectionSection');
             
-            // First, ensure the product section is visible but transparent
-            if (productSection) {
-                productSection.style.display = 'block';
-                productSection.style.opacity = '0';
-                productSection.style.transition = 'opacity 0.3s ease';
+            if (companySection) {
+                companySection.style.display = 'none';
             }
             
-            // Then hide the company section
-            if (companySection) {
-                companySection.style.transition = 'opacity 0.3s ease';
-                companySection.style.opacity = '0';
-                
-                // After the fade out, hide the company section
-                setTimeout(() => {
-                    if (companySection) {
-                        companySection.style.display = 'none';
-                        companySection.style.opacity = '';
-                        companySection.style.transition = '';
-                    }
-                    
-                    // Then fade in the product section
-                    if (productSection) {
-                        // Force reflow
-                        void productSection.offsetHeight;
-                        productSection.style.opacity = '1';
-                        
-                        // Clean up after animation
-                        setTimeout(() => {
-                            if (productSection) {
-                                productSection.style.transition = '';
-                            }
-                        }, 300);
-                    }
-                }, 300);
-            } else if (productSection) {
-                // If there's no company section, just show the product section
+            if (productSection) {
+                productSection.style.display = 'block';
                 productSection.style.opacity = '1';
             }
             
@@ -581,46 +578,16 @@ const ChemoApp = (function() {
             if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
             if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
             
-            // Show product selection and hide company selection with animation
+            // Immediately hide company selection and show product selection
             const companySection = document.getElementById('companySelectionSection');
             const productSection = document.getElementById('productSelectionSection');
             
-            // First, ensure the product section is visible but transparent
-            if (productSection) {
-                productSection.style.display = 'block';
-                productSection.style.opacity = '0';
-                productSection.style.transition = 'opacity 0.3s ease';
+            if (companySection) {
+                companySection.style.display = 'none';
             }
             
-            // Then hide the company section
-            if (companySection) {
-                companySection.style.transition = 'opacity 0.3s ease';
-                companySection.style.opacity = '0';
-                
-                // After the fade out, hide the company section
-                setTimeout(() => {
-                    if (companySection) {
-                        companySection.style.display = 'none';
-                        companySection.style.opacity = '';
-                        companySection.style.transition = '';
-                    }
-                    
-                    // Then fade in the product section
-                    if (productSection) {
-                        // Force reflow
-                        void productSection.offsetHeight;
-                        productSection.style.opacity = '1';
-                        
-                        // Clean up after animation
-                        setTimeout(() => {
-                            if (productSection) {
-                                productSection.style.transition = '';
-                            }
-                        }, 300);
-                    }
-                }, 300);
-            } else if (productSection) {
-                // If there's no company section, just show the product section
+            if (productSection) {
+                productSection.style.display = 'block';
                 productSection.style.opacity = '1';
             }
             

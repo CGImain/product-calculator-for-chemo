@@ -1103,7 +1103,8 @@ def get_cart_count():
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    companies = get_companies()
+    return render_template('index.html', companies=companies)
 
 # Redirect any display requests to index
 @app.route('/display')

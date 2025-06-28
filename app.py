@@ -744,10 +744,9 @@ def load_user(user_id):
         return None
 
 @app.route('/')
-def home():
-    if current_user.is_authenticated:
-        return redirect(url_for('display'))
-    return redirect(url_for('login'))
+@login_required
+def index():
+    return render_template('index.html')
 
 @app.route('/cart')
 @login_required
@@ -1113,6 +1112,7 @@ def index():
 
 # Redirect any display requests to index
 @app.route('/display')
+@login_required
 def display():
     return redirect(url_for('index'))
 
@@ -1123,8 +1123,6 @@ def login():
         return redirect(url_for('display'))
     return render_template('login.html')
 
-# Add a route to handle root URL
-@app.route('/')
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('display'))

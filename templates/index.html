@@ -389,11 +389,11 @@ const ChemoApp = (function() {
                 // Continue with client-side storage even if server update fails
             }
             
-            // Hide company selection and show product selection
+            // Show both company selection and product selection
             const companySection = document.getElementById('companySelectionSection');
             const productSection = document.getElementById('productSelectionSection');
             
-            if (companySection) companySection.style.display = 'none';
+            if (companySection) companySection.style.display = 'block';
             if (productSection) productSection.style.display = 'block';
             
             // Update the page title
@@ -484,7 +484,7 @@ const ChemoApp = (function() {
                     const companySection = document.getElementById('companySelectionSection');
                     const productSection = document.getElementById('productSelectionSection');
                     
-                    if (companySection) companySection.style.display = 'none';
+                    if (companySection) companySection.style.display = 'block';
                     if (productSection) productSection.style.display = 'block';
                     
                     // Update the page title
@@ -523,7 +523,7 @@ const ChemoApp = (function() {
                     const companySection = document.getElementById('companySelectionSection');
                     const productSection = document.getElementById('productSelectionSection');
                     
-                    if (companySection) companySection.style.display = 'none';
+                    if (companySection) companySection.style.display = 'block';
                     if (productSection) productSection.style.display = 'block';
                     
                     // Update the page title
@@ -557,7 +557,7 @@ const ChemoApp = (function() {
                     const companySection = document.getElementById('companySelectionSection');
                     const productSection = document.getElementById('productSelectionSection');
                     
-                    if (companySection) companySection.style.display = 'none';
+                    if (companySection) companySection.style.display = 'block';
                     if (productSection) productSection.style.display = 'block';
                 }
             } catch (e) {

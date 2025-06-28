@@ -2291,7 +2291,13 @@ def api_register_complete():
 @app.route('/api/auth/login', methods=['POST'])
 def api_login():
     try:
+        if not request.is_json:
+            return jsonify({'error': 'Request must be JSON'}), 400
+
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid JSON data'}), 400
+
         identifier = (data.get('identifier') or data.get('email') or data.get('username', '')).strip()
         password = (data.get('password') or '').strip()
         
@@ -2369,7 +2375,7 @@ def api_login():
                 return jsonify({
                     'success': True,
                     'message': 'Login successful',
-                    'redirectTo': '/display',  # Changed from '/login' to '/display'
+                    'redirectTo': '/index',  # Changed to use index route
                     'user': {
                         'id': str(user.id),  # Ensure ID is string for JSON serialization
                         'email': user.email,
@@ -2432,7 +2438,7 @@ def api_login():
         return jsonify({
             'success': True,
             'message': 'Login successful',
-            'redirectTo': '/company_selection',
+            'redirectTo': '/index',  # Changed to use index route
             'user': {
                 'id': user.id,
                 'email': user.email,

@@ -65,74 +65,58 @@ function setupEventListeners() {
 async function handleLogin(e) {
   e.preventDefault();
   
-  const login = loginInput.value.trim();
+  // Get form data
+  const identifier = loginInput.value.trim();
   const password = passwordInput.value.trim();
+  
+  if (!identifier || !password) {
+    showError('Please enter both email/username and password');
+    return;
+  }
   
   // Clear previous errors
   clearMessages();
   
-  // Validate inputs
-  if (!login) {
-    showError('Please enter your email or username');
-    loginInput.focus();
-    return;
-  }
-  
-  if (!password) {
-    showError('Please enter your password');
-    passwordInput.focus();
-    return;
-  }
+  setLoading(true);
   
   try {
-    // Show loading state
-    setLoading(true);
-    
-    // Send login request
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
       },
       body: JSON.stringify({
-        email: login,
-        password
+        identifier: identifier,
+        password: password
       })
     });
+
+    // Check if response is HTML (status != 200)
+    if (!response.ok) {
+      const text = await response.text();
+      if (text.includes('<!doctype')) {
+        throw new Error('Unexpected HTML response');
+      }
+    }
     
     const data = await response.json();
     
-    if (response.ok) {
-      try {
-        const data = await response.json();
-        if (data.success) {
-          // Store the token in localStorage
-          if (data.token) {
-            localStorage.setItem('auth_token', data.token);
-          }
-          
-          // Redirect to index page
-          window.location.href = data.redirectTo || '/index';
-        } else {
-          // Show error message
-          showError(data.error || 'Login failed. Please check your credentials.');
-          
-          // Clear password field on failed login
-          passwordInput.value = '';
-          passwordInput.focus();
-        }
-      } catch (jsonError) {
-        console.error('Error parsing response:', jsonError);
-        showError('An error occurred. Please try again.');
+    if (data.success) {
+      // Store the token in localStorage
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
       }
+      
+      // Redirect to index page
+      window.location.href = data.redirectTo || '/index';
     } else {
-      try {
-        const data = await response.json();
-        showError(data.error || 'Login failed. Please check your credentials.');
-      } catch (jsonError) {
-        console.error('Error parsing response:', jsonError);
-        showError('An error occurred. Please try again.');
-      }
+      // Show error message
+      showError(data.error || 'Login failed. Please check your credentials.');
+      
+      // Clear password field on failed login
+      passwordInput.value = '';
+      passwordInput.focus();
     }
   } catch (error) {
     console.error('Login error:', error);

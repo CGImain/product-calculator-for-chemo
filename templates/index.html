@@ -110,7 +110,12 @@
 
     <!-- Product Selection (initially hidden) -->
     <div class="text-center mt-4" id="productSelectionSection" style="display: none;">
-        <h3 class="mb-4">Select Product Category</h3>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0">Select Product Category</h3>
+            <button id="changeCompanyBtn" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Change Company
+            </button>
+        </div>
         <div>
             <a class="btn btn-primary btn-lg me-3" href="#" id="mpacksBtn" data-route="{{ url_for('mpacks') }}" role="button">View M-Packs</a>
             <a class="btn btn-outline-primary btn-lg" href="#" id="blanketsBtn" data-route="{{ url_for('blankets') }}" role="button">View Blankets</a>
@@ -173,8 +178,20 @@ const ChemoApp = (function() {
 
     // Initialize the application
     function init() {
+        // Clear any existing company selection when initializing
+        sessionStorage.removeItem('selectedCompany');
+        localStorage.removeItem('selectedCompany');
+        
         setupEventListeners();
         setupProductButtons();
+        
+        // Show only company selection by default
+        const companySection = document.getElementById('companySelectionSection');
+        const productSection = document.getElementById('productSelectionSection');
+        if (companySection) companySection.style.display = 'block';
+        if (productSection) productSection.style.display = 'none';
+        
+        // Check for existing company (but don't auto-show products)
         checkExistingCompany();
         updateCartCount();
     }
@@ -195,6 +212,32 @@ const ChemoApp = (function() {
 
     // Set up event listeners
     function setupEventListeners() {
+        // Add change company button click handler
+        const changeCompanyBtn = document.getElementById('changeCompanyBtn');
+        if (changeCompanyBtn) {
+            changeCompanyBtn.addEventListener('click', () => {
+                // Clear company selection
+                state.selectedCompany = null;
+                sessionStorage.removeItem('selectedCompany');
+                localStorage.removeItem('selectedCompany');
+                
+                // Reset form
+                if (elements.companyInput) elements.companyInput.value = '';
+                if (elements.companyIdInput) elements.companyIdInput.value = '';
+                if (elements.companyNameInput) elements.companyNameInput.value = '';
+                if (elements.companyEmailInput) elements.companyEmailInput.value = '';
+                
+                // Show company selection and hide product selection
+                const companySection = document.getElementById('companySelectionSection');
+                const productSection = document.getElementById('productSelectionSection');
+                if (companySection) companySection.style.display = 'block';
+                if (productSection) productSection.style.display = 'none';
+                
+                // Focus on company input
+                if (elements.companyInput) elements.companyInput.focus();
+            });
+        }
+        
         if (elements.companyInput) {
             elements.companyInput.addEventListener('input', handleCompanySearch);
         }
@@ -389,11 +432,11 @@ const ChemoApp = (function() {
                 // Continue with client-side storage even if server update fails
             }
             
-            // Show both company selection and product selection
+            // Show product selection and hide company selection after successful selection
             const companySection = document.getElementById('companySelectionSection');
             const productSection = document.getElementById('productSelectionSection');
             
-            if (companySection) companySection.style.display = 'block';
+            if (companySection) companySection.style.display = 'none';
             if (productSection) productSection.style.display = 'block';
             
             // Update the page title
@@ -453,6 +496,39 @@ const ChemoApp = (function() {
 
     // Check if a company is already selected
     async function checkExistingCompany() {
+        function showCompanySelection() {
+            const companySection = document.getElementById('companySelectionSection');
+            const productSection = document.getElementById('productSelectionSection');
+            if (companySection) companySection.style.display = 'block';
+            if (productSection) productSection.style.display = 'none';
+        }
+
+        function showProductSelection(company) {
+            // Update form fields if they exist
+            if (elements.companyInput) elements.companyInput.value = company.name || '';
+            if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
+            if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
+            if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
+            
+            // Hide company selection and show product selection
+            const companySection = document.getElementById('companySelectionSection');
+            const productSection = document.getElementById('productSelectionSection');
+            
+            if (companySection) companySection.style.display = 'none';
+            if (productSection) productSection.style.display = 'block';
+            
+            // Update the page title
+            document.title = `Products - ${company.name} | Product Calculator`;
+            
+            // Show a welcome message
+            showAlert(`Welcome back, ${company.name}! Please select a product category.`, 'info');
+            
+            // Update cart count
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+        }
+
         try {
             const response = await fetch('/api/auth/user', {
                 credentials: 'same-origin'  // Include cookies for session
@@ -460,6 +536,7 @@ const ChemoApp = (function() {
             
             if (!response.ok) {
                 console.log('No user session found or error fetching user data');
+                showCompanySelection();
                 return;
             }
             
@@ -473,31 +550,7 @@ const ChemoApp = (function() {
                 try {
                     const company = JSON.parse(storedCompany);
                     state.selectedCompany = company;
-                    
-                    // Update form fields if they exist
-                    if (elements.companyInput) elements.companyInput.value = company.name || '';
-                    if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
-                    if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
-                    if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
-                    
-                    // Hide company selection and show product selection
-                    const companySection = document.getElementById('companySelectionSection');
-                    const productSection = document.getElementById('productSelectionSection');
-                    
-                    if (companySection) companySection.style.display = 'block';
-                    if (productSection) productSection.style.display = 'block';
-                    
-                    // Update the page title
-                    document.title = `Products - ${company.name} | Product Calculator`;
-                    
-                    // Show a welcome message
-                    showAlert(`Welcome back, ${company.name}! Please select a product category.`, 'info');
-                    
-                    // Update cart count
-                    if (typeof updateCartCount === 'function') {
-                        updateCartCount();
-                    }
-                    
+                    showProductSelection(company);
                     return;
                 } catch (e) {
                     console.error('Error parsing stored company:', e);
@@ -509,35 +562,16 @@ const ChemoApp = (function() {
                 const company = state.companies.find(c => c.id === data.user.company_id);
                 if (company) {
                     state.selectedCompany = company;
-                    
-                    // Update form fields if they exist
-                    if (elements.companyInput) elements.companyInput.value = company.name || '';
-                    if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
-                    if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
-                    if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
-                    
-                    // Store company in session storage
+                    // Store in session storage
                     sessionStorage.setItem('selectedCompany', JSON.stringify(company));
-                    
-                    // Hide company selection and show product selection
-                    const companySection = document.getElementById('companySelectionSection');
-                    const productSection = document.getElementById('productSelectionSection');
-                    
-                    if (companySection) companySection.style.display = 'block';
-                    if (productSection) productSection.style.display = 'block';
-                    
-                    // Update the page title
-                    document.title = `Products - ${company.name} | Product Calculator`;
-                    
-                    // Show a welcome message
-                    showAlert(`Welcome back, ${company.name}! Please select a product category.`, 'info');
-                    
-                    // Update cart count
-                    if (typeof updateCartCount === 'function') {
-                        updateCartCount();
-                    }
+                    showProductSelection(company);
+                    return;
                 }
             }
+            
+            // If we get here, no company is selected
+            showCompanySelection();
+            
         } catch (error) {
             console.error('Error checking company:', error);
             // If there's an error, check session storage as a fallback
@@ -546,22 +580,13 @@ const ChemoApp = (function() {
                 if (storedCompany) {
                     const company = JSON.parse(storedCompany);
                     state.selectedCompany = company;
-                    
-                    // Update form fields if they exist
-                    if (elements.companyInput) elements.companyInput.value = company.name || '';
-                    if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
-                    if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
-                    if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
-                    
-                    // Hide company selection and show product selection
-                    const companySection = document.getElementById('companySelectionSection');
-                    const productSection = document.getElementById('productSelectionSection');
-                    
-                    if (companySection) companySection.style.display = 'block';
-                    if (productSection) productSection.style.display = 'block';
+                    showProductSelection(company);
+                } else {
+                    showCompanySelection();
                 }
             } catch (e) {
-                console.error('Error falling back to stored company:', e);
+                console.error('Error in fallback company check:', e);
+                showCompanySelection();
             }
         }
     }

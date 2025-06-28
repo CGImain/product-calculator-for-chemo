@@ -37,40 +37,17 @@
     .tab-content {
         padding: 1.5rem 0;
     }
-    .quotation-item {
-        border: 1px solid #dee2e6;
-        border-radius: 0.5rem;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-        transition: all 0.2s;
+    .profile-form .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
-    .quotation-item:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+    .profile-form .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
     }
-    .quotation-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid #f1f1f1;
-    }
-    .quotation-date {
-        color: #6c757d;
-        font-size: 0.875rem;
-    }
-    .quotation-total {
-        font-weight: 600;
-        color: #198754;
-    }
-    .no-quotations {
-        text-align: center;
-        padding: 2rem;
-        color: #6c757d;
-    }
-    .loading-spinner {
-        text-align: center;
-        padding: 2rem;
+    .profile-form .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
     }
 </style>
 {% endblock %}
@@ -78,48 +55,68 @@
 {% block content %}
 <div class="profile-container">
     <div class="profile-header">
-        <h2>My Profile</h2>
-        <p class="text-muted">Manage your account and view your quotation history</p>
+        <h2 class="mb-0">My Profile</h2>
     </div>
-    
+
     <ul class="nav nav-tabs" id="profileTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="account-tab" data-bs-toggle="tab" data-bs-target="#account" type="button" role="tab">
-                My Account
-            </button>
+        <li class="nav-item">
+            <a class="nav-link active" id="account-tab" data-bs-toggle="tab" href="#account" role="tab" aria-controls="account" aria-selected="true">
+                Account
+            </a>
         </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
-                Quotation History
-            </button>
+        <li class="nav-item">
+            <a class="nav-link" id="security-tab" data-bs-toggle="tab" href="#security" role="tab" aria-controls="security" aria-selected="false">
+                Security
+            </a>
         </li>
     </ul>
-    
-    <div class="tab-content" id="profileTabContent">
-        <!-- Account Tab -->
+
+    <div class="tab-content">
         <div class="tab-pane fade show active" id="account" role="tabpanel" aria-labelledby="account-tab">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Account Information</h5>
-                    <div id="accountInfo">
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
+            <div class="profile-form">
+                <form id="profileForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <input type="text" class="form-control" id="role" name="role" value="{{ user.role if user.role else 'User' }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="created_at" class="form-label">Account Created</label>
+                        <input type="text" class="form-control" id="created_at" name="created_at" value="{{ user.created_at.strftime('%B %d, %Y') if user.created_at else '' }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="company" class="form-label">Company</label>
+                        <input type="text" class="form-control" id="company" name="company" value="{{ get_company_name_by_id(user.company_id) if user.company_id else 'Not set' }}" readonly>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
             </div>
         </div>
-        
-        <!-- Quotation History Tab -->
-        <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
-            <div id="quotationHistory">
-                <div class="d-flex justify-content-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+
+        <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
+            <div class="profile-form">
+                <form id="passwordForm">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </form>
             </div>
         </div>
     </div>
@@ -129,126 +126,16 @@
 {% block extra_js %}
 <script>
 // Handle API response with potential redirect
-function handleApiResponse(response) {
-    return response.json().then(data => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-            return Promise.reject('Redirecting to company selection');
-        }
-        return data;
-    });
-}
-
-// Load account information
-fetch('/api/profile/account')
-    .then(handleApiResponse)
-    .then(data => {
-        const accountInfo = document.getElementById('accountInfo');
-        accountInfo.innerHTML = `
-            <div class="mb-3">
-                <label class="form-label fw-bold">Username</label>
-                <p class="form-control-static">${data.username}</p>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Email Address</label>
-                <p class="form-control-static">${data.email}</p>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Account Status</label>
-                <p class="form-control-static">
-                    ${data.is_verified 
-                        ? '<span class="badge bg-success">Verified</span>' 
-                        : '<span class="badge bg-warning">Pending Verification</span>'}
-                </p>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Company</label>
-                <p class="form-control-static">${data.company_name || 'Not specified'}</p>
-            </div>
-        `;
-    })
-    .catch(error => {
-        console.error('Error loading account info:', error);
-        document.getElementById('accountInfo').innerHTML = `
-            <div class="alert alert-danger">
-                Failed to load account information. Please try again later.
-            </div>
-        `;
-    });
-
-// Load quotation history when the tab is shown
-document.getElementById('history-tab').addEventListener('shown.bs.tab', function () {
-    const historyContainer = document.getElementById('quotationHistory');
-    
-    // Show loading state
-    if (!historyContainer.innerHTML.includes('spinner-border')) {
-        historyContainer.innerHTML = `
-            <div class="d-flex justify-content-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>`;
+async function handleApiResponse(response) {
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || 'Unknown error');
     }
-    
-    fetch('/api/profile/quotation-history')
-        .then(handleApiResponse)
-        .then(quotations => {
-            if (quotations.length === 0) {
-                historyContainer.innerHTML = `
-                    <div class="no-quotations">
-                        <i class="bi bi-file-earmark-text" style="font-size: 3rem; opacity: 0.5;"></i>
-                        <h5 class="mt-3">No Quotations Found</h5>
-                        <p>Your quotation history will appear here.</p>
-                    </div>`;
-                return;
-            }
-            
-            let html = '<div class="quotation-list">';
-            
-            quotations.forEach(quote => {
-                const date = new Date(quote.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                html += `
-                    <div class="quotation-item">
-                        <div class="quotation-header">
-                            <h6 class="mb-0">Quotation #${quote._id.substring(0, 8).toUpperCase()}</h6>
-                            <div class="quotation-date">${date}</div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="text-muted small">Sent to: ${quote.customer_email || 'N/A'}</div>
-                                <div class="small">${quote.products ? quote.products.length : 0} items</div>
-                            </div>
-                            <div class="quotation-total">
-                                ₹${quote.total ? quote.total.toLocaleString('en-IN', {minimumFractionDigits: 2}) : '0.00'}
-                            </div>
-                        </div>
-                    </div>`;
-            });
-            
-            html += '</div>';
-            historyContainer.innerHTML = html;
-        })
-        .catch(error => {
-            if (error !== 'Redirecting to company selection') {
-                console.error('Error loading quotation history:', error);
-                historyContainer.innerHTML = `
-                    <div class="alert alert-danger">
-                        Failed to load quotation history. Please try again later.
-                    </div>`;
-            }
-        });
-});
-
+    return response.json();
 // Load initial data if on the history tab
 if (window.location.hash === '#history') {
     document.getElementById('history-tab').click();
+}
 }
 </script>
 {% endblock %}

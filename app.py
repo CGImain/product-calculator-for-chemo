@@ -2528,7 +2528,52 @@ def serve_blanket_files(filename):
 @login_required
 def profile():
     user = current_user
-    return render_template('profile.html', user=user)
+    return render_template('profile/profile.html', user=user)
+
+# API endpoints for profile
+@app.route('/api/profile/account')
+@login_required
+def api_profile_account():
+    user = current_user
+    return jsonify({
+        'username': user.username,
+        'email': user.email,
+        'created_at': user.created_at.strftime('%Y-%m-%d'),
+        'company_id': user.company_id,
+        'role': user.role if hasattr(user, 'role') else 'user'
+    })
+
+@app.route('/api/profile/update', methods=['POST'])
+@login_required
+def api_profile_update():
+    data = request.get_json()
+    user_id = current_user.get_id()
+    
+    if not user_id:
+        return jsonify({'error': 'User not found'}), 404
+    
+    try:
+        if MONGO_AVAILABLE and USE_MONGO:
+            user = mu_find_user_by_id(user_id)
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+            
+            # Update user fields
+            if 'username' in data:
+                user['username'] = data['username']
+            if 'email' in data:
+                user['email'] = data['email']
+            
+            # Save to MongoDB
+            mu_update_user(user_id, user)
+            
+            return jsonify({'success': True, 'message': 'Profile updated successfully'})
+        else:
+            return jsonify({'error': 'Database not available'}), 500
+            
+    except Exception as e:
+        app.logger.error(f"Error updating profile: {str(e)}")
+        return jsonify({'error': 'Failed to update profile'}), 500
 
 # Product pages
 @app.route('/mpacks')

@@ -2517,8 +2517,8 @@ def api_user():
         print(f"User error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-@app.route('/api/user/update-company', methods=['POST'])
-@app.route('/api/update_company', methods=['POST'])
+@app.route('/api/user/update-company', methods=['POST'], endpoint='update_company_v1')
+@app.route('/api/update_company', methods=['POST'], endpoint='update_company_v2')
 @login_required
 def update_company():
     try:

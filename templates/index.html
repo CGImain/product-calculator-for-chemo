@@ -186,16 +186,23 @@ const ChemoApp = (function() {
 
     // Initialize the application
     function init() {
-        // Clear any stored company selection
-        sessionStorage.removeItem('selectedCompany');
-        localStorage.removeItem('selectedCompany');
-        state.selectedCompany = null;
-        
         // Set up UI
         setupEventListeners();
         setupProductButtons();
         
-        // Always show company selection first
+        // Check for existing company first
+        const hasCompany = checkExistingCompany();
+        
+        // If no company is found, show company selection
+        if (!hasCompany) {
+            showCompanySelection();
+        }
+        
+        updateCartCount();
+    }
+    
+    // Show company selection section
+    function showCompanySelection() {
         const companySection = document.getElementById('companySelectionSection');
         const productSection = document.getElementById('productSelectionSection');
         
@@ -203,13 +210,12 @@ const ChemoApp = (function() {
             companySection.style.display = 'block';
             // Focus the search input
             const searchInput = companySection.querySelector('input[type="text"]');
-            if (searchInput) searchInput.focus();
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
         }
         if (productSection) productSection.style.display = 'none';
-        
-        // Check for existing company (but don't auto-show products)
-        checkExistingCompany();
-        updateCartCount();
     }
     
     // Set up product button click handlers
@@ -422,31 +428,47 @@ const ChemoApp = (function() {
             // Try to update the company on the server
             try {
                 console.log('Updating company on server...');
+                
+                // First, find the company in the companies list to get its index
+                const company = state.companies.find(c => c.id === state.selectedCompany.id || c.name === state.selectedCompany.name);
+                if (!company) {
+                    console.warn('Company not found in companies list, using direct ID');
+                    throw new Error('Company not found');
+                }
+                
+                // The server expects a 1-based index for the company
+                const companyIndex = state.companies.indexOf(company) + 1;
+                
                 const companyData = {
-                    company_id: state.selectedCompany.id,
-                    company_name: state.selectedCompany.name,
-                    company_email: state.selectedCompany.email
+                    company_id: companyIndex.toString(),
+                    company_name: company.name,
+                    company_email: company.email || ''
                 };
 
-                // Try the first endpoint
-                let response = await fetch('/api/update_company', {
+                console.log('Sending company data:', companyData);
+                
+                // Try the update company endpoint
+                let response = await fetch('/api/user/update-company', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'  // Indicate this is an AJAX request
                     },
                     body: JSON.stringify(companyData),
                     credentials: 'same-origin'  // Include cookies for session
                 });
                 
-                // If first endpoint fails, try the fallback
+                // If the endpoint fails, try the alternative endpoint
                 if (!response.ok) {
-                    console.log('Trying fallback endpoint /api/user/update-company');
-                    response = await fetch('/api/user/update-company', {
+                    console.log('Trying alternative endpoint /select_company');
+                    const formData = new FormData();
+                    formData.append('company_id', companyIndex.toString());
+                    formData.append('company_name', company.name);
+                    formData.append('company_email', company.email || '');
+                    
+                    response = await fetch('/select_company', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(companyData),
+                        body: formData,
                         credentials: 'same-origin'
                     });
                 }
@@ -466,29 +488,11 @@ const ChemoApp = (function() {
                 // Continue with client-side storage even if server update fails
             }
             
-            // Immediately hide company selection and show product selection
-            const companySection = document.getElementById('companySelectionSection');
-            const productSection = document.getElementById('productSelectionSection');
-            
-            if (companySection) {
-                companySection.style.display = 'none';
-            }
-            
-            if (productSection) {
-                productSection.style.display = 'block';
-                productSection.style.opacity = '1';
-            }
-            
-            // Update the page title
-            document.title = `Products - ${companyData.name} | Product Calculator`;
+            // Show product selection with the company name
+            showProductSelection(companyData.name);
             
             // Show a success message
             showAlert(`Welcome, ${companyData.name}! Please select a product category.`, 'success');
-            
-            // Scroll to product selection
-            if (productSection) {
-                productSection.scrollIntoView({ behavior: 'smooth' });
-            }
             
             // Update cart count
             if (typeof updateCartCount === 'function') {
@@ -536,137 +540,46 @@ const ChemoApp = (function() {
 
     // Check if a company is already selected
     async function checkExistingCompany() {
-        function showCompanySelection() {
-            const companySection = document.getElementById('companySelectionSection');
-            const productSection = document.getElementById('productSelectionSection');
-            
-            // Hide product section with animation
-            if (productSection) {
-                productSection.style.transition = 'opacity 0.3s ease';
-                productSection.style.opacity = '0';
-                setTimeout(() => {
-                    if (productSection) {
-                        productSection.style.display = 'none';
-                        productSection.style.opacity = '';
-                        productSection.style.transition = '';
-                    }
-                }, 300);
-            }
-            
-            // Show company section with animation
-            if (companySection) {
-                companySection.style.display = 'flex';
-                // Trigger reflow to ensure the element is visible before starting the animation
-                void companySection.offsetWidth;
-                companySection.style.opacity = '0';
-                companySection.style.transform = 'translateY(10px)';
-                companySection.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                setTimeout(() => {
-                    if (companySection) {
-                        companySection.style.opacity = '1';
-                        companySection.style.transform = 'translateY(0)';
-                    }
-                }, 10);
-            }
+        // Check session storage first
+        let companyData = sessionStorage.getItem('selectedCompany');
+        let storageType = 'sessionStorage';
+        
+        // If not in session storage, check local storage
+        if (!companyData) {
+            companyData = localStorage.getItem('selectedCompany');
+            storageType = 'localStorage';
         }
-
-        function showProductSelection(company) {
-            // Update form fields if they exist
-            if (elements.companyInput) elements.companyInput.value = company.name || '';
-            if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
-            if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
-            if (elements.companyEmailInput) elements.companyEmailInput.value = company.email || '';
-            
-            // Immediately hide company selection and show product selection
-            const companySection = document.getElementById('companySelectionSection');
-            const productSection = document.getElementById('productSelectionSection');
-            
-            if (companySection) {
-                companySection.style.display = 'none';
-            }
-            
-            if (productSection) {
-                productSection.style.display = 'block';
-                productSection.style.opacity = '1';
-            }
-            
-            // Update the page title
-            document.title = `Products - ${company.name} | Product Calculator`;
-            
-            // Show a welcome message
-            showAlert(`Successfully selected ${company.name}! Please select a product category.`, 'info');
-            
-            // Update cart count
-            if (typeof updateCartCount === 'function') {
-                updateCartCount();
-            }
-            
-            // Scroll to product section if needed
-            if (productSection) {
-                productSection.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        try {
-            const response = await fetch('/api/auth/user', {
-                credentials: 'same-origin'  // Include cookies for session
-            });
-            
-            if (!response.ok) {
-                console.log('No user session found or error fetching user data');
-                showCompanySelection();
-                return;
-            }
-            
-            const data = await response.json();
-            console.log('User data:', data);
-            
-            // Check if we have a valid company in the session storage
-            const storedCompany = sessionStorage.getItem('selectedCompany') || localStorage.getItem('selectedCompany');
-            
-            if (storedCompany) {
-                try {
-                    const company = JSON.parse(storedCompany);
-                    state.selectedCompany = company;
-                    showProductSelection(company);
-                    return;
-                } catch (e) {
-                    console.error('Error parsing stored company:', e);
-                }
-            }
-            
-            // If we have a company ID in the user data, try to use that
-            if (data.user && data.user.company_id) {
-                const company = state.companies.find(c => c.id === data.user.company_id);
-                if (company) {
-                    state.selectedCompany = company;
-                    // Store in session storage
-                    sessionStorage.setItem('selectedCompany', JSON.stringify(company));
-                    showProductSelection(company);
-                    return;
-                }
-            }
-            
-            // If we get here, no company is selected
-            showCompanySelection();
-            
-        } catch (error) {
-            console.error('Error checking company:', error);
-            // If there's an error, check session storage as a fallback
+        
+        if (companyData) {
             try {
-                const storedCompany = sessionStorage.getItem('selectedCompany') || localStorage.getItem('selectedCompany');
-                if (storedCompany) {
-                    const company = JSON.parse(storedCompany);
-                    state.selectedCompany = company;
-                    showProductSelection(company);
-                } else {
-                    showCompanySelection();
+                const company = JSON.parse(companyData);
+                console.log(`Found company in ${storageType}:`, company);
+                
+                // Update the UI to show the company is selected
+                state.selectedCompany = company;
+                
+                // Update form fields
+                if (elements.companyInput) elements.companyInput.value = company.name || '';
+                if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
+                if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
+                if (company.email && elements.companyEmailInput) {
+                    elements.companyEmailInput.value = company.email;
                 }
-            } catch (e) {
-                console.error('Error in fallback company check:', e);
-                showCompanySelection();
+                
+                // Show the product selection and hide company selection
+                showProductSelection(company.name);
+                return true;
+                
+            } catch (error) {
+                console.error('Error parsing stored company data:', error);
+                // Clear invalid data
+                sessionStorage.removeItem('selectedCompany');
+                localStorage.removeItem('selectedCompany');
             }
         }
+        
+        // If we get here, no valid company was found in storage
+        return false;
     }
 
     // Load products for the selected company
@@ -895,6 +808,29 @@ const ChemoApp = (function() {
         }, 2000);
     }
 
+    // Show product selection section
+    function showProductSelection(companyName) {
+        const companySection = document.getElementById('companySelectionSection');
+        const productSection = document.getElementById('productSelectionSection');
+        
+        if (companySection) {
+            companySection.style.display = 'none';
+        }
+        
+        if (productSection) {
+            productSection.style.display = 'block';
+            productSection.style.opacity = '1';
+            
+            // Scroll to product selection after a short delay to ensure the element is visible
+            setTimeout(() => {
+                productSection.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+        
+        // Update the page title
+        document.title = `Products - ${companyName} | Product Calculator`;
+    }
+    
     // Public API
     return {
         init,

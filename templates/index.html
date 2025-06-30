@@ -186,17 +186,22 @@ const ChemoApp = (function() {
 
     // Initialize the application
     function init() {
+        // Clear any existing company data from storage
+        sessionStorage.removeItem('selectedCompany');
+        sessionStorage.removeItem('companyId');
+        sessionStorage.removeItem('companyName');
+        sessionStorage.removeItem('companyEmail');
+        localStorage.removeItem('selectedCompany');
+        
+        // Reset state
+        state.selectedCompany = null;
+        
         // Set up UI
         setupEventListeners();
         setupProductButtons();
         
-        // Check for existing company first
-        const hasCompany = checkExistingCompany();
-        
-        // If no company is found, show company selection
-        if (!hasCompany) {
-            showCompanySelection();
-        }
+        // Always show company selection on page load
+        showCompanySelection();
         
         updateCartCount();
     }
@@ -405,16 +410,13 @@ const ChemoApp = (function() {
             
             console.log('Storing company data:', companyData);
             
-            // Update session storage
+            // Only use sessionStorage (cleared when browser/tab is closed)
             sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
             sessionStorage.setItem('companyId', companyData.id);
             sessionStorage.setItem('companyName', companyData.name);
             if (companyData.email) {
                 sessionStorage.setItem('companyEmail', companyData.email);
             }
-            
-            // Update local storage as backup
-            localStorage.setItem('selectedCompany', JSON.stringify(companyData));
             
             // Update the state
             state.selectedCompany = companyData;
@@ -538,22 +540,15 @@ const ChemoApp = (function() {
     // Make function available globally
     window.checkCompanyAndNavigate = checkCompanyAndNavigate;
 
-    // Check if a company is already selected
-    async function checkExistingCompany() {
-        // Check session storage first
-        let companyData = sessionStorage.getItem('selectedCompany');
-        let storageType = 'sessionStorage';
-        
-        // If not in session storage, check local storage
-        if (!companyData) {
-            companyData = localStorage.getItem('selectedCompany');
-            storageType = 'localStorage';
-        }
+    // Check if a company is already selected in the current session
+    function checkExistingCompany() {
+        // Only check sessionStorage (cleared when browser/tab is closed)
+        const companyData = sessionStorage.getItem('selectedCompany');
         
         if (companyData) {
             try {
                 const company = JSON.parse(companyData);
-                console.log(`Found company in ${storageType}:`, company);
+                console.log('Found company in session:', company);
                 
                 // Update the UI to show the company is selected
                 state.selectedCompany = company;
@@ -574,11 +569,10 @@ const ChemoApp = (function() {
                 console.error('Error parsing stored company data:', error);
                 // Clear invalid data
                 sessionStorage.removeItem('selectedCompany');
-                localStorage.removeItem('selectedCompany');
             }
         }
         
-        // If we get here, no valid company was found in storage
+        // If we get here, no valid company was found in session
         return false;
     }
 

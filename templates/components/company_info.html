@@ -45,64 +45,78 @@
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Function to update company info display
-    function updateCompanyInfoDisplay() {
-        // Try to get from sessionStorage first
-        let companyName = sessionStorage.getItem('companyName');
-        let companyEmail = sessionStorage.getItem('companyEmail');
-        
-        // If not in sessionStorage, try localStorage
-        if (!companyName) {
-            const savedCompany = localStorage.getItem('selectedCompany');
-            if (savedCompany) {
-                try {
-                    const companyData = JSON.parse(savedCompany);
-                    companyName = companyData.name;
-                    companyEmail = companyData.email || '';
-                    
-                    // Update sessionStorage
-                    if (companyName) sessionStorage.setItem('companyName', companyName);
-                    if (companyEmail) sessionStorage.setItem('companyEmail', companyEmail);
-                } catch (e) {
-                    console.error('Error parsing company data:', e);
-                }
-            }
-        }
-        
-        // Update the display
-        const nameDisplay = document.getElementById('companyNameDisplay');
-        const emailDisplay = document.getElementById('companyEmailDisplay');
-        
-        if (nameDisplay) {
-            nameDisplay.textContent = companyName || 'Not selected';
-            nameDisplay.title = companyName || '';
-        }
-        
-        if (emailDisplay) {
-            if (companyEmail) {
-                emailDisplay.innerHTML = `<a href="mailto:${companyEmail}" class="text-decoration-none">${companyEmail}</a>`;
-                emailDisplay.title = companyEmail;
-            } else {
-                emailDisplay.textContent = 'No email provided';
-                emailDisplay.title = '';
+// Function to safely get company data from storage
+function getCompanyData() {
+    // First try to get from sessionStorage
+    let companyName = sessionStorage.getItem('companyName');
+    let companyEmail = sessionStorage.getItem('companyEmail');
+    
+    // If not in sessionStorage, try localStorage
+    if (!companyName) {
+        const savedCompany = localStorage.getItem('selectedCompany');
+        if (savedCompany) {
+            try {
+                const companyData = JSON.parse(savedCompany);
+                companyName = companyData.name || companyData.companyName || '';
+                companyEmail = companyData.email || companyData.companyEmail || '';
+                
+                // Update sessionStorage
+                if (companyName) sessionStorage.setItem('companyName', companyName);
+                if (companyEmail) sessionStorage.setItem('companyEmail', companyEmail);
+            } catch (e) {
+                console.error('Error parsing company data:', e);
             }
         }
     }
     
-    // Listen for storage events to update when company changes in other tabs
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'companyName' || e.key === 'companyEmail' || e.key === 'selectedCompany') {
-            updateCompanyInfoDisplay();
-        }
-    });
+    return { name: companyName, email: companyEmail };
+}
+
+// Function to update company info display
+function updateCompanyInfoDisplay() {
+    const { name: companyName, email: companyEmail } = getCompanyData();
     
+    // Update the display
+    const nameDisplay = document.getElementById('companyNameDisplay');
+    const emailDisplay = document.getElementById('companyEmailDisplay');
+    
+    if (nameDisplay) {
+        nameDisplay.textContent = companyName || 'Not selected';
+        nameDisplay.title = companyName || '';
+    }
+    
+    if (emailDisplay) {
+        if (companyEmail) {
+            emailDisplay.innerHTML = `<a href="mailto:${companyEmail}" class="text-decoration-none">${companyEmail}</a>`;
+            emailDisplay.title = companyEmail;
+        } else {
+            emailDisplay.textContent = '';
+            emailDisplay.title = '';
+        }
+    }
+}
+
+// Listen for storage events to update when company changes in other tabs
+window.addEventListener('storage', function(e) {
+    if (e.key === 'companyName' || e.key === 'companyEmail' || e.key === 'selectedCompany') {
+        updateCompanyInfoDisplay();
+    }
+});
+
+// Run when DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
     // Initial update
     updateCompanyInfoDisplay();
     
     // Also update after a short delay to ensure all scripts are loaded
-    setTimeout(updateCompanyInfoDisplay, 500);
+    setTimeout(updateCompanyInfoDisplay, 100);
+    
+    // One more check after everything is loaded
+    window.addEventListener('load', updateCompanyInfoDisplay);
 });
+
+// Make the function available globally for other scripts
+window.updateCompanyInfoDisplay = updateCompanyInfoDisplay;
 </script>
 
 <style>

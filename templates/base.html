@@ -134,6 +134,12 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            <div class="d-flex align-items-center ms-auto me-3 text-white">
+                <small class="me-2">Company:</small>
+                <span id="companyNameDisplay" class="badge bg-light text-dark">
+                    {{ session.company_name if session.company_name else 'Not selected' }}
+                </span>
+            </div>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -543,42 +549,79 @@
     window.updateCartCount = updateCartCount;
     
     // Function to update company display
-    function updateCompanyDisplay() {
-        // First check sessionStorage (updated via JavaScript)
-        let companyName = sessionStorage.getItem('companyName');
+    function updateCompanyDisplay(name, email) {
+        // If name and email are provided, update the storage
+        if (name !== undefined && email !== undefined) {
+            sessionStorage.setItem('companyName', name);
+            if (email) {
+                sessionStorage.setItem('companyEmail', email);
+            }
+            // Also update the navigation display
+            const companyDisplay = document.getElementById('companyNameDisplay');
+            if (companyDisplay) {
+                companyDisplay.textContent = name || 'Not selected';
+            }
+            return;
+        }
         
-        // If not in sessionStorage, check the server-side session
+        // Otherwise, get company info from session storage or local storage
+        let companyName = sessionStorage.getItem('companyName');
+        let companyEmail = sessionStorage.getItem('companyEmail');
+        
+        // If not in session storage, try local storage
         if (!companyName) {
-            const serverCompanyName = '{{ session.get("company_name", "") }}';
-            if (serverCompanyName) {
-                companyName = serverCompanyName;
-                // Cache it in sessionStorage for future use
-                sessionStorage.setItem('companyName', companyName);
+            const storedCompany = localStorage.getItem('selectedCompany');
+            if (storedCompany) {
+                try {
+                    const company = JSON.parse(storedCompany);
+                    companyName = company.name;
+                    companyEmail = company.email;
+                    // Update session storage
+                    sessionStorage.setItem('companyName', companyName);
+                    if (companyEmail) {
+                        sessionStorage.setItem('companyEmail', companyEmail);
+                    }
+                } catch (e) {
+                    console.error('Error parsing stored company:', e);
+                }
             }
         }
         
+        // Update the display in the navigation
         const companyDisplay = document.getElementById('companyNameDisplay');
         if (companyDisplay) {
-            companyDisplay.textContent = companyName || 'No company selected';
-            // Update the title attribute for tooltip
-            companyDisplay.title = `Selected Company: ${companyName || 'None'}`;
+            companyDisplay.textContent = companyName || 'Not selected';
+        }
+    }
+    
+    // Update the title attribute for tooltip
+    function updateCompanyTooltip() {
+        const companyDisplay = document.getElementById('companyNameDisplay');
+        if (companyDisplay) {
+            const companyName = companyDisplay.textContent.trim();
+            companyDisplay.title = `Selected Company: ${companyName !== 'Not selected' ? companyName : 'None'}`;
+            companyDisplay.setAttribute('data-bs-toggle', 'tooltip');
+            companyDisplay.setAttribute('data-bs-placement', 'bottom');
+            // Initialize Bootstrap tooltip
+            new bootstrap.Tooltip(companyDisplay);
         }
     }
     
     // Update company display on page load
     document.addEventListener('DOMContentLoaded', function() {
         updateCompanyDisplay();
+        updateCompanyTooltip();
         
-        // Listen for storage events to update when company changes in other tabs
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'companyName' || e.key === 'companyEmail') {
-                updateCompanyDisplay();
-            }
-        });
-    });
-    
-    // Auto-dismiss flash messages after 2 seconds
-    document.addEventListener('DOMContentLoaded', function() {
+        // Set up navigation
+        setupNavigation();
+        
+        // Update active nav item based on current URL
+        updateActiveNavItem();
+        
+        // Update cart count
+        updateCartCount();
+        
+        // Auto-dismiss flash messages after 2 seconds
         const messages = document.querySelectorAll('#flash-messages .message');
         messages.forEach(message => {
             // Set initial opacity to 1 to ensure smooth fade-in
@@ -594,8 +637,16 @@
             }, 2000);
         });
     });
-    </script>
     
-    {% block extra_js %}{% endblock %}
+    // Listen for storage events to update when company changes in other tabs
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'companyName' || e.key === 'companyEmail') {
+            updateCompanyDisplay();
+            updateCompanyTooltip();
+        }
+    });
+</script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -214,20 +214,6 @@
 
 {% block content %}
     <div class="cart-container">
-        {% if session.get('company_name') %}
-        <div class="alert alert-info mb-4">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-building me-2 fs-4"></i>
-                <div>
-                    <h5 class="mb-0">{{ session.company_name }}</h5>
-                    {% if session.get('company_email') %}
-                        <small class="text-muted">{{ session.company_email }}</small>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        
         <div class="cart-header">
             <div>
                 <h2>Cart</h2>

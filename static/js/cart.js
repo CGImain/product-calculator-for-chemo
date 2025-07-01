@@ -194,12 +194,31 @@ function initCompanyInfo() {
     }
 }
 
+// Update company display in the navigation
+function updateNavCompanyDisplay(companyName) {
+    const companyDisplay = document.getElementById('companyNameDisplay');
+    if (companyDisplay) {
+        companyDisplay.textContent = companyName || 'No company selected';
+    }
+}
+
 // Initialize cart when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing cart...');
     
-    // Initialize company info
-    initCompanyInfo();
+    // First try to get company info from sessionStorage
+    const companyName = sessionStorage.getItem('companyName');
+    const companyEmail = sessionStorage.getItem('companyEmail');
+    
+    if (companyName && companyName !== 'undefined') {
+        updateCompanyDisplay(companyName, companyEmail || '');
+    } else {
+        // Fall back to localStorage if sessionStorage doesn't have it
+        initCompanyInfo();
+    }
+    
+    // Also update the company display in the navigation
+    updateNavCompanyDisplay(companyName || '');
     
     // Handle change company button click
     const changeCompanyBtn = document.getElementById('changeCompanyBtn');

@@ -2729,18 +2729,6 @@ def get_companies_list():
         app.logger.error(f"Error loading companies: {str(e)}")
         return jsonify({'error': 'Failed to load companies'}), 500
 
-# Blankets page
-@app.route('/blankets')
-@login_required
-def blankets():
-    # Get company ID from query parameters or session
-    company_id = request.args.get('company_id') or session.get('company_id')
-    
-    # If we have a company ID, store it in the session
-    if company_id:
-        session['company_id'] = company_id
-        
-    return render_template('blankets.html', company_id=company_id)
 
 # Profile page
 @app.route('/profile')

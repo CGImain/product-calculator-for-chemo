@@ -135,6 +135,8 @@ async function loadCompaniesData() {
         const response = await fetch('/get_companies');
         if (response.ok) {
             companiesData = await response.json();
+            // After loading companies, update the display
+            updateCompanyInfoDisplay();
             return companiesData;
         }
         console.error('Failed to load companies data');
@@ -258,6 +260,9 @@ function showToast(message, type = 'info') {
 document.addEventListener('DOMContentLoaded', async function() {
     // Load companies data
     await loadCompaniesData();
+    
+    // Update company info display immediately
+    updateCompanyInfoDisplay();
     
     // Set up event listeners
     const toggleSearchBtn = document.getElementById('toggleSearchBtn');

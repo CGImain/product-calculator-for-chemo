@@ -1899,6 +1899,9 @@ def quotation_preview():
     final_subtotal = round(final_subtotal, 2)
     total = final_subtotal  # In this case, subtotal and total are the same
 
+    # Ensure session is saved before rendering the template
+    session.modified = True
+    
     context = {
         'cart': cart,
         'quote_date': quote_date,

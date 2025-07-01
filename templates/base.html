@@ -386,7 +386,26 @@
 
         // Function to get company from storage
         const getStoredCompany = () => {
-            // Check session storage first
+            // Check if we have company data in Flask session (from server-side rendering)
+            const companyData = {
+                id: '{{ session.get("company_id", "") }}',
+                name: '{{ session.get("company_name", "") | tojson | safe }}'.replace(/^"|"$/g, ''),
+                email: '{{ session.get("company_email", "") | tojson | safe }}'.replace(/^"|"$/g, '')
+            };
+            
+            if (companyData.id && companyData.name) {
+                // Save to session storage for client-side access
+                const companyStr = JSON.stringify(companyData);
+                sessionStorage.setItem('selectedCompany', companyStr);
+                sessionStorage.setItem('companyId', companyData.id);
+                sessionStorage.setItem('companyName', companyData.name);
+                if (companyData.email) {
+                    sessionStorage.setItem('companyEmail', companyData.email);
+                }
+                return companyData;
+            }
+
+            // Check session storage next
             const sessionCompany = sessionStorage.getItem('selectedCompany');
             if (sessionCompany) {
                 try {
@@ -402,7 +421,8 @@
                 try {
                     const company = JSON.parse(localCompany);
                     // Update session storage for next time
-                    sessionStorage.setItem('selectedCompany', localCompany);
+                    const companyStr = JSON.stringify(company);
+                    sessionStorage.setItem('selectedCompany', companyStr);
                     sessionStorage.setItem('companyId', company.id);
                     sessionStorage.setItem('companyName', company.name);
                     if (company.email) {
@@ -416,27 +436,33 @@
             return null;
         };
 
-        // Check if we have a company in storage
+        // Check if we have a company in storage or session
         let company = getStoredCompany();
 
-        // If no company in storage, check the DOM
-        if (!company) {
+        // If still no company, check the DOM for hidden inputs
+        if (!company || !company.id) {
             const companyIdInput = document.getElementById('companyId');
             const companyNameInput = document.getElementById('companyName');
+            const companyEmailInput = document.getElementById('companyEmail');
             
-            if (companyIdInput && companyIdInput.value && companyNameInput && companyNameInput.value) {
+            if (companyIdInput && companyNameInput && 
+                (companyIdInput.value || companyNameInput.value)) {
                 company = {
-                    id: companyIdInput.value,
-                    name: companyNameInput.value,
-                    email: document.getElementById('companyEmail')?.value || ''
+                    id: companyIdInput.value || '',
+                    name: companyNameInput.value || '',
+                    email: (companyEmailInput && companyEmailInput.value) || ''
                 };
+                
                 // Save to storage for next time
-                const companyStr = JSON.stringify(company);
-                sessionStorage.setItem('selectedCompany', companyStr);
-                sessionStorage.setItem('companyId', company.id);
-                sessionStorage.setItem('companyName', company.name);
-                if (company.email) {
-                    sessionStorage.setItem('companyEmail', company.email);
+                if (company.id || company.name) {
+                    const companyStr = JSON.stringify(company);
+                    sessionStorage.setItem('selectedCompany', companyStr);
+                    if (company.id) sessionStorage.setItem('companyId', company.id);
+                    if (company.name) sessionStorage.setItem('companyName', company.name);
+                    if (company.email) sessionStorage.setItem('companyEmail', company.email);
+                    
+                    // Also save to local storage for persistence across sessions
+                    localStorage.setItem('selectedCompany', companyStr);
                 }
             }
         }
@@ -518,12 +544,24 @@
     
     // Function to update company display
     function updateCompanyDisplay() {
-        const companyName = sessionStorage.getItem('companyName') || 
-                          '{{ session.get("company_name", "No company selected") }}';
+        // First check sessionStorage (updated via JavaScript)
+        let companyName = sessionStorage.getItem('companyName');
+        
+        // If not in sessionStorage, check the server-side session
+        if (!companyName) {
+            const serverCompanyName = '{{ session.get("company_name", "") }}';
+            if (serverCompanyName) {
+                companyName = serverCompanyName;
+                // Cache it in sessionStorage for future use
+                sessionStorage.setItem('companyName', companyName);
+            }
+        }
         
         const companyDisplay = document.getElementById('companyNameDisplay');
         if (companyDisplay) {
             companyDisplay.textContent = companyName || 'No company selected';
+            // Update the title attribute for tooltip
+            companyDisplay.title = `Selected Company: ${companyName || 'None'}`;
         }
     }
     

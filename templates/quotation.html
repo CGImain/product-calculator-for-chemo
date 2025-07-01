@@ -40,24 +40,19 @@
         <div class="card-body">
           <h5 class="card-title mb-3">Customer Information</h5>
           <div class="mb-2">
-            <h4 class="mb-2">
-              {% if company_name and company_name != 'undefined' and company_name != 'Company Name' %}
-                {{ company_name }}
-              {% else %}
-                <span class="text-muted">No company selected</span>
+            {% if session.get('company_name') %}
+              <h4 class="mb-2">{{ session.company_name }}</h4>
+              {% if session.get('company_email') %}
+                <p class="mb-0">
+                  <a href="mailto:{{ session.company_email }}" class="text-decoration-none">
+                    {{ session.company_email }}
+                  </a>
+                </p>
               {% endif %}
-            </h4>
-            {% if company_email and company_email != 'undefined' and company_email != 'email@example.com' %}
-              <p class="mb-0">
-                <a href="mailto:{{ company_email }}" class="text-decoration-none">
-                  {{ company_email }}
-                </a>
-              </p>
-            {% endif %}
-            {% if not company_name or not company_email %}
+            {% else %}
               <div class="alert alert-warning mt-2 mb-0 p-2" style="font-size: 0.9rem;">
                 <i class="fas fa-exclamation-triangle me-1"></i>
-                Company information is missing. Please go back and select a company.
+                No company selected. Please go back and select a company.
               </div>
             {% endif %}
           </div>

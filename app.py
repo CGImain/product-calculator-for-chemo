@@ -1750,17 +1750,37 @@ def quotation_preview():
 
     # Get company info from selected_company dict first, then fallback to direct session values
     selected_company = session.get('selected_company', {})
-    customer_name = selected_company.get('name', session.get('company_name', ''))
-    customer_email = selected_company.get('email', session.get('company_email', ''))
+    customer_name = selected_company.get('name') or session.get('company_name', '')
+    customer_email = selected_company.get('email') or session.get('company_email', '')
+    
+    # If we have company ID but no name/email, try to look it up
+    if not customer_name and 'company_id' in session:
+        try:
+            company_id = session['company_id']
+            file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+            with open(file_path, 'r') as f:
+                companies = json.load(f)
+            
+            company = next((c for c in companies if str(c.get('id')) == str(company_id)), None)
+            if company:
+                customer_name = company.get('Company Name', customer_name)
+                customer_email = company.get('EmailID', customer_email)
+        except Exception as e:
+            app.logger.error(f"Error looking up company info: {str(e)}")
     
     # Ensure values are stored in both places for consistency
-    if customer_name and customer_email:
-        session['selected_company'] = {
-            'name': customer_name,
-            'email': customer_email
-        }
-        session['company_name'] = customer_name
-        session['company_email'] = customer_email
+    if customer_name or customer_email:
+        if not isinstance(selected_company, dict):
+            selected_company = {}
+        
+        if customer_name:
+            selected_company['name'] = customer_name
+            session['company_name'] = customer_name
+        if customer_email:
+            selected_company['email'] = customer_email
+            session['company_email'] = customer_email
+        
+        session['selected_company'] = selected_company
 
     # Ensure all items have required fields and calculate subtotal
     subtotal = 0
@@ -1919,16 +1939,43 @@ def send_quotation():
         if not products:
             return jsonify({'error': 'Cart is empty'}), 400
 
-        # Determine recipient emails
-        selected_company = session.get('selected_company')
+        # Get company info from session
+        selected_company = session.get('selected_company', {})
         if not isinstance(selected_company, dict):
             selected_company = {}
+            
+        # Get customer email, fallback to current user's email if available
         customer_email = selected_company.get('email') or current_user.email
         if not customer_email:
             return jsonify({'error': 'Customer email not available'}), 400
+            
+        # Get customer name, default to empty string if not available
+        customer_name = selected_company.get('name', '')
+        
+        # Ensure we have the most up-to-date company info in session
+        if not customer_name and 'company_id' in session:
+            try:
+                company_id = session['company_id']
+                file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+                with open(file_path, 'r') as f:
+                    companies = json.load(f)
+                
+                company = next((c for c in companies if str(c.get('id')) == str(company_id)), None)
+                if company:
+                    customer_name = company.get('Company Name', customer_name)
+                    if not customer_email:
+                        customer_email = company.get('EmailID', customer_email)
+                        selected_company['email'] = customer_email
+                        session['company_email'] = customer_email
+                    
+                    selected_company['name'] = customer_name
+                    session['company_name'] = customer_name
+                    session['selected_company'] = selected_company
+            except Exception as e:
+                app.logger.error(f"Error looking up company info: {str(e)}")
 
         # Send to customer, CGI operations email, and the logged-in user
-        recipients = list({customer_email, 'operations@chemo.in', current_user.email})
+        recipients = list({email for email in [customer_email, 'operations@chemo.in', current_user.email] if email})
 
         # Get current date
         today = datetime.utcnow().strftime('%d/%m/%Y')
@@ -2052,8 +2099,10 @@ def send_quotation():
           <div style='margin: 20px 0;'>
             <h4>Customer Information</h4>
             <p style='margin: 5px 0;'>
-              {selected_company.get('name', '')}<br>
-              {customer_email}
+              <strong>Company:</strong> {customer_name or 'Not specified'}<br>
+              <strong>Email:</strong> {customer_email}<br>
+              <strong>Prepared By:</strong> {current_user.username}<br>
+              <strong>Date:</strong> {today}
             </p>
           </div>
           

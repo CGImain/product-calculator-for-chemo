@@ -1923,6 +1923,7 @@ def quotation_preview():
         'quote_time': quote_time,
         'company_name': customer_name,
         'company_email': customer_email,
+        'now': current_datetime,  # Add current datetime object for the template
         'calculations': {
             'subtotal': final_subtotal,
             'total': total

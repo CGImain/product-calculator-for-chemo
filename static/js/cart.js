@@ -739,4 +739,41 @@ function updateItemDisplay(item, data) {
     calculateProductPrices(item);
 }
 
+// Check for duplicate MPacks in the cart
+function checkForDuplicateMpacks() {
+    const mpackItems = document.querySelectorAll('.cart-item[data-type="mpack"]');
+    const mpackMap = new Map();
+    
+    mpackItems.forEach((item, index) => {
+        const machine = item.dataset.machine || '';
+        const thickness = item.dataset.thickness || '';
+        const size = item.dataset.size || '';
+        const key = `${machine}-${thickness}-${size}`.toLowerCase();
+        
+        if (mpackMap.has(key)) {
+            // Found a duplicate
+            const existingIndex = mpackMap.get(key);
+            console.warn(`Duplicate MPack found at index ${index}, original at ${existingIndex}`);
+            // You can add visual feedback here if needed
+        } else {
+            mpackMap.set(key, index);
+        }
+    });
+}
+
+// Initialize the check when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    checkForDuplicateMpacks();
+    
+    // Also check when cart is updated
+    const observer = new MutationObserver(function() {
+        checkForDuplicateMpacks();
+    });
+    
+    const cartContainer = document.querySelector('.cart-items');
+    if (cartContainer) {
+        observer.observe(cartContainer, { childList: true, subtree: true });
+    }
+});
+
 // End of file

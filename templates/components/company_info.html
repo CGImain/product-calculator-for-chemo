@@ -1,22 +1,20 @@
-{# Sleek company info bar with change and confirm flow #}
+{# Company info bar with sync between server and client #}
 <div id="companyInfoWrapper">
     <!-- Display bar -->
     <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
         <div class="d-flex flex-column">
             <div class="d-flex align-items-center">
-                <i class="bi bi-building me-2"></i>
-                <span class="fw-semibold" id="companyNameDisplay">{{ session.get('company_name', 'Not selected') }}</span>
+                <i class="fas fa-building me-2 text-primary"></i>
+                <span class="fw-semibold" id="companyNameDisplay">Loading company...</span>
             </div>
-            {% if session.get('company_email') %}
             <div class="d-flex align-items-center mt-1">
-                <i class="bi bi-envelope me-2"></i>
-                <small class="text-muted" id="companyEmailDisplay">{{ session.get('company_email', '') }}</small>
+                <i class="fas fa-envelope me-2 text-muted"></i>
+                <small class="text-muted" id="companyEmailDisplay"></small>
             </div>
-            {% endif %}
         </div>
-        <button class="btn btn-sm btn-outline-primary" id="companyChangeBtn">
-            <i class="bi bi-pencil-square me-1"></i> Change
-        </button>
+        <a href="{{ url_for('company_selection') }}" class="btn btn-sm btn-outline-primary" id="companyChangeBtn">
+            <i class="fas fa-edit me-1"></i> Change
+        </a>
     </div>
 
     <!-- Search box -->
@@ -43,8 +41,69 @@
     </div>
 </div>
 
-<!-- Toast container for notifications (will be created by JS if not exists) -->
-<div id="toastContainer"></div>
+<!-- Toast container for notifications -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update company info display
+    function updateCompanyInfoDisplay() {
+        // Try to get from sessionStorage first
+        let companyName = sessionStorage.getItem('companyName');
+        let companyEmail = sessionStorage.getItem('companyEmail');
+        
+        // If not in sessionStorage, try localStorage
+        if (!companyName) {
+            const savedCompany = localStorage.getItem('selectedCompany');
+            if (savedCompany) {
+                try {
+                    const companyData = JSON.parse(savedCompany);
+                    companyName = companyData.name;
+                    companyEmail = companyData.email || '';
+                    
+                    // Update sessionStorage
+                    if (companyName) sessionStorage.setItem('companyName', companyName);
+                    if (companyEmail) sessionStorage.setItem('companyEmail', companyEmail);
+                } catch (e) {
+                    console.error('Error parsing company data:', e);
+                }
+            }
+        }
+        
+        // Update the display
+        const nameDisplay = document.getElementById('companyNameDisplay');
+        const emailDisplay = document.getElementById('companyEmailDisplay');
+        
+        if (nameDisplay) {
+            nameDisplay.textContent = companyName || 'Not selected';
+            nameDisplay.title = companyName || '';
+        }
+        
+        if (emailDisplay) {
+            if (companyEmail) {
+                emailDisplay.innerHTML = `<a href="mailto:${companyEmail}" class="text-decoration-none">${companyEmail}</a>`;
+                emailDisplay.title = companyEmail;
+            } else {
+                emailDisplay.textContent = 'No email provided';
+                emailDisplay.title = '';
+            }
+        }
+    }
+    
+    // Listen for storage events to update when company changes in other tabs
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'companyName' || e.key === 'companyEmail' || e.key === 'selectedCompany') {
+            updateCompanyInfoDisplay();
+        }
+    });
+    
+    // Initial update
+    updateCompanyInfoDisplay();
+    
+    // Also update after a short delay to ensure all scripts are loaded
+    setTimeout(updateCompanyInfoDisplay, 500);
+});
+</script>
 
 <style>
 .search-results {

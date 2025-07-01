@@ -206,19 +206,8 @@ function updateNavCompanyDisplay(companyName) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing cart...');
     
-    // First try to get company info from sessionStorage
-    const companyName = sessionStorage.getItem('companyName');
-    const companyEmail = sessionStorage.getItem('companyEmail');
-    
-    if (companyName && companyName !== 'undefined') {
-        updateCompanyDisplay(companyName, companyEmail || '');
-    } else {
-        // Fall back to localStorage if sessionStorage doesn't have it
-        initCompanyInfo();
-    }
-    
-    // Also update the company display in the navigation
-    updateNavCompanyDisplay(companyName || '');
+    // Initialize company info
+    initCompanyInfo();
     
     // Handle change company button click
     const changeCompanyBtn = document.getElementById('changeCompanyBtn');

@@ -2655,24 +2655,46 @@ def api_profile_update():
 @app.route('/mpacks')
 @login_required
 def mpacks():
-    # Get company info from session or user data
-    selected_company = session.get('selected_company', {})
-    company_name = session.get('company_name')
-    company_email = session.get('company_email')
+    # Get company_id from query parameters
+    company_id = request.args.get('company_id')
+    
+    # Initialize company info
+    company_name = 'Not selected'
+    company_email = ''
+    
+    # If company_id is provided in the URL
+    if company_id:
+        # Try to get company info by ID
+        company_name = get_company_name_by_id(company_id)
+        company_email = get_company_email_by_id(company_id)
         
-    # If we have a selected company but no session vars, update them
-    if selected_company and not company_name:
-        company_name = selected_company.get('name', 'Not selected')
-        company_email = selected_company.get('email', '')
+        # Update session with the selected company
+        session['selected_company'] = {
+            'id': company_id,
+            'name': company_name,
+            'email': company_email
+        }
         session['company_name'] = company_name
         session['company_email'] = company_email
-    # If we have no selected company but have user data, use that
-    elif not selected_company and current_user.is_authenticated:
-        if hasattr(current_user, 'company_name'):
-            company_name = current_user.company_name
-            company_email = getattr(current_user, 'company_email', '')
+    else:
+        # Fall back to session data if no company_id in URL
+        selected_company = session.get('selected_company', {})
+        company_name = session.get('company_name')
+        company_email = session.get('company_email')
+        
+        # If we have a selected company but no session vars, update them
+        if selected_company and not company_name:
+            company_name = selected_company.get('name', 'Not selected')
+            company_email = selected_company.get('email', '')
             session['company_name'] = company_name
             session['company_email'] = company_email
+        # If we have no selected company but have user data, use that
+        elif not selected_company and current_user.is_authenticated:
+            if hasattr(current_user, 'company_name'):
+                company_name = current_user.company_name
+                company_email = getattr(current_user, 'company_email', '')
+                session['company_name'] = company_name
+                session['company_email'] = company_email
     
     # Ensure we have values in session
     if not company_name:
@@ -2687,6 +2709,7 @@ def mpacks():
     
     response = render_template('products/chemicals/mpack.html', 
                            current_company={
+                               'id': company_id,
                                'name': company_name,
                                'email': company_email
                            })
@@ -2697,16 +2720,38 @@ def mpacks():
 @app.route('/blankets')
 @login_required
 def blankets():
-    # Get company info - priority: selected_company > session > user data
-    selected_company = session.get('selected_company', {})
-    company_name = selected_company.get('name') or session.get('company_name')
-    company_email = selected_company.get('email') or session.get('company_email')
+    # Get company_id from query parameters
+    company_id = request.args.get('company_id')
     
-    # Fall back to user's company info if not found
-    if not company_name and hasattr(current_user, 'company_name'):
-        company_name = current_user.company_name
-    if not company_email and hasattr(current_user, 'company_email'):
-        company_email = current_user.company_email
+    # Initialize company info
+    company_name = 'Not selected'
+    company_email = ''
+    
+    # If company_id is provided in the URL
+    if company_id:
+        # Try to get company info by ID
+        company_name = get_company_name_by_id(company_id)
+        company_email = get_company_email_by_id(company_id)
+        
+        # Update session with the selected company
+        session['selected_company'] = {
+            'id': company_id,
+            'name': company_name,
+            'email': company_email
+        }
+        session['company_name'] = company_name
+        session['company_email'] = company_email
+    else:
+        # Fall back to session data if no company_id in URL
+        selected_company = session.get('selected_company', {})
+        company_name = selected_company.get('name') or session.get('company_name')
+        company_email = selected_company.get('email') or session.get('company_email')
+        
+        # Fall back to user's company info if not found
+        if not company_name and hasattr(current_user, 'company_name'):
+            company_name = current_user.company_name
+        if not company_email and hasattr(current_user, 'company_email'):
+            company_email = current_user.company_email
     
     # Ensure we have values in session
     if not company_name:
@@ -2723,6 +2768,7 @@ def blankets():
     
     return render_template('products/blankets/blankets.html',
                          current_company={
+                             'id': company_id,
                              'name': company_name,
                              'email': company_email
                          })

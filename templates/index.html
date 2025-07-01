@@ -518,18 +518,32 @@ const ChemoApp = (function() {
     
     // Function to check if company is selected before navigation
     function checkCompanyAndNavigate(route) {
-        const companyIdInput = document.getElementById('companyId');
-        const hasCompany = (companyIdInput && companyIdInput.value) || 
-                         (typeof state !== 'undefined' && state.selectedCompany) ||
-                         sessionStorage.getItem('selectedCompany');
+        // Get company from state or session storage
+        let companyId = '';
         
-        if (hasCompany) {
-            window.location.href = route;
+        if (state && state.selectedCompany) {
+            companyId = state.selectedCompany.id;
+        } else {
+            const companyData = sessionStorage.getItem('selectedCompany');
+            if (companyData) {
+                try {
+                    const company = JSON.parse(companyData);
+                    companyId = company.id;
+                } catch (e) {
+                    console.error('Error parsing company data:', e);
+                }
+            }
+        }
+        
+        if (companyId) {
+            // Add company_id as a query parameter if it's not already in the route
+            const separator = route.includes('?') ? '&' : '?';
+            window.location.href = `${route}${separator}company_id=${companyId}`;
         } else {
             showAlert('Please select a company before viewing products.', 'warning');
         }
     }
-    
+
     // Function to handle product button clicks
     function handleProductButtonClick(e) {
         e.preventDefault();
@@ -804,13 +818,14 @@ const ChemoApp = (function() {
 
     // Show product selection section
     function showProductSelection(companyName) {
+        // Remove company selection section completely
         const companySection = document.getElementById('companySelectionSection');
-        const productSection = document.getElementById('productSelectionSection');
-        
         if (companySection) {
-            companySection.style.display = 'none';
+            companySection.remove();
         }
         
+        // Show product selection
+        const productSection = document.getElementById('productSelectionSection');
         if (productSection) {
             productSection.style.display = 'block';
             productSection.style.opacity = '1';
@@ -823,6 +838,21 @@ const ChemoApp = (function() {
         
         // Update the page title
         document.title = `Products - ${companyName} | Product Calculator`;
+        
+        // Update the change company button to reload the page
+        const changeCompanyBtn = document.getElementById('changeCompanyBtn');
+        if (changeCompanyBtn) {
+            changeCompanyBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Clear the selected company from session storage
+                sessionStorage.removeItem('selectedCompany');
+                sessionStorage.removeItem('companyId');
+                sessionStorage.removeItem('companyName');
+                sessionStorage.removeItem('companyEmail');
+                // Reload the page to reset the state
+                window.location.href = window.location.href.split('?')[0];
+            });
+        }
     }
     
     // Public API

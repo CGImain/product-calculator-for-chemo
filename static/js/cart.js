@@ -769,17 +769,28 @@ function checkForDuplicateMpacks() {
     });
 }
 
+// Function to remove the second MPack when duplicates are found
+function removeSecondMpack(duplicateIndex) {
+    if (confirm('You already have an MPack in your cart. Would you like to remove the duplicate?')) {
+        removeCartItem(duplicateIndex);
+    }
+}
+
 // Initialize the check when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     checkForDuplicateMpacks();
     
-    // Also check when cart is updated
-    const observer = new MutationObserver(function() {
+    // Also check after any cart updates
+    document.addEventListener('cartUpdated', function() {
         checkForDuplicateMpacks();
     });
     
+    // Set up mutation observer for cart changes
     const cartContainer = document.querySelector('.cart-items');
     if (cartContainer) {
+        const observer = new MutationObserver(function() {
+            checkForDuplicateMpacks();
+        });
         observer.observe(cartContainer, { childList: true, subtree: true });
     }
 });

@@ -520,29 +520,59 @@
         }
 
         // If we get here, no company was found
-        console.log('No company found, redirecting to home');
+        console.log('No company found, showing company selection');
+        
+        // Store the current URL for redirection after company selection
         sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
         
-        // Show a more user-friendly message
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'alert alert-warning alert-dismissible fade show';
-        alertDiv.role = 'alert';
-        alertDiv.innerHTML = `
-            <strong>Company Selection Required</strong>
-            <p>Please select a company before accessing this page.</p>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        `;
+        // Show the company selection UI if it exists
+        const companySearchWrapper = document.getElementById('companySearchWrapper');
+        const customerInfoContent = document.getElementById('customerInfoContent');
         
-        // Insert the alert at the top of the body
-        document.body.insertBefore(alertDiv, document.body.firstChild);
-        
-        // Scroll to top to show the alert
-        window.scrollTo(0, 0);
-        
-        // Redirect to home after a short delay
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 3000);
+        if (companySearchWrapper && customerInfoContent) {
+            // Show the company search box
+            customerInfoContent.style.display = 'none';
+            companySearchWrapper.style.display = 'block';
+            
+            // Focus on the search input if it exists
+            const companySearchInput = document.getElementById('companySearchInput');
+            if (companySearchInput) {
+                companySearchInput.focus();
+            }
+            
+            // Show a message to the user
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-info alert-dismissible fade show mb-3';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Select a Company</strong>
+                <p>Please select a company to continue.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insert the alert at the top of the company search section
+            companySearchWrapper.insertBefore(alertDiv, companySearchWrapper.firstChild);
+            
+            // Scroll to the company selection area
+            companySearchWrapper.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // Fallback to the old behavior if the UI elements don't exist
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Company Selection Required</strong>
+                <p>Please select a company before accessing this page.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            window.scrollTo(0, 0);
+            
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+        }
     }
     
     // Function to update cart count

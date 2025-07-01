@@ -170,17 +170,11 @@
                 </div>
             </div>
         </div>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-  
+</div>
 
-  
-  <p>Hello,<br><br>This is <strong>{{ current_user.username }}</strong> from CGI.<br>Here is the proposed quotation for the required products:</p>
+<div class="container mt-4">
+    <p>Hello,<br><br>This is <strong>{{ current_user.username }}</strong> from CGI.<br>Here is the proposed quotation for the required products:</p>
   
   <table>
     <thead>
@@ -261,7 +255,7 @@
     This quotation is not a contract or invoice. It is our best estimate.
   </p>
 </div>
-{% block extra_js %}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const changeCustomerBtn = document.getElementById('changeCustomerBtn');
@@ -273,10 +267,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Toggle search box visibility
     if (changeCustomerBtn) {
-        changeCustomerBtn.addEventListener('click', function() {
+        changeCustomerBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent form submission
+            e.stopPropagation(); // Stop event bubbling
             customerInfoContent.style.display = 'none';
             companySearchWrapper.style.display = 'block';
             companySearchInput.focus();
+            return false; // Additional prevention
         });
     }
     

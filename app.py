@@ -2679,10 +2679,68 @@ def static_products_blankets(filename):
 def static_chemicals(filename):
     return send_from_directory('static/data/chemicals', filename)
 
-# Serve blanket categories and other files from the products/blankets directory
+# Serve blanket categories and other JSON files
 @app.route('/static/products/blankets/<path:filename>')
 def serve_blanket_files(filename):
     return send_from_directory('static/products/blankets', filename)
+
+# Serve blanket categories
+@app.route('/blanket_categories')
+def get_blanket_categories():
+    try:
+        file_path = os.path.join(app.root_path, 'static', 'products', 'blankets', 'blanket_categories.json')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            categories = json.load(f)
+        return jsonify(categories)
+    except Exception as e:
+        app.logger.error(f"Error loading blanket categories: {str(e)}")
+        return jsonify({'error': 'Failed to load blanket categories'}), 500
+
+# Serve blanket data
+@app.route('/blanket_data')
+def get_blanket_data():
+    try:
+        file_path = os.path.join(app.root_path, 'static', 'products', 'blankets', 'blankets.json')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        app.logger.error(f"Error loading blanket data: {str(e)}")
+        return jsonify({'error': 'Failed to load blanket data'}), 500
+
+# Serve companies data
+@app.route('/get_companies')
+@login_required
+def get_companies_list():
+    try:
+        file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            companies = json.load(f)
+        
+        # Format the response as expected by the frontend
+        formatted_companies = [{
+            'id': str(company.get('id', '')),
+            'name': company.get('Company Name', ''),
+            'email': company.get('EmailID', '')
+        } for company in companies if company.get('EmailID')]  # Only include companies with email
+        
+        return jsonify(formatted_companies)
+    except Exception as e:
+        app.logger.error(f"Error loading companies: {str(e)}")
+        return jsonify({'error': 'Failed to load companies'}), 500
+
+# Blankets page
+@app.route('/blankets')
+@login_required
+def blankets():
+    # Get company ID from query parameters or session
+    company_id = request.args.get('company_id') or session.get('company_id')
+    
+    # If we have a company ID, store it in the session
+    if company_id:
+        session['company_id'] = company_id
+        
+    return render_template('blankets.html', company_id=company_id)
 
 # Profile page
 @app.route('/profile')

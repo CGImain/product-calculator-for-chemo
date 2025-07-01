@@ -1,20 +1,22 @@
-{# Company info bar with sync between server and client #}
-<div id="companyInfoWrapper">
+{# Company info bar with inline company selection #}
+<div id="companyInfoWrapper" class="company-info-wrapper">
     <!-- Display bar -->
     <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
-        <div class="d-flex flex-column">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-building me-2 text-primary"></i>
-                <span class="fw-semibold" id="companyNameDisplay">Loading company...</span>
+        <div class="d-flex flex-column w-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-building me-2 text-primary"></i>
+                    <span class="fw-semibold" id="companyNameDisplay">Loading company...</span>
+                </div>
+                <button class="btn btn-sm btn-outline-primary" id="toggleSearchBtn">
+                    <i class="fas fa-edit me-1"></i> Change
+                </button>
             </div>
             <div class="d-flex align-items-center mt-1">
                 <i class="fas fa-envelope me-2 text-muted"></i>
                 <small class="text-muted" id="companyEmailDisplay"></small>
             </div>
         </div>
-        <a href="{{ url_for('company_selection') }}" class="btn btn-sm btn-outline-primary" id="companyChangeBtn">
-            <i class="fas fa-edit me-1"></i> Change
-        </a>
     </div>
 
     <!-- Search box -->
@@ -23,15 +25,15 @@
             <h6 class="card-title mb-3">Change Company</h6>
             <div class="position-relative">
                 <div class="input-group mb-2">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" class="form-control" id="companySearchInput" 
                            placeholder="Search company by name or email" autocomplete="off">
                 </div>
-                <div id="companySearchResults" class="search-results mt-1 border rounded" style="display: none;"></div>
+                <div id="companySearchResults" class="search-results mt-1 border rounded" style="display: none; max-height: 200px; overflow-y: auto;"></div>
             </div>
             <div class="mt-3 d-flex justify-content-end">
                 <button class="btn btn-outline-secondary btn-sm me-2" id="companyCancelBtn">
-                    <i class="bi bi-x-lg me-1"></i> Cancel
+                    <i class="fas fa-times me-1"></i> Cancel
                 </button>
                 <button class="btn btn-primary btn-sm" id="companyConfirmBtn" disabled>
                     <i class="bi bi-check-lg me-1"></i> Confirm
@@ -45,11 +47,15 @@
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
 
 <script>
+// Global variable to store companies data
+let companiesData = [];
+
 // Function to safely get company data from storage
 function getCompanyData() {
-    // First try to get from sessionStorage
+    // Try to get from sessionStorage first
     let companyName = sessionStorage.getItem('companyName');
     let companyEmail = sessionStorage.getItem('companyEmail');
+    let companyId = sessionStorage.getItem('companyId');
     
     // If not in sessionStorage, try localStorage
     if (!companyName) {
@@ -59,60 +65,238 @@ function getCompanyData() {
                 const companyData = JSON.parse(savedCompany);
                 companyName = companyData.name || companyData.companyName || '';
                 companyEmail = companyData.email || companyData.companyEmail || '';
+                companyId = companyData.id || companyData.companyId || '';
                 
                 // Update sessionStorage
                 if (companyName) sessionStorage.setItem('companyName', companyName);
                 if (companyEmail) sessionStorage.setItem('companyEmail', companyEmail);
+                if (companyId) sessionStorage.setItem('companyId', companyId);
             } catch (e) {
                 console.error('Error parsing company data:', e);
             }
         }
     }
     
-    return { name: companyName, email: companyEmail };
+    return { 
+        name: companyName, 
+        email: companyEmail,
+        id: companyId
+    };
 }
 
 // Function to update company info display
 function updateCompanyInfoDisplay() {
-    const { name: companyName, email: companyEmail } = getCompanyData();
+    const company = getCompanyData();
     
     // Update the display
     const nameDisplay = document.getElementById('companyNameDisplay');
     const emailDisplay = document.getElementById('companyEmailDisplay');
     
     if (nameDisplay) {
-        nameDisplay.textContent = companyName || 'Not selected';
-        nameDisplay.title = companyName || '';
+        nameDisplay.textContent = company.name || 'Not selected';
+        nameDisplay.title = company.name || '';
     }
     
     if (emailDisplay) {
-        if (companyEmail) {
-            emailDisplay.innerHTML = `<a href="mailto:${companyEmail}" class="text-decoration-none">${companyEmail}</a>`;
-            emailDisplay.title = companyEmail;
+        if (company.email) {
+            emailDisplay.innerHTML = `<a href="mailto:${company.email}" class="text-decoration-none">${company.email}</a>`;
+            emailDisplay.title = company.email;
         } else {
             emailDisplay.textContent = '';
             emailDisplay.title = '';
         }
     }
+    
+    // Also update any customer info sections
+    updateCustomerInfoSections(company);
 }
 
-// Listen for storage events to update when company changes in other tabs
-window.addEventListener('storage', function(e) {
-    if (e.key === 'companyName' || e.key === 'companyEmail' || e.key === 'selectedCompany') {
-        updateCompanyInfoDisplay();
-    }
-});
+// Function to update customer info sections with company data
+function updateCustomerInfoSections(company) {
+    const customerInfoSections = document.querySelectorAll('.customer-info-section');
+    customerInfoSections.forEach(section => {
+        const nameEl = section.querySelector('.company-name-display');
+        const emailEl = section.querySelector('.company-email-display');
+        
+        if (nameEl) {
+            nameEl.textContent = company.name || 'Not selected';
+        }
+        if (emailEl) {
+            emailEl.innerHTML = company.email 
+                ? `<a href="mailto:${company.email}">${company.email}</a>` 
+                : '';
+        }
+    });
+}
 
-// Run when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
+// Function to load companies data
+async function loadCompaniesData() {
+    try {
+        const response = await fetch('/get_companies');
+        if (response.ok) {
+            companiesData = await response.json();
+            return companiesData;
+        }
+        console.error('Failed to load companies data');
+        return [];
+    } catch (error) {
+        console.error('Error loading companies data:', error);
+        return [];
+    }
+}
+
+// Function to show search box
+function showSearchBox() {
+    const searchBox = document.getElementById('companySearchBox');
+    const searchInput = document.getElementById('companySearchInput');
+    if (searchBox && searchInput) {
+        searchBox.style.display = 'block';
+        searchInput.focus();
+    }
+}
+
+// Function to hide search box
+function hideSearchBox() {
+    const searchBox = document.getElementById('companySearchBox');
+    const searchResults = document.getElementById('companySearchResults');
+    const searchInput = document.getElementById('companySearchInput');
+    
+    if (searchBox) searchBox.style.display = 'none';
+    if (searchResults) searchResults.style.display = 'none';
+    if (searchInput) searchInput.value = '';
+}
+
+// Function to render search results
+function renderSearchResults(query = '') {
+    const searchResults = document.getElementById('companySearchResults');
+    if (!searchResults) return;
+    
+    if (!query.trim()) {
+        searchResults.style.display = 'none';
+        return;
+    }
+    
+    const queryLower = query.toLowerCase();
+    const filtered = companiesData.filter(company => 
+        company.name.toLowerCase().includes(queryLower) || 
+        (company.email && company.email.toLowerCase().includes(queryLower))
+    );
+    
+    if (filtered.length === 0) {
+        searchResults.innerHTML = '<div class="p-2 text-muted">No companies found</div>';
+    } else {
+        searchResults.innerHTML = filtered.map(company => `
+            <div class="search-result-item p-2 border-bottom" 
+                 data-id="${company.id}" 
+                 data-name="${company.name}" 
+                 data-email="${company.email || ''}">
+                <div class="fw-semibold">${company.name}</div>
+                ${company.email ? `<div class="small text-muted">${company.email}</div>` : ''}
+            </div>
+        `).join('');
+    }
+    
+    searchResults.style.display = 'block';
+    
+    // Add click handlers to search result items
+    document.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const company = {
+                id: this.dataset.id,
+                name: this.dataset.name,
+                email: this.dataset.email
+            };
+            
+            // Update storage
+            sessionStorage.setItem('companyName', company.name);
+            sessionStorage.setItem('companyEmail', company.email);
+            sessionStorage.setItem('companyId', company.id);
+            localStorage.setItem('selectedCompany', JSON.stringify(company));
+            
+            // Update display
+            updateCompanyInfoDisplay();
+            hideSearchBox();
+            
+            // Show success message
+            showToast('Company updated successfully', 'success');
+            
+            // Trigger storage event to update other tabs
+            window.dispatchEvent(new Event('storage'));
+        });
+    });
+}
+
+// Function to show toast message
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast show align-items-center text-bg-${type} border-0`;
+    toast.role = 'alert';
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Initialize the component
+document.addEventListener('DOMContentLoaded', async function() {
+    // Load companies data
+    await loadCompaniesData();
+    
+    // Set up event listeners
+    const toggleSearchBtn = document.getElementById('toggleSearchBtn');
+    const cancelBtn = document.getElementById('companyCancelBtn');
+    const searchInput = document.getElementById('companySearchInput');
+    
+    if (toggleSearchBtn) {
+        toggleSearchBtn.addEventListener('click', showSearchBox);
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', hideSearchBox);
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            renderSearchResults(e.target.value);
+        });
+    }
+    
+    // Close search results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#companySearchBox') && !e.target.closest('#toggleSearchBtn')) {
+            hideSearchBox();
+        }
+    });
+    
     // Initial update
     updateCompanyInfoDisplay();
     
     // Also update after a short delay to ensure all scripts are loaded
     setTimeout(updateCompanyInfoDisplay, 100);
-    
-    // One more check after everything is loaded
-    window.addEventListener('load', updateCompanyInfoDisplay);
+});
+
+// Listen for storage events to update when company changes in other tabs
+window.addEventListener('storage', function(e) {
+    if (e.key === 'companyName' || e.key === 'companyEmail' || e.key === 'companyId' || e.key === 'selectedCompany') {
+        updateCompanyInfoDisplay();
+    }
 });
 
 // Make the function available globally for other scripts

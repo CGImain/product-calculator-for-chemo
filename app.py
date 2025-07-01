@@ -1366,6 +1366,21 @@ def forgot_password_redirect():
 # API Routes
 
 # Company Management
+@app.route('/api/companies', methods=['GET'])
+@login_required
+def api_get_companies():
+    """Get all companies from the database"""
+    try:
+        companies = get_companies()
+        if not companies:
+            return jsonify({'error': 'No companies found'}), 404
+            
+        return jsonify(companies)
+    except Exception as e:
+        app.logger.error(f"Error getting companies: {str(e)}")
+        return jsonify({'error': 'Failed to load companies'}), 500
+
+# Company Management
 @app.route('/api/companies/search', methods=['GET'])
 @login_required
 def search_companies():
@@ -1942,43 +1957,44 @@ def send_quotation():
         if not products:
             return jsonify({'error': 'Cart is empty'}), 400
 
-        # Get company info from session
+        # Get company info from session with proper fallbacks
         selected_company = session.get('selected_company', {})
         if not isinstance(selected_company, dict):
             selected_company = {}
             
-        # Get customer email, fallback to current user's email if available
-        customer_email = selected_company.get('email') or current_user.email
-        if not customer_email:
-            return jsonify({'error': 'Customer email not available'}), 400
-            
-        # Get customer name, default to empty string if not available
-        customer_name = selected_company.get('name', '')
+        # Get customer email with proper fallbacks
+        customer_email = (
+            selected_company.get('email') or 
+            session.get('company_email') or 
+            (hasattr(current_user, 'email') and current_user.email) or 
+            ''
+        )
         
-        # Ensure we have the most up-to-date company info in session
-        if not customer_name and 'company_id' in session:
-            try:
-                company_id = session['company_id']
-                file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
-                with open(file_path, 'r') as f:
-                    companies = json.load(f)
-                
-                company = next((c for c in companies if str(c.get('id')) == str(company_id)), None)
-                if company:
-                    customer_name = company.get('Company Name', customer_name)
-                    if not customer_email:
-                        customer_email = company.get('EmailID', customer_email)
-                        selected_company['email'] = customer_email
-                        session['company_email'] = customer_email
-                    
-                    selected_company['name'] = customer_name
-                    session['company_name'] = customer_name
-                    session['selected_company'] = selected_company
-            except Exception as e:
-                app.logger.error(f"Error looking up company info: {str(e)}")
+        if not customer_email:
+            return jsonify({'error': 'Customer email is required'}), 400
+            
+        # Get customer name with proper fallbacks
+        customer_name = (
+            selected_company.get('name') or 
+            session.get('company_name') or 
+            (hasattr(current_user, 'company_name') and current_user.company_name) or 
+            (hasattr(current_user, 'company_id') and get_company_name_by_id(current_user.company_id)) or 
+            'Not specified'
+        )
+        
+        # Update session with the latest values
+        if customer_name and customer_name != 'Not specified':
+            session['company_name'] = customer_name
+            session['company_email'] = customer_email
+            session['selected_company'] = {
+                'name': customer_name,
+                'email': customer_email,
+                'id': session.get('company_id', '')
+            }
+            session.modified = True
 
-        # Send to customer, CGI operations email, and the logged-in user
-        recipients = list({email for email in [customer_email, 'operations@chemo.in', current_user.email] if email})
+        # Send to customer and operations email (remove duplicates)
+        recipients = list({email for email in [customer_email, 'operations@chemo.in'] if email})
 
         # Get current date
         today = datetime.utcnow().strftime('%d/%m/%Y')
@@ -2102,8 +2118,8 @@ def send_quotation():
           <div style='margin: 20px 0;'>
             <h4>Customer Information</h4>
             <p style='margin: 5px 0;'>
-              <strong>Company:</strong> {customer_name or 'Not specified'}<br>
-              <strong>Email:</strong> {customer_email}<br>
+              <strong>Company:</strong> {customer_name}<br>
+              <strong>Email:</strong> <a href='mailto:{customer_email}'>{customer_email}</a><br>
               <strong>Prepared By:</strong> {current_user.username}<br>
               <strong>Date:</strong> {today}
             </p>

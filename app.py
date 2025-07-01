@@ -1097,15 +1097,17 @@ def remove_from_cart():
         
 
 @app.route('/get_cart_count')
-@login_required
 def get_cart_count():
     """Return the number of products currently in the user's cart."""
     try:
+        if not current_user.is_authenticated:
+            return jsonify({'count': 0})
+            
         cart = get_user_cart()
         return jsonify({'count': len(cart.get('products', []))})
     except Exception as e:
         print(f"Error in get_cart_count: {e}")
-        return jsonify({'count': 0}), 500
+        return jsonify({'count': 0})
 
 @app.route('/')
 @app.route('/index')
@@ -1256,54 +1258,69 @@ def select_company():
 @app.route('/api/user/update-company', methods=['POST'])
 @login_required
 def api_update_company():
-    """Update selected company via AJAX POST with JSON {company_id: str}."""
+    """Update selected company via AJAX POST with JSON {company_id: str}.
+    
+    Accepts either:
+    - company_id: The actual company ID from the database
+    - Or company_id as a 1-based index into the companies list
+    """
     data = request.get_json(silent=True) or {}
     company_id = data.get('company_id')
-    if not company_id:
-        return jsonify({'error': 'company_id required'}), 400
-
-    # Load companies list from JSON file
-    try:
-        file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
-        with open(file_path, 'r') as f:
-            companies = json.load(f)
-    except Exception as e:
-        app.logger.error(f"Error reading company_emails.json: {e}")
-        return jsonify({'error': 'server error'}), 500
-
-    # Find company by sequential id (1-based index)
-    try:
-        idx = int(company_id) - 1
-    except ValueError:
-        return jsonify({'error': 'invalid id'}), 400
-
-    if idx < 0 or idx >= len(companies):
-        return jsonify({'error': 'company not found'}), 404
-
-    company = companies[idx]
-    selected = {
-        'id': str(company_id),
-        'name': company.get('Company Name', ''),
-        'email': company.get('EmailID', '')
-    }
-
-    # Persist in session
-    session['selected_company'] = selected
-    session['company_name'] = selected['name']
-    session['company_email'] = selected['email']
-    session.modified = True  # Ensure the session is saved
-
-    app.logger.info(f"Company updated via API: {selected}")
+    company_name = data.get('company_name')
+    company_email = data.get('company_email')
     
-    # Return the updated company details
-    return jsonify({
-        'success': True,
-        'company': {
-            'id': selected['id'],
-            'name': selected['name'],
-            'email': selected['email']
-        }
-    })
+    if not company_id:
+        return jsonify({'error': 'company_id is required'}), 400
+
+    try:
+        # If we have all company details, just use them directly
+        if company_name and company_email:
+            selected = {
+                'id': str(company_id),
+                'name': company_name,
+                'email': company_email
+            }
+        else:
+            # Otherwise, look up the company in the companies list
+            file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+            with open(file_path, 'r') as f:
+                companies = json.load(f)
+            
+            # First try to find by exact ID match
+            company = next((c for c in companies if str(c.get('id', '')).lower() == str(company_id).lower()), None)
+            
+            # If not found, try to use as 1-based index
+            if not company and company_id.isdigit():
+                idx = int(company_id) - 1
+                if 0 <= idx < len(companies):
+                    company = companies[idx]
+            
+            if not company:
+                return jsonify({'error': 'Company not found'}), 404
+            
+            selected = {
+                'id': str(company.get('id', company_id)),
+                'name': company.get('Company Name', company_name or f'Company {company_id}'),
+                'email': company.get('EmailID', company_email or '')
+            }
+
+        # Update user's company in session
+        session['selected_company'] = selected
+        session['company_name'] = selected['name']
+        session['company_email'] = selected['email']
+        session.modified = True  # Ensure the session is saved
+
+        app.logger.info(f"Company updated via API: {selected}")
+        
+        # Return the updated company details
+        return jsonify({
+            'success': True,
+            'company': selected
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error in api_update_company: {str(e)}")
+        return jsonify({'error': 'Failed to update company', 'details': str(e)}), 500
 
 def get_companies():
     try:

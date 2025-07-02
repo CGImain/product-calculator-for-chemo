@@ -380,16 +380,30 @@ function renderSearchResults(query = '') {
     }
     
     console.log('Searching for:', query);
+    console.log('Total companies in memory:', companiesData.length);
+    console.log('Sample companies:', companiesData.slice(0, 3));
+    
     const queryLower = query.toLowerCase().trim();
     
     try {
         // Search in both name and email fields
         const filtered = companiesData.filter(company => {
             if (!company) return false;
-            const nameMatch = company.name && company.name.toLowerCase().includes(queryLower);
-            const emailMatch = company.email && company.email.toLowerCase().includes(queryLower);
+            
+            // Debug info for each company being checked
+            const name = company.name || '';
+            const email = company.email || '';
+            const nameMatch = name.toLowerCase().includes(queryLower);
+            const emailMatch = email.toLowerCase().includes(queryLower);
+            
+            if (nameMatch || emailMatch) {
+                console.log('Match found:', { name, email, query: queryLower });
+            }
+            
             return nameMatch || emailMatch;
         });
+        
+        console.log(`Found ${filtered.length} matching companies for query: ${query}`);
         
         console.log(`Found ${filtered.length} matching companies`);
         

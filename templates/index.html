@@ -405,15 +405,10 @@ const ChemoApp = (function() {
 
     // Select company and save to session
     async function selectCompany() {
-        console.log('selectCompany called');
-        
         if (!state.selectedCompany) {
-            console.error('No company selected');
             showAlert('Please select a company first.', 'danger');
             return false;
         }
-        
-        console.log('Selected company:', state.selectedCompany);
         
         // Show loading state
         const originalButtonText = elements.selectCompanyBtn ? elements.selectCompanyBtn.innerHTML : '';
@@ -430,7 +425,7 @@ const ChemoApp = (function() {
                 email: state.selectedCompany.email || ''
             };
             
-            console.log('Storing company data:', companyData);
+
             
             // Only use sessionStorage (cleared when browser/tab is closed)
             sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
@@ -451,12 +446,9 @@ const ChemoApp = (function() {
             
             // Try to update the company on the server
             try {
-                console.log('Updating company on server...');
-                
                 // First, find the company in the companies list to get its index
                 const company = state.companies.find(c => c.id === state.selectedCompany.id || c.name === state.selectedCompany.name);
                 if (!company) {
-                    console.warn('Company not found in companies list, using direct ID');
                     throw new Error('Company not found');
                 }
                 
@@ -469,7 +461,7 @@ const ChemoApp = (function() {
                     company_email: company.email || ''
                 };
 
-                console.log('Sending company data:', companyData);
+
                 
                 // Try the update company endpoint
                 let response = await fetch('/api/user/update-company', {
@@ -484,7 +476,7 @@ const ChemoApp = (function() {
                 
                 // If the endpoint fails, try the alternative endpoint
                 if (!response.ok) {
-                    console.log('Trying alternative endpoint /select_company');
+
                     const formData = new FormData();
                     formData.append('company_id', companyIndex.toString());
                     formData.append('company_name', company.name);

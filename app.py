@@ -1113,7 +1113,7 @@ def get_cart_count():
 @app.route('/index')
 @login_required
 def index():
-    companies = get_companies()
+    companies = load_companies_data()
     return render_template('index.html', companies=companies)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -2738,29 +2738,34 @@ def get_bar_data():
         return jsonify({'error': 'Failed to load bar data'}), 500
 
 # Serve companies data
-@app.route('/get_companies')
-def get_companies():
+def load_companies_data():
+    """Helper function to load companies data as a Python list"""
     try:
         # Try to load companies from MongoDB if available
         if USE_MONGO and mongo_db:
             companies_collection = mongo_db.companies
             companies = list(companies_collection.find({}, {'_id': 0}))
             if companies:
-                return jsonify(companies)
+                return companies
         
         # Fall back to company_emails.json
         with open('static/data/company_emails.json', 'r', encoding='utf-8') as f:
             companies = json.load(f)
             # Transform to match the expected format
-            formatted_companies = [{
+            return [{
                 'id': str(i + 1),  # Generate a simple numeric ID
                 'name': company['Company Name'],
                 'email': company['EmailID']
             } for i, company in enumerate(companies)]
-            return jsonify(formatted_companies)
     except Exception as e:
         print(f"Error loading companies: {str(e)}")
-        return jsonify([])
+        return []
+
+@app.route('/get_companies')
+def get_companies():
+    """API endpoint to get companies as JSON"""
+    companies = load_companies_data()
+    return jsonify(companies)
 
 # Keep the old route for backward compatibility
 @app.route('/get_companies_list')

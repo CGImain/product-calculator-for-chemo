@@ -22,7 +22,7 @@ window.onload = () => {
     });
     
   // Load blanket categories
-  fetch("/static/products/blankets/blanket_categories.json")
+  fetch("/blanket_categories")
     .then(res => res.json())
     .then(data => {
       const categorySelect = document.getElementById("categorySelect");
@@ -49,10 +49,10 @@ window.onload = () => {
     });
 
   // Load blankets data
-  fetch("/static/products/blankets/blankets.json")
+  fetch("/blanket_data")
     .then(res => res.json())
     .then(data => {
-      blanketData = data.products;
+      blanketData = data.products || [];
       // Initial load - show all blankets
       populateBlanketSelect(blanketData);
     });

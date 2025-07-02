@@ -52,10 +52,10 @@ let companiesData = [];
 
 // Function to safely get company data from storage
 function getCompanyData() {
-    // Try to get from sessionStorage first
-    let companyName = sessionStorage.getItem('companyName');
-    let companyEmail = sessionStorage.getItem('companyEmail');
-    let companyId = sessionStorage.getItem('companyId');
+    // Try to get from sessionStorage first (check both new and old key formats)
+    let companyName = sessionStorage.getItem('company_name') || sessionStorage.getItem('companyName');
+    let companyEmail = sessionStorage.getItem('company_email') || sessionStorage.getItem('companyEmail');
+    let companyId = sessionStorage.getItem('company_id') || sessionStorage.getItem('companyId');
     
     // If not in sessionStorage, try localStorage
     if (!companyName) {
@@ -63,14 +63,23 @@ function getCompanyData() {
         if (savedCompany) {
             try {
                 const companyData = JSON.parse(savedCompany);
-                companyName = companyData.name || companyData.companyName || '';
-                companyEmail = companyData.email || companyData.companyEmail || '';
-                companyId = companyData.id || companyData.companyId || '';
+                companyName = companyData.name || companyData.company_name || companyData.companyName || '';
+                companyEmail = companyData.email || companyData.company_email || companyData.companyEmail || '';
+                companyId = companyData.id || companyData.company_id || companyData.companyId || '';
                 
-                // Update sessionStorage
-                if (companyName) sessionStorage.setItem('companyName', companyName);
-                if (companyEmail) sessionStorage.setItem('companyEmail', companyEmail);
-                if (companyId) sessionStorage.setItem('companyId', companyId);
+                // Update sessionStorage with consistent keys
+                if (companyName) {
+                    sessionStorage.setItem('company_name', companyName);
+                    sessionStorage.setItem('companyName', companyName); // Keep old key for backward compatibility
+                }
+                if (companyEmail) {
+                    sessionStorage.setItem('company_email', companyEmail);
+                    sessionStorage.setItem('companyEmail', companyEmail);
+                }
+                if (companyId) {
+                    sessionStorage.setItem('company_id', companyId);
+                    sessionStorage.setItem('companyId', companyId);
+                }
             } catch (e) {
                 console.error('Error parsing company data:', e);
             }

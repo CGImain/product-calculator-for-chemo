@@ -2683,7 +2683,23 @@ def static_chemicals(filename):
 # Serve blanket categories and other JSON files
 @app.route('/static/products/blankets/<path:filename>')
 def serve_blanket_files(filename):
-    return send_from_directory('static/products/blankets', filename)
+    try:
+        # Only allow JSON files for security
+        if not filename.endswith('.json'):
+            return jsonify({'error': 'Invalid file type'}), 400
+            
+        # Construct the full file path
+        file_path = os.path.join(app.root_path, 'static', 'products', 'blankets', filename)
+        
+        # Check if file exists
+        if not os.path.isfile(file_path):
+            return jsonify({'error': 'File not found'}), 404
+            
+        # Send the file
+        return send_from_directory('static/products/blankets', filename)
+    except Exception as e:
+        app.logger.error(f"Error serving file {filename}: {str(e)}")
+        return jsonify({'error': 'Failed to serve file'}), 500
 
 # Serve blanket categories
 @app.route('/blanket_categories')

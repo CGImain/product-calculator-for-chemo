@@ -75,7 +75,29 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    
+
+    <!-- Debug Info (temporary) -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Debug Info</h5>
+        </div>
+        <div class="card-body">
+            <p>Number of companies loaded: {{ companies|length if companies is defined else 'N/A' }}</p>
+            {% if companies is defined and companies|length > 0 %}
+                <p>Sample companies (first 3):</p>
+                <ul class="list-group mb-3">
+                    {% for company in companies[:3] %}
+                        <li class="list-group-item">
+                            {{ company.name }} - {{ company.email }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="alert alert-warning">No companies data available</div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Welcome Message -->
     <div class="jumbotron text-center">
         <h1 class="display-4">Welcome to Product Calculator for Chemo</h1>

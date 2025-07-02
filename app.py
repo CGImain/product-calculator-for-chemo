@@ -1113,8 +1113,17 @@ def get_cart_count():
 @app.route('/index')
 @login_required
 def index():
-    companies = load_companies_data()
-    return render_template('index.html', companies=companies)
+    try:
+        companies = load_companies_data()
+        print(f"Loaded {len(companies)} companies in index route")
+        if not companies:
+            print("Warning: No companies loaded from data source")
+        return render_template('index.html', companies=companies)
+    except Exception as e:
+        print(f"Error in index route: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return render_template('index.html', companies=[])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -2740,14 +2749,19 @@ def get_bar_data():
 # Serve companies data
 def load_companies_data():
     """Helper function to load companies data as a Python list"""
+    print("\n=== Starting load_companies_data() ===")
     try:
         companies = []
         
         # Try to load companies from MongoDB if available
         if USE_MONGO and mongo_db and mongo_db is not None:
+            print("Attempting to load companies from MongoDB...")
             try:
                 companies_collection = mongo_db.companies
+                print(f"MongoDB collection: {companies_collection}")
                 mongo_companies = list(companies_collection.find({}, {'_id': 0}))
+                print(f"Found {len(mongo_companies)} companies in MongoDB")
+                
                 if mongo_companies:
                     print(f"Loaded {len(mongo_companies)} companies from MongoDB")
                     # Ensure consistent format
@@ -2756,30 +2770,66 @@ def load_companies_data():
                         'name': company.get('name', company.get('Company Name', '')),
                         'email': company.get('email', company.get('EmailID', ''))
                     } for idx, company in enumerate(mongo_companies)]
+                    
+                    # Debug: Print first 3 companies
+                    print("Sample companies from MongoDB:")
+                    for i, c in enumerate(companies[:3]):
+                        print(f"  {i+1}. {c.get('name', 'No name')} - {c.get('email', 'No email')}")
+                    
+                    print(f"Total companies loaded from MongoDB: {len(companies)}")
                     return companies
+                else:
+                    print("No companies found in MongoDB collection")
             except Exception as mongo_err:
-                print(f"MongoDB error, falling back to JSON: {str(mongo_err)}")
+                print(f"MongoDB error: {str(mongo_err)}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print("MongoDB not available, falling back to JSON")
         
         # Fall back to company_emails.json
+        print("\nAttempting to load companies from JSON file...")
+        json_path = 'static/data/company_emails.json'
+        print(f"Looking for JSON file at: {os.path.abspath(json_path)}")
+        
         try:
-            with open('static/data/company_emails.json', 'r', encoding='utf-8') as f:
+            if not os.path.exists(json_path):
+                raise FileNotFoundError(f"JSON file not found at {json_path}")
+                
+            with open(json_path, 'r', encoding='utf-8') as f:
                 json_companies = json.load(f)
-                print(f"Loaded {len(json_companies)} companies from JSON file")
+                print(f"Successfully loaded {len(json_companies)} companies from JSON file")
+                
                 # Transform to match the expected format
                 companies = [{
                     'id': str(i + 1),  # Generate a simple numeric ID
                     'name': company.get('Company Name', ''),
                     'email': company.get('EmailID', '')
                 } for i, company in enumerate(json_companies)]
+                
+                # Debug: Print first 3 companies
+                print("\nSample companies from JSON:")
+                for i, c in enumerate(companies[:3]):
+                    print(f"  {i+1}. {c.get('name', 'No name')} - {c.get('email', 'No email')}")
+                
+                print(f"\nTotal companies loaded from JSON: {len(companies)}")
                 return companies
+                
         except Exception as json_err:
             print(f"Error loading companies from JSON: {str(json_err)}")
+            import traceback
+            traceback.print_exc()
             
+        print("\nNo companies could be loaded from any source")
         return []
+        
     except Exception as e:
-        print(f"Unexpected error in load_companies_data: {str(e)}")
+        print(f"\nUnexpected error in load_companies_data: {str(e)}")
         import traceback
         traceback.print_exc()
+        return []
+    finally:
+        print("=== End of load_companies_data() ===\n")
         return []
 
 @app.route('/get_companies')

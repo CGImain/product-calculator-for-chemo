@@ -2770,23 +2770,37 @@ def load_companies_data():
     print("Loading companies from JSON file")
     
     try:
-        # Define the exact path to the JSON file
-        json_path = os.path.join('static', 'data', 'company_emails.json')
-        json_path = os.path.abspath(json_path)
-        print(f"Looking for JSON file at: {json_path}")
+        # Try multiple possible paths
+        possible_paths = [
+            os.path.join('static', 'data', 'company_emails.json'),  # Relative path
+            os.path.join(os.path.dirname(__file__), 'static', 'data', 'company_emails.json'),  # Absolute path from app
+            os.path.join(os.getcwd(), 'static', 'data', 'company_emails.json')  # Absolute path from working dir
+        ]
         
-        # Check if file exists
-        if not os.path.exists(json_path):
-            error_msg = f"Error: JSON file not found at {json_path}"
+        json_path = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                json_path = os.path.abspath(path)
+                break
+                
+        if not json_path:
+            error_msg = f"Error: JSON file not found in any of these locations:\n"
+            error_msg += "\n".join([f"- {os.path.abspath(p)}" for p in possible_paths])
             print(error_msg)
             return []
+            
+        print(f"Found JSON file at: {json_path}")
         
         # Read and parse the JSON file
         print(f"Reading file: {json_path}")
         with open(json_path, 'r', encoding='utf-8') as f:
-            json_content = f.read()
+            json_content = f.read().strip()
             print(f"File size: {len(json_content)} bytes")
             
+            if not json_content:
+                print("Error: JSON file is empty")
+                return []
+                
             # Try to parse the JSON
             try:
                 json_data = json.loads(json_content)
@@ -2818,8 +2832,15 @@ def load_companies_data():
                     
                     return companies
                 else:
-                    print("Error: JSON data is not a list of companies")
+                    print(f"Error: Expected list but got {type(json_data).__name__}")
+                    if isinstance(json_data, dict):
+                        print("JSON keys:", json_data.keys())
                     return []
+                    
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON: {e}")
+                print(f"First 200 chars of file: {json_content[:200]}...")
+                return []
                 
             except json.JSONDecodeError as e:
                 print(f"Error parsing JSON: {str(e)}")
@@ -2839,9 +2860,41 @@ def load_companies_data():
 
 @app.route('/get_companies')
 def get_companies():
-    """API endpoint to get companies as JSON"""
-    companies = load_companies_data()
-    return jsonify(companies)
+    """
+    API endpoint to get companies as JSON
+    Returns:
+        JSON response with companies list or error message
+    """
+    try:
+        print("\n=== /get_companies endpoint called ===")
+        companies = load_companies_data()
+        
+        if not companies:
+            print("WARNING: No companies found or error loading companies")
+            return jsonify({
+                'status': 'error',
+                'message': 'No companies found or error loading company data',
+                'companies': []
+            }), 200
+            
+        print(f"Returning {len(companies)} companies")
+        return jsonify({
+            'status': 'success',
+            'count': len(companies),
+            'companies': companies
+        })
+        
+    except Exception as e:
+        error_msg = f"Error in /get_companies: {str(e)}"
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to load company data',
+            'error': str(e),
+            'companies': []
+        }), 500
 
 # Keep the old route for backward compatibility
 @app.route('/get_companies_list')

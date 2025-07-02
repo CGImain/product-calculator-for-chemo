@@ -2980,37 +2980,55 @@ def blankets():
         }
         session['company_name'] = company_name
         session['company_email'] = company_email
+        session['company_id'] = company_id
     else:
         # Fall back to session data if no company_id in URL
         selected_company = session.get('selected_company', {})
         company_name = selected_company.get('name') or session.get('company_name')
         company_email = selected_company.get('email') or session.get('company_email')
+        company_id = selected_company.get('id') or session.get('company_id')
         
         # Fall back to user's company info if not found
         if not company_name and hasattr(current_user, 'company_name'):
             company_name = current_user.company_name
         if not company_email and hasattr(current_user, 'company_email'):
             company_email = current_user.company_email
+        if not company_id and hasattr(current_user, 'company_id'):
+            company_id = current_user.company_id
     
     # Ensure we have values in session
     if not company_name:
-        company_name = ''
+        company_name = 'No Company Selected'
     if not company_email:
         company_email = ''
+    if not company_id:
+        company_id = ''
     
     # Update session with final values
     session['company_name'] = company_name
     session['company_email'] = company_email
+    session['company_id'] = company_id
             
     # Log the company info being sent to template
     app.logger.info(f"Rendering blankets with company: {company_name}, email: {company_email}")
     
-    return render_template('products/blankets/blankets.html',
+    # Create response and set company data in the session cookie
+    response = make_response(render_template('products/blankets/blankets.html',
+                         company_name=company_name,
+                         company_email=company_email,
+                         company_id=company_id,
                          current_company={
                              'id': company_id,
                              'name': company_name,
                              'email': company_email
-                         })
+                         }))
+    
+    # Set company info in cookies for client-side access
+    response.set_cookie('company_name', company_name or '', httponly=True, samesite='Lax')
+    response.set_cookie('company_email', company_email or '', httponly=True, samesite='Lax')
+    response.set_cookie('company_id', str(company_id) if company_id else '', httponly=True, samesite='Lax')
+    
+    return response
 
 # Reset password page
 @app.route('/reset-password')

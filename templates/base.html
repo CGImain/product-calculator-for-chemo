@@ -84,9 +84,6 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Include company info component -->
-    {% include 'components/company_info.html' %}
-    
     <!-- Hidden elements for server-side company data -->
     <div id="serverCompanyName" style="display: none;">{{ session.company_name if session.company_name else '' }}</div>
     <div id="serverCompanyEmail" style="display: none;">{{ session.company_email if session.company_email else '' }}</div>
@@ -141,12 +138,6 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="d-flex align-items-center ms-auto me-3 text-white">
-                <small class="me-2">Company:</small>
-                <span id="companyNameDisplay" class="badge bg-light text-dark">
-                    {{ session.company_name if session.company_name else '' }}
-                </span>
-            </div>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -172,18 +163,6 @@
                 </ul>
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
-                    <li class="nav-item me-3">
-                        <div class="d-flex align-items-center text-white">
-                            <i class="bi bi-building me-1"></i>
-                            <span id="companyNameDisplay" class="small">
-                                {% if session.get('company_name') %}
-                                    {{ session.company_name }}
-                                {% else %}
-                                    No company selected
-                                {% endif %}
-                            </span>
-                        </div>
-                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle me-1"></i>

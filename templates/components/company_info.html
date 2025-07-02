@@ -1,18 +1,18 @@
 {# Company info bar with inline company selection #}
 <div id="companyInfoWrapper" class="company-info-wrapper">
     <!-- Display bar -->
-    <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
+    <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3" style="display: none;">
         <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="fas fa-building me-2 text-primary"></i>
-                    <span class="fw-semibold" id="companyNameDisplay">Not selected</span>
+                    <span class="fw-semibold" id="companyNameDisplay"></span>
                 </div>
                 <button class="btn btn-sm btn-outline-primary" id="toggleSearchBtn">
                     <i class="fas fa-edit me-1"></i> Change
                 </button>
             </div>
-            <div class="d-flex align-items-center mt-1">
+            <div id="companyInfoContainer" class="d-flex align-items-center mt-1" style="display: none;">
                 <i class="fas fa-envelope me-2 text-muted"></i>
                 <small class="text-muted" id="companyEmailDisplay"></small>
             </div>
@@ -59,7 +59,7 @@ function getCompanyData() {
     const serverCompanyEmail = document.getElementById('serverCompanyEmail')?.textContent.trim();
     const serverCompanyId = document.getElementById('serverCompanyId')?.textContent.trim();
     
-    if (serverCompanyName && serverCompanyName !== 'Not selected' && serverCompanyName !== '') {
+    if (serverCompanyName) {
         console.log('Using company data from server session:', { 
             name: serverCompanyName, 
             email: serverCompanyEmail, 
@@ -144,40 +144,58 @@ function updateCompanyInfoDisplay() {
     
     console.log('Company data for display:', company);
     
-    // Update the display
+    // Get all relevant DOM elements
     const nameDisplay = document.getElementById('companyNameDisplay');
     const emailDisplay = document.getElementById('companyEmailDisplay');
+    const companyInfoBar = document.getElementById('companyInfoBar');
+    const companyInfoContainer = document.getElementById('companyInfoContainer');
+    const toggleSearchBtn = document.getElementById('toggleSearchBtn');
     
-    console.log('Name display element:', nameDisplay);
-    console.log('Email display element:', emailDisplay);
-    
-    if (nameDisplay) {
-        // Only update if we have a company name
-        if (company.name) {
-            console.log('Setting company name to:', company.name);
-            nameDisplay.textContent = company.name;
-            nameDisplay.title = company.name;
-            nameDisplay.style.display = 'inline';
-        } else {
-            console.log('No company name available, hiding display');
-            nameDisplay.style.display = 'none';
-        }
-    } else {
-        console.error('Could not find company name display element');
+    // Only proceed if we have all required elements
+    if (!nameDisplay || !emailDisplay || !companyInfoBar || !companyInfoContainer) {
+        console.error('One or more required elements not found');
+        return;
     }
     
-    if (emailDisplay) {
+    // Clear existing content
+    nameDisplay.textContent = '';
+    emailDisplay.textContent = '';
+    
+    // We always expect to have company data at this point
+    if (company.name) {
+        console.log('Setting company name to:', company.name);
+        
+        // Update company name
+        nameDisplay.textContent = company.name;
+        nameDisplay.title = company.name;
+        
+        // Update company email if available
         if (company.email) {
             console.log('Setting company email to:', company.email);
-            emailDisplay.innerHTML = `<a href="mailto:${company.email}" class="text-decoration-none">${company.email}</a>`;
+            emailDisplay.innerHTML = `<a href="mailto:${company.email}" class="text-muted text-decoration-none">${company.email}</a>`;
             emailDisplay.title = company.email;
-            emailDisplay.style.display = 'inline';
+            companyInfoContainer.style.display = 'flex';
         } else {
-            console.log('No company email found, hiding email display');
-            emailDisplay.style.display = 'none';
+            companyInfoContainer.style.display = 'none';
+        }
+        
+        // Show the company info bar
+        companyInfoBar.style.display = 'flex';
+        
+        // Enable the change button
+        if (toggleSearchBtn) {
+            toggleSearchBtn.disabled = false;
         }
     } else {
-        console.error('Could not find company email display element');
+        console.log('No company data available, hiding display');
+        // Hide the company info bar when no company is selected
+        companyInfoBar.style.display = 'none';
+        companyInfoContainer.style.display = 'none';
+        
+        // Disable the change button
+        if (toggleSearchBtn) {
+            toggleSearchBtn.disabled = true;
+        }
     }
     
     // Also update any customer info sections

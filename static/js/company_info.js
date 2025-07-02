@@ -24,7 +24,7 @@
        const companyEmail = emailDisplay.textContent.trim();
        
        // If we have a company name but no email, try to find it in the companies list
-       if (companyName && companyName !== 'Not selected' && !companyEmail) {
+       if (companyName && !companyEmail) {
            const company = companies.find(c => c.name === companyName);
            if (company) {
                emailDisplay.textContent = company.email || '';
@@ -148,7 +148,7 @@
         
         if (data.status === 'success') {
           // Update the display with the new company info
-          nameDisplay.textContent = company.name || 'Not selected';
+          nameDisplay.textContent = company.name || '';
           emailDisplay.textContent = company.email || '';
 
           // Persist on client side for other pages (cart, etc.)

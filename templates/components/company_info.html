@@ -212,7 +212,7 @@ function updateCustomerInfoSections(company) {
         const emailEl = section.querySelector('.company-email-display');
         
         if (nameEl) {
-            nameEl.textContent = company.name || 'Not selected';
+            nameEl.textContent = company.name || '';
         }
         if (emailEl) {
             emailEl.innerHTML = company.email 

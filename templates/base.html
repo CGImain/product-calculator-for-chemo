@@ -141,7 +141,7 @@
             <div class="d-flex align-items-center ms-auto me-3 text-white">
                 <small class="me-2">Company:</small>
                 <span id="companyNameDisplay" class="badge bg-light text-dark">
-                    {{ session.company_name if session.company_name else 'Not selected' }}
+                    {{ session.company_name if session.company_name else '' }}
                 </span>
             </div>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -618,7 +618,7 @@
             // Also update the navigation display
             const companyDisplay = document.getElementById('companyNameDisplay');
             if (companyDisplay) {
-                companyDisplay.textContent = name || 'Not selected';
+                companyDisplay.textContent = name || '';
             }
             return;
         }
@@ -649,7 +649,7 @@
         // Update the display in the navigation
         const companyDisplay = document.getElementById('companyNameDisplay');
         if (companyDisplay) {
-            companyDisplay.textContent = companyName || 'Not selected';
+            companyDisplay.textContent = companyName || '';
         }
     }
     
@@ -658,7 +658,7 @@
         const companyDisplay = document.getElementById('companyNameDisplay');
         if (companyDisplay) {
             const companyName = companyDisplay.textContent.trim();
-            companyDisplay.title = `Selected Company: ${companyName !== 'Not selected' ? companyName : 'None'}`;
+            companyDisplay.title = `Selected Company: ${companyName || 'None'}`;
             companyDisplay.setAttribute('data-bs-toggle', 'tooltip');
             companyDisplay.setAttribute('data-bs-placement', 'bottom');
             // Initialize Bootstrap tooltip

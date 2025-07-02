@@ -2819,7 +2819,7 @@ def mpacks():
     company_id = request.args.get('company_id')
     
     # Initialize company info
-    company_name = 'Not selected'
+    company_name = ''
     company_email = ''
     
     # If company_id is provided in the URL
@@ -2844,7 +2844,7 @@ def mpacks():
         
         # If we have a selected company but no session vars, update them
         if selected_company and not company_name:
-            company_name = selected_company.get('name', 'Not selected')
+            company_name = selected_company.get('name', '')
             company_email = selected_company.get('email', '')
             session['company_name'] = company_name
             session['company_email'] = company_email
@@ -2858,7 +2858,7 @@ def mpacks():
     
     # Ensure we have values in session
     if not company_name:
-        company_name = 'Not selected'
+        company_name = ''
         session['company_name'] = company_name
     if not company_email:
         company_email = ''
@@ -2884,7 +2884,7 @@ def blankets():
     company_id = request.args.get('company_id')
     
     # Initialize company info
-    company_name = 'Not selected'
+    company_name = ''
     company_email = ''
     
     # If company_id is provided in the URL
@@ -2915,7 +2915,7 @@ def blankets():
     
     # Ensure we have values in session
     if not company_name:
-        company_name = 'Not selected'
+        company_name = ''
     if not company_email:
         company_email = ''
     

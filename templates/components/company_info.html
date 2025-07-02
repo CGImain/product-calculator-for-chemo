@@ -1,21 +1,27 @@
 {# Company info bar with inline company selection #}
 <div id="companyInfoWrapper" class="company-info-wrapper">
     <!-- Display bar -->
-    <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3" style="display: none;">
+    <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
         <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="fas fa-building me-2 text-primary"></i>
-                    <span class="fw-semibold" id="companyNameDisplay"></span>
+                    <span class="fw-semibold" id="companyNameDisplay">
+                        {{ session.company_name if session.company_name else 'No Company Selected' }}
+                    </span>
                 </div>
-                <button class="btn btn-sm btn-outline-primary" id="toggleSearchBtn">
+                <button class="btn btn-sm btn-outline-primary" id="companyChangeBtn">
                     <i class="fas fa-edit me-1"></i> Change
                 </button>
             </div>
-            <div id="companyInfoContainer" class="d-flex align-items-center mt-1" style="display: none;">
+            {% if session.company_email %}
+            <div id="companyInfoContainer" class="d-flex align-items-center mt-1">
                 <i class="fas fa-envelope me-2 text-muted"></i>
-                <small class="text-muted" id="companyEmailDisplay"></small>
+                <small class="text-muted" id="companyEmailDisplay">
+                    {{ session.company_email }}
+                </small>
             </div>
+            {% endif %}
         </div>
     </div>
 
@@ -48,67 +54,50 @@
 
 <script>
 // Global variable to store companies data
-let companiesData = [];
+let companies = [];
+let selectedCompany = null;
 
 // Function to safely get company data from storage
 function getCompanyData() {
-    // First, try to get data from server-side rendered elements
-    const serverCompanyName = document.getElementById('serverCompanyName')?.textContent.trim();
-    const serverCompanyEmail = document.getElementById('serverCompanyEmail')?.textContent.trim();
-    const serverCompanyId = document.getElementById('serverCompanyId')?.textContent.trim();
-    
-    // If we have server-side data, use it
-    if (serverCompanyName || serverCompanyId) {
-        const companyData = {
-            name: serverCompanyName && serverCompanyName !== 'Not selected' ? serverCompanyName : '',
-            email: serverCompanyEmail && serverCompanyEmail !== 'Not selected' ? serverCompanyEmail : '',
-            id: serverCompanyId && serverCompanyId !== 'Not selected' ? serverCompanyId : ''
-        };
-        
-        // Update session storage with the cleaned data
-        sessionStorage.setItem('companyName', companyData.name);
-        sessionStorage.setItem('companyEmail', companyData.email);
-        sessionStorage.setItem('companyId', companyData.id);
-        
-        return companyData;
-    }
-    
-    // Otherwise, try to get from sessionStorage
     try {
-        const sessionCompanyName = sessionStorage.getItem('companyName');
-        const sessionCompanyEmail = sessionStorage.getItem('companyEmail');
-        const sessionCompanyId = sessionStorage.getItem('companyId');
+        // Get from server-rendered elements first
+        const companyName = document.getElementById('companyNameDisplay')?.textContent.trim();
+        const companyEmail = document.getElementById('companyEmailDisplay')?.textContent.trim();
+        const companyId = document.getElementById('serverCompanyId')?.textContent.trim();
         
-        if (sessionCompanyName || sessionCompanyId) {
-            return {
-                name: sessionCompanyName && sessionCompanyName !== 'Not selected' ? sessionCompanyName : '',
-                email: sessionCompanyEmail && sessionCompanyEmail !== 'Not selected' ? sessionCompanyEmail : '',
-                id: sessionCompanyId && sessionCompanyId !== 'Not selected' ? sessionCompanyId : ''
+        // If we have data in the DOM, use it
+        if (companyName && companyName !== 'No Company Selected') {
+            const companyData = {
+                name: companyName,
+                email: companyEmail || '',
+                id: companyId || ''
             };
+            
+            // Store in session storage for consistency
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
+            }
+            
+            return companyData;
         }
         
-        // Fall back to localStorage
-        const storedCompany = localStorage.getItem('selectedCompany');
-        if (storedCompany) {
-            try {
-                const company = JSON.parse(storedCompany);
-                const companyData = {
-                    name: (company.name || company['Company Name'] || '').replace('Not selected', '').trim(),
-                    email: (company.email || company['EmailID'] || '').replace('Not selected', '').trim(),
-                    id: (company.id || '').toString().replace('Not selected', '').trim()
-                };
-                
-                // Update session storage with the cleaned data
-                sessionStorage.setItem('companyName', companyData.name);
-                sessionStorage.setItem('companyEmail', companyData.email);
-                sessionStorage.setItem('companyId', companyData.id);
-                
-                return companyData;
-            } catch (e) {
-                return { name: '', email: '', id: '' };
+        // Fallback to session storage
+        if (typeof sessionStorage !== 'undefined') {
+            const sessionCompany = sessionStorage.getItem('selectedCompany');
+            if (sessionCompany) {
+                return JSON.parse(sessionCompany);
             }
         }
         
+        // Fallback to localStorage if available
+        if (typeof localStorage !== 'undefined') {
+            const storedCompany = localStorage.getItem('selectedCompany');
+            if (storedCompany) {
+                return JSON.parse(storedCompany);
+            }
+        }
+        
+        // Return empty data if nothing found
         return { name: '', email: '', id: '' };
     } catch (error) {
         return { name: '', email: '', id: '' };
@@ -119,89 +108,70 @@ function getCompanyData() {
 function updateCompanyInfoDisplay() {
     try {
         const company = getCompanyData();
-        console.log('Updating company info with:', company); // Debug log
+        console.log('Updating company info with:', company);
         
         // Get all relevant DOM elements
         const nameDisplay = document.getElementById('companyNameDisplay');
         const emailDisplay = document.getElementById('companyEmailDisplay');
         const companyInfoBar = document.getElementById('companyInfoBar');
         const companyInfoContainer = document.getElementById('companyInfoContainer');
-        const toggleSearchBtn = document.getElementById('toggleSearchBtn');
+        const changeBtn = document.getElementById('companyChangeBtn');
         
         // Check if we have valid company data
         const hasValidCompany = company && (company.name || company.id);
         
         // Update the display based on whether we have company data
         if (hasValidCompany) {
-            // Show the company info bar if it exists
-            if (companyInfoBar) {
-                companyInfoBar.style.display = 'flex';
-            }
-            
             // Update the company name display
             if (nameDisplay) {
-                const displayName = company.name || 'No company selected';
-                nameDisplay.textContent = displayName;
-                console.log('Setting company name to:', displayName); // Debug log
+                nameDisplay.textContent = company.name || 'No Company Selected';
             }
             
-            // Update the company email display
-            if (emailDisplay) {
-                const displayEmail = company.email || '';
-                emailDisplay.textContent = displayEmail;
-                console.log('Setting company email to:', displayEmail); // Debug log
-                
-                if (displayEmail) {
+            // Update the company email display if it exists
+            if (emailDisplay && companyInfoContainer) {
+                if (company.email) {
+                    emailDisplay.textContent = company.email;
+                    emailDisplay.href = `mailto:${company.email}`;
                     companyInfoContainer.style.display = 'flex';
-                    // Update the email link
-                    emailDisplay.innerHTML = `<a href="mailto:${displayEmail}" class="text-decoration-none">${displayEmail}</a>`;
                 } else {
                     companyInfoContainer.style.display = 'none';
                 }
             }
             
-            // Enable the change button if it exists
-            if (toggleSearchBtn) {
-                toggleSearchBtn.disabled = false;
-                toggleSearchBtn.title = 'Change Company';
+            // Update the selected company
+            selectedCompany = company;
+            
+            // Update storage
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+            }
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('selectedCompany', JSON.stringify(company));
             }
             
-            // Update the document title if we're on the home page
-            if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
-                document.title = company.name ? `${company.name} | Product Calculator` : 'Product Calculator';
+            // Update customer info sections if they exist
+            updateCustomerInfoSections(company);
+            
+            // Show success message if this was a change
+            if (window.companyJustChanged) {
+                showToast(`Company updated to ${company.name}`, 'success');
+                window.companyJustChanged = false;
             }
         } else {
-            // Hide the company info bar if no company data is available
-            if (companyInfoBar) {
-                companyInfoBar.style.display = 'none';
-            }
-            
-            // Clear the navigation display if it exists
-            if (navCompanyDisplay) {
-                navCompanyDisplay.textContent = '';
-                navCompanyDisplay.removeAttribute('title');
-            }
+            // No company data, show default state
+            if (nameDisplay) nameDisplay.textContent = 'No Company Selected';
+            if (emailDisplay) emailDisplay.textContent = '';
+            if (companyInfoContainer) companyInfoContainer.style.display = 'none';
         }
         
-        // Update any customer info sections
-        updateCustomerInfoSections(company);
-        
+        // Update the document title if we're on the home page
+        if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+            document.title = company && company.name ? 
+                `${company.name} | Product Calculator` : 'Product Calculator';
+        }
     } catch (error) {
         console.error('Error updating company info display:', error);
-        
-        // Ensure UI is in a consistent state even if there's an error
-        const companyInfoBar = document.getElementById('companyInfoBar');
-        const companyInfoContainer = document.getElementById('companyInfoContainer');
-        const toggleSearchBtn = document.getElementById('toggleSearchBtn');
-        const navCompanyDisplay = document.getElementById('companyNameDisplay');
-        
-        if (companyInfoBar) companyInfoBar.style.display = 'none';
-        if (companyInfoContainer) companyInfoContainer.style.display = 'none';
-        if (toggleSearchBtn) toggleSearchBtn.disabled = true;
-        if (navCompanyDisplay) {
-            navCompanyDisplay.textContent = '';
-            navCompanyDisplay.removeAttribute('title');
-        }
+        showToast('Error updating company information', 'error');
     }
 }
 

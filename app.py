@@ -1381,16 +1381,21 @@ def forgot_password_redirect():
 def api_get_companies():
     """Get all companies from the database"""
     try:
-        companies = get_companies()
+        companies = load_companies_data()  # Use the helper function directly
         if not companies:
             return jsonify({'error': 'No companies found'}), 404
+            
+        # Convert to list of dicts if it's a dict
+        if isinstance(companies, dict):
+            companies = [{'id': k, 'name': v.get('name'), 'email': v.get('email')} 
+                        for k, v in companies.items()]
             
         return jsonify(companies)
     except Exception as e:
         app.logger.error(f"Error getting companies: {str(e)}")
         return jsonify({'error': 'Failed to load companies'}), 500
 
-# Company Management
+# Company Search Endpoint
 @app.route('/api/companies/search', methods=['GET'])
 @login_required
 def search_companies():

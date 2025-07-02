@@ -59,7 +59,7 @@ function getCompanyData() {
     const serverCompanyEmail = document.getElementById('serverCompanyEmail')?.textContent.trim();
     const serverCompanyId = document.getElementById('serverCompanyId')?.textContent.trim();
     
-    if (serverCompanyName && serverCompanyName !== 'Not selected') {
+    if (serverCompanyName && serverCompanyName !== 'Not selected' && serverCompanyName !== '') {
         console.log('Using company data from server session:', { 
             name: serverCompanyName, 
             email: serverCompanyEmail, 
@@ -73,9 +73,14 @@ function getCompanyData() {
     }
     
     // Fall back to client-side storage if server data not available
-    let companyName = sessionStorage.getItem('company_name') || sessionStorage.getItem('companyName');
-    let companyEmail = sessionStorage.getItem('company_email') || sessionStorage.getItem('companyEmail');
-    let companyId = sessionStorage.getItem('company_id') || sessionStorage.getItem('companyId');
+    let companyName = sessionStorage.getItem('company_name') || sessionStorage.getItem('companyName') || '';
+    let companyEmail = sessionStorage.getItem('company_email') || sessionStorage.getItem('companyEmail') || '';
+    let companyId = sessionStorage.getItem('company_id') || sessionStorage.getItem('companyId') || '';
+    
+    // Clean up any 'null' or 'undefined' strings
+    companyName = (companyName && companyName !== 'null' && companyName !== 'undefined') ? companyName : '';
+    companyEmail = (companyEmail && companyEmail !== 'null' && companyEmail !== 'undefined') ? companyEmail : '';
+    companyId = (companyId && companyId !== 'null' && companyId !== 'undefined') ? companyId : '';
     
     console.log('Initial sessionStorage values:', { companyName, companyEmail, companyId });
     
@@ -87,20 +92,31 @@ function getCompanyData() {
         if (savedCompany) {
             try {
                 console.log('Found saved company in localStorage:', savedCompany);
-                const companyData = JSON.parse(savedCompany);
+                const companyData = typeof savedCompany === 'string' ? JSON.parse(savedCompany) : savedCompany;
                 console.log('Parsed company data:', companyData);
                 
-                companyName = companyData.name || companyData.company_name || companyData.companyName || '';
-                companyEmail = companyData.email || companyData.company_email || companyData.companyEmail || '';
-                companyId = companyData.id || companyData.company_id || companyData.companyId || '';
+                // Extract company data with fallbacks
+                const extractedName = companyData.name || companyData.company_name || companyData.companyName || '';
+                const extractedEmail = companyData.email || companyData.company_email || companyData.companyEmail || '';
+                const extractedId = companyData.id || companyData.company_id || companyData.companyId || '';
                 
-                console.log('Extracted values:', { companyName, companyEmail, companyId });
+                console.log('Extracted values:', { 
+                    name: extractedName, 
+                    email: extractedEmail, 
+                    id: extractedId 
+                });
                 
-                // Update sessionStorage with consistent keys
-                if (companyName) {
+                // Only update if we have valid data
+                if (extractedName) {
+                    companyName = extractedName;
+                    companyEmail = extractedEmail;
+                    companyId = extractedId;
+                    
+                    // Update sessionStorage with consistent keys
                     sessionStorage.setItem('company_name', companyName);
-                    sessionStorage.setItem('companyName', companyName);
-                    console.log('Updated company name in sessionStorage');
+                    sessionStorage.setItem('company_email', companyEmail);
+                    sessionStorage.setItem('company_id', companyId);
+                    console.log('Updated company data in sessionStorage');
                 }
             } catch (e) {
                 console.error('Error parsing company data:', e);
@@ -110,10 +126,11 @@ function getCompanyData() {
         }
     }
     
+    // Clean up the final values
     const result = { 
-        name: companyName, 
-        email: companyEmail,
-        id: companyId
+        name: companyName || '', 
+        email: companyEmail || '',
+        id: companyId || ''
     };
     
     console.log('Returning company data:', result);
@@ -135,10 +152,16 @@ function updateCompanyInfoDisplay() {
     console.log('Email display element:', emailDisplay);
     
     if (nameDisplay) {
-        const displayName = company.name || 'Not selected';
-        console.log('Setting company name to:', displayName);
-        nameDisplay.textContent = displayName;
-        nameDisplay.title = company.name || '';
+        // Only update if we have a company name
+        if (company.name) {
+            console.log('Setting company name to:', company.name);
+            nameDisplay.textContent = company.name;
+            nameDisplay.title = company.name;
+            nameDisplay.style.display = 'inline';
+        } else {
+            console.log('No company name available, hiding display');
+            nameDisplay.style.display = 'none';
+        }
     } else {
         console.error('Could not find company name display element');
     }
@@ -148,10 +171,10 @@ function updateCompanyInfoDisplay() {
             console.log('Setting company email to:', company.email);
             emailDisplay.innerHTML = `<a href="mailto:${company.email}" class="text-decoration-none">${company.email}</a>`;
             emailDisplay.title = company.email;
+            emailDisplay.style.display = 'inline';
         } else {
-            console.log('No company email found, clearing email display');
-            emailDisplay.textContent = '';
-            emailDisplay.title = '';
+            console.log('No company email found, hiding email display');
+            emailDisplay.style.display = 'none';
         }
     } else {
         console.error('Could not find company email display element');

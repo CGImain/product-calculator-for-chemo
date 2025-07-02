@@ -52,19 +52,13 @@ let companiesData = [];
 
 // Function to safely get company data from storage
 function getCompanyData() {
-    console.log('Getting company data...');
-    
     // First, try to get data from server-side rendered elements
     const serverCompanyName = document.getElementById('serverCompanyName')?.textContent.trim();
     const serverCompanyEmail = document.getElementById('serverCompanyEmail')?.textContent.trim();
     const serverCompanyId = document.getElementById('serverCompanyId')?.textContent.trim();
     
-    console.log('Server company data:', { name: serverCompanyName, email: serverCompanyEmail, id: serverCompanyId });
-    
     // If we have server-side data, use it
     if (serverCompanyName || serverCompanyId) {
-        console.log('Using server-side company data');
-        // Ensure we're not using 'Not selected' as a value
         const companyData = {
             name: serverCompanyName && serverCompanyName !== 'Not selected' ? serverCompanyName : '',
             email: serverCompanyEmail && serverCompanyEmail !== 'Not selected' ? serverCompanyEmail : '',
@@ -85,21 +79,12 @@ function getCompanyData() {
         const sessionCompanyEmail = sessionStorage.getItem('companyEmail');
         const sessionCompanyId = sessionStorage.getItem('companyId');
         
-        console.log('Session storage company data:', { 
-            name: sessionCompanyName, 
-            email: sessionCompanyEmail, 
-            id: sessionCompanyId 
-        });
-        
         if (sessionCompanyName || sessionCompanyId) {
-            console.log('Using session storage company data');
-            // Clean the data before using
-            const companyData = {
+            return {
                 name: sessionCompanyName && sessionCompanyName !== 'Not selected' ? sessionCompanyName : '',
                 email: sessionCompanyEmail && sessionCompanyEmail !== 'Not selected' ? sessionCompanyEmail : '',
                 id: sessionCompanyId && sessionCompanyId !== 'Not selected' ? sessionCompanyId : ''
             };
-            return companyData;
         }
         
         // Fall back to localStorage
@@ -107,8 +92,6 @@ function getCompanyData() {
         if (storedCompany) {
             try {
                 const company = JSON.parse(storedCompany);
-                console.log('Using localStorage company data:', company);
-                // Clean the data before using
                 const companyData = {
                     name: (company.name || company['Company Name'] || '').replace('Not selected', '').trim(),
                     email: (company.email || company['EmailID'] || '').replace('Not selected', '').trim(),
@@ -122,86 +105,51 @@ function getCompanyData() {
                 
                 return companyData;
             } catch (e) {
-                console.error('Error parsing company data from localStorage:', e);
-                // If there's an error, return empty values
                 return { name: '', email: '', id: '' };
             }
-        } else {
-            console.log('No company data found in localStorage');
-            return { name: '', email: '', id: '' };
         }
+        
+        return { name: '', email: '', id: '' };
     } catch (error) {
-        console.error('Error accessing storage:', error);
         return { name: '', email: '', id: '' };
     }
-    
-    // If we get here, no company data was found
-    console.log('No valid company data found in any source');
-    return { 
-        name: companyName || '', 
-        email: companyEmail || '',
-        id: companyId || ''
-    };
-    
-    console.log('Returning company data:', result);
-    return result;
 }
 
 // Function to update company info display
 function updateCompanyInfoDisplay() {
-    console.log('Updating company info display...');
-    
-    // Force reload company data to ensure we have the latest
-    const company = getCompanyData();
-    console.log('Company data for display:', company);
-    
-    // Get all relevant DOM elements
-    const nameDisplay = document.getElementById('companyNameDisplay');
-    const emailDisplay = document.getElementById('companyEmailDisplay');
-    const companyInfoBar = document.getElementById('companyInfoBar');
-    const companyInfoContainer = document.getElementById('companyInfoContainer');
-    const companyNameEl = document.getElementById('companyName');
-    const companyEmailEl = document.getElementById('companyEmail');
-    const toggleSearchBtn = document.getElementById('toggleSearchBtn');
-    const navCompanyDisplay = document.getElementById('companyNameDisplay');
-    
     try {
-        // Get the current company data
         const company = getCompanyData();
-        console.log('Current company data:', company);
+        
+        // Get all relevant DOM elements
+        const nameDisplay = document.getElementById('companyNameDisplay');
+        const emailDisplay = document.getElementById('companyEmailDisplay');
+        const companyInfoBar = document.getElementById('companyInfoBar');
+        const companyInfoContainer = document.getElementById('companyInfoContainer');
+        const toggleSearchBtn = document.getElementById('toggleSearchBtn');
+        const navCompanyDisplay = document.getElementById('companyNameDisplay');
         
         // Check if we have valid company data
         const hasValidCompany = company && (company.name || company.id);
         
         // Update the display based on whether we have company data
         if (hasValidCompany) {
-            console.log('Updating display with company data:', company);
-            
             // Show the company info bar if it exists
             if (companyInfoBar) {
                 companyInfoBar.style.display = 'flex';
             }
             
-            // Show the company info container if it exists
-            if (companyInfoContainer) {
-                companyInfoContainer.style.display = 'block';
-            }
-            
             // Update the company name display
-            if (companyNameEl) {
-                const displayName = company.name || 'Company Name Not Available';
-                companyNameEl.textContent = displayName;
-                companyNameEl.title = displayName; // For tooltip
+            if (nameDisplay) {
+                nameDisplay.textContent = company.name || 'No company selected';
             }
             
             // Update the company email display
-            if (companyEmailEl) {
+            if (emailDisplay) {
+                emailDisplay.textContent = company.email || '';
                 if (company.email) {
-                    companyEmailEl.innerHTML = `<a href="mailto:${company.email}" class="text-decoration-none">${company.email}</a>`;
-                    companyEmailEl.title = company.email;
+                    companyInfoContainer.style.display = 'flex';
                 } else {
-                    companyEmailEl.textContent = 'Email Not Available';
-                    companyEmailEl.removeAttribute('title');
+                    companyInfoContainer.style.display = 'none';
                 }
             }
             
@@ -211,39 +159,14 @@ function updateCompanyInfoDisplay() {
                 toggleSearchBtn.title = 'Change Company';
             }
             
-            // Update the navigation display if it exists
-            if (navCompanyDisplay) {
-                navCompanyDisplay.textContent = company.name || '';
-                navCompanyDisplay.title = company.name || '';
-                
-                // Ensure the navigation display is visible
-                if (navCompanyDisplay.closest('.nav-item')) {
-                    navCompanyDisplay.closest('.nav-item').style.display = 'block';
-                }
-            }
-            
             // Update the document title if we're on the home page
             if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
                 document.title = company.name ? `${company.name} | Product Calculator` : 'Product Calculator';
             }
-            
         } else {
-            console.log('No company data available, hiding display');
-            
-            // Hide the company info bar if it exists
+            // Hide the company info bar if no company data is available
             if (companyInfoBar) {
                 companyInfoBar.style.display = 'none';
-            }
-            
-            // Hide the company info container if it exists
-            if (companyInfoContainer) {
-                companyInfoContainer.style.display = 'none';
-            }
-            
-            // Disable the change button if it exists
-            if (toggleSearchBtn) {
-                toggleSearchBtn.disabled = true;
-                toggleSearchBtn.title = 'Select a company first';
             }
             
             // Clear the navigation display if it exists
@@ -253,13 +176,18 @@ function updateCompanyInfoDisplay() {
             }
         }
         
-        // Also update any customer info sections
+        // Update any customer info sections
         updateCustomerInfoSections(company);
         
     } catch (error) {
         console.error('Error updating company info display:', error);
         
         // Ensure UI is in a consistent state even if there's an error
+        const companyInfoBar = document.getElementById('companyInfoBar');
+        const companyInfoContainer = document.getElementById('companyInfoContainer');
+        const toggleSearchBtn = document.getElementById('toggleSearchBtn');
+        const navCompanyDisplay = document.getElementById('companyNameDisplay');
+        
         if (companyInfoBar) companyInfoBar.style.display = 'none';
         if (companyInfoContainer) companyInfoContainer.style.display = 'none';
         if (toggleSearchBtn) toggleSearchBtn.disabled = true;
@@ -268,8 +196,6 @@ function updateCompanyInfoDisplay() {
             navCompanyDisplay.removeAttribute('title');
         }
     }
-    
-    console.log('Finished updating company info display');
 }
 
 // Function to update customer info sections with company data
@@ -291,7 +217,6 @@ function updateCustomerInfoSections(company) {
 }
 async function loadCompaniesData() {
     try {
-        console.log('Loading companies data...');
         showToast('Loading companies...', 'info');
         
         const response = await fetch('/get_companies', {
@@ -308,48 +233,43 @@ async function loadCompaniesData() {
         }
         
         const responseData = await response.json();
-        console.log('Server response:', responseData);
         
         // Check if we have a valid response with companies array
         if (!responseData || !responseData.companies || !Array.isArray(responseData.companies)) {
-            console.error('Invalid companies data format:', responseData);
             showToast('Error: Invalid companies data format', 'error');
             return [];
         }
         
-        console.log(`Received ${responseData.companies.length} companies from server`);
-        
         // Process and validate the companies data
-        companiesData = responseData.companies.map((company, index) => {
-            // Ensure we have valid data
-            const id = String(company.id || company._id || index + 1);
-            const name = company.name || company['Company Name'] || `Company ${index + 1}`;
-            const email = company.email || company['EmailID'] || '';
-            
-            return { id, name, email };
-        });
-        
-        console.log(`Successfully processed ${companiesData.length} companies`);
+        companiesData = responseData.companies.map((company, index) => ({
+            id: String(company.id || company._id || index + 1),
+            name: company.name || company['Company Name'] || `Company ${index + 1}`,
+            email: company.email || company['EmailID'] || ''
+        }));
         
         // If we have companies, try to pre-select one if none is selected
         if (companiesData.length > 0) {
             const currentCompany = getCompanyData();
             if (!currentCompany || !currentCompany.id) {
-                console.log('No company currently selected, selecting first company by default');
-                selectCompany(companiesData[0]);
+                // If selectCompany is defined, use it, otherwise just update the display
+                if (typeof selectCompany === 'function') {
+                    selectCompany(companiesData[0]);
+                } else {
+                    // Update session storage directly
+                    const firstCompany = companiesData[0];
+                    sessionStorage.setItem('companyName', firstCompany.name);
+                    sessionStorage.setItem('companyEmail', firstCompany.email);
+                    sessionStorage.setItem('companyId', firstCompany.id);
+                    updateCompanyInfoDisplay();
+                }
             } else {
-                console.log('Company already selected, refreshing display');
                 updateCompanyInfoDisplay();
             }
         } else {
-            console.warn('No companies available to display');
             showToast('No companies available. Please contact support.', 'warning');
-            const errorText = await response.text();
-            console.error('Failed to load companies data:', response.status, errorText);
-            return [];
         }
     } catch (error) {
-        console.error('Error loading companies data:', error);
+        showToast('Error loading company data', 'error');
         return [];
     }
 }

@@ -1113,34 +1113,8 @@ def get_cart_count():
 @app.route('/index')
 @login_required
 def index():
-    try:
-        print("\n=== Index Route ===")
-        print("Loading companies data...")
-        companies = load_companies_data()
-        
-        if not companies:
-            print("WARNING: No companies were loaded!")
-        else:
-            print(f"Successfully loaded {len(companies)} companies to pass to template")
-            print("Sample companies being passed to template:")
-            for i, company in enumerate(companies[:3]):
-                print(f"  {i+1}. ID: {company.get('id')}, Name: '{company.get('name')}', Email: '{company.get('email')}'")
-        
-        # Ensure companies is a list before passing to template
-        if not isinstance(companies, list):
-            print("WARNING: Companies is not a list, converting to empty list")
-            companies = []
-            
-        return render_template('index.html', companies=companies)
-        
-    except Exception as e:
-        print(f"ERROR in index route: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        # Ensure we always return a list, even if empty
-        return render_template('index.html', companies=[])
-    finally:
-        print("=== End of Index Route ===\n")
+    companies = get_companies()
+    return render_template('index.html', companies=companies)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1390,21 +1364,6 @@ def forgot_password_redirect():
     return redirect(url_for('reset_password_page'))
 
 # API Routes
-
-# Company Management
-@app.route('/api/companies', methods=['GET'])
-@login_required
-def api_get_companies():
-    """Get all companies from the database"""
-    try:
-        companies = get_companies()
-        if not companies:
-            return jsonify({'error': 'No companies found'}), 404
-            
-        return jsonify(companies)
-    except Exception as e:
-        app.logger.error(f"Error getting companies: {str(e)}")
-        return jsonify({'error': 'Failed to load companies'}), 500
 
 # Company Management
 @app.route('/api/companies/search', methods=['GET'])
@@ -1949,7 +1908,6 @@ def quotation_preview():
         'quote_time': quote_time,
         'company_name': customer_name,
         'company_email': customer_email,
-        'now': current_datetime,  # Add current datetime object for the template
         'calculations': {
             'subtotal': final_subtotal,
             'total': total
@@ -1984,44 +1942,43 @@ def send_quotation():
         if not products:
             return jsonify({'error': 'Cart is empty'}), 400
 
-        # Get company info from session with proper fallbacks
+        # Get company info from session
         selected_company = session.get('selected_company', {})
         if not isinstance(selected_company, dict):
             selected_company = {}
             
-        # Get customer email with proper fallbacks
-        customer_email = (
-            selected_company.get('email') or 
-            session.get('company_email') or 
-            (hasattr(current_user, 'email') and current_user.email) or 
-            ''
-        )
-        
+        # Get customer email, fallback to current user's email if available
+        customer_email = selected_company.get('email') or current_user.email
         if not customer_email:
-            return jsonify({'error': 'Customer email is required'}), 400
+            return jsonify({'error': 'Customer email not available'}), 400
             
-        # Get customer name with proper fallbacks
-        customer_name = (
-            selected_company.get('name') or 
-            session.get('company_name') or 
-            (hasattr(current_user, 'company_name') and current_user.company_name) or 
-            (hasattr(current_user, 'company_id') and get_company_name_by_id(current_user.company_id)) or 
-            'Not specified'
-        )
+        # Get customer name, default to empty string if not available
+        customer_name = selected_company.get('name', '')
         
-        # Update session with the latest values
-        if customer_name and customer_name != 'Not specified':
-            session['company_name'] = customer_name
-            session['company_email'] = customer_email
-            session['selected_company'] = {
-                'name': customer_name,
-                'email': customer_email,
-                'id': session.get('company_id', '')
-            }
-            session.modified = True
+        # Ensure we have the most up-to-date company info in session
+        if not customer_name and 'company_id' in session:
+            try:
+                company_id = session['company_id']
+                file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
+                with open(file_path, 'r') as f:
+                    companies = json.load(f)
+                
+                company = next((c for c in companies if str(c.get('id')) == str(company_id)), None)
+                if company:
+                    customer_name = company.get('Company Name', customer_name)
+                    if not customer_email:
+                        customer_email = company.get('EmailID', customer_email)
+                        selected_company['email'] = customer_email
+                        session['company_email'] = customer_email
+                    
+                    selected_company['name'] = customer_name
+                    session['company_name'] = customer_name
+                    session['selected_company'] = selected_company
+            except Exception as e:
+                app.logger.error(f"Error looking up company info: {str(e)}")
 
-        # Send to customer and operations email (remove duplicates)
-        recipients = list({email for email in [customer_email, 'operations@chemo.in'] if email})
+        # Send to customer, CGI operations email, and the logged-in user
+        recipients = list({email for email in [customer_email, 'operations@chemo.in', current_user.email] if email})
 
         # Get current date
         today = datetime.utcnow().strftime('%d/%m/%Y')
@@ -2145,8 +2102,8 @@ def send_quotation():
           <div style='margin: 20px 0;'>
             <h4>Customer Information</h4>
             <p style='margin: 5px 0;'>
-              <strong>Company:</strong> {customer_name}<br>
-              <strong>Email:</strong> <a href='mailto:{customer_email}'>{customer_email}</a><br>
+              <strong>Company:</strong> {customer_name or 'Not specified'}<br>
+              <strong>Email:</strong> {customer_email}<br>
               <strong>Prepared By:</strong> {current_user.username}<br>
               <strong>Date:</strong> {today}
             </p>
@@ -2706,201 +2663,10 @@ def static_products_blankets(filename):
 def static_chemicals(filename):
     return send_from_directory('static/data/chemicals', filename)
 
-# Serve blanket categories and other JSON files
+# Serve blanket categories and other files from the products/blankets directory
 @app.route('/static/products/blankets/<path:filename>')
 def serve_blanket_files(filename):
-    try:
-        # Only allow JSON files for security
-        if not filename.endswith('.json'):
-            return jsonify({'error': 'Invalid file type'}), 400
-            
-        # Construct the full file path
-        file_path = os.path.join(app.root_path, 'static', 'products', 'blankets', filename)
-        
-        # Check if file exists
-        if not os.path.isfile(file_path):
-            return jsonify({'error': 'File not found'}), 404
-            
-        # Send the file
-        return send_from_directory('static/products/blankets', filename)
-    except Exception as e:
-        app.logger.error(f"Error serving file {filename}: {str(e)}")
-        return jsonify({'error': 'Failed to serve file'}), 500
-
-# Serve blanket categories
-@app.route('/blanket_categories')
-def get_blanket_categories():
-    try:
-        file_path = os.path.join(app.root_path, 'static', 'products', 'blankets', 'blanket_categories.json')
-        with open(file_path, 'r', encoding='utf-8') as f:
-            categories = json.load(f)
-        return jsonify(categories)
-    except Exception as e:
-        app.logger.error(f"Error loading blanket categories: {str(e)}")
-        return jsonify({'error': 'Failed to load blanket categories'}), 500
-
-# Serve blanket data
-@app.route('/blanket_data')
-def get_blanket_data():
-    try:
-        file_path = os.path.join(app.root_path, 'static', 'products', 'blankets', 'blankets.json')
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        return jsonify(data)
-    except Exception as e:
-        app.logger.error(f"Error loading blanket data: {str(e)}")
-        return jsonify({'error': 'Failed to load blanket data'}), 500
-
-# Serve bar data
-@app.route('/bar_data')
-def get_bar_data():
-    try:
-        file_path = os.path.join(app.root_path, 'static', 'products', 'blankets', 'bar.json')
-        with open(file_path, 'r', encoding='utf-8') as f:
-            bar_data = json.load(f)
-        return jsonify(bar_data)
-    except Exception as e:
-        app.logger.error(f"Error loading bar data: {str(e)}")
-        return jsonify({'error': 'Failed to load bar data'}), 500
-
-# Serve companies data
-def load_companies_data():
-    """Helper function to load companies data from JSON file"""
-    print("\n=== Starting load_companies_data() ===")
-    print("Loading companies from JSON file")
-    
-    try:
-        # Try multiple possible paths
-        possible_paths = [
-            os.path.join('static', 'data', 'company_emails.json'),  # Relative path
-            os.path.join(os.path.dirname(__file__), 'static', 'data', 'company_emails.json'),  # Absolute path from app
-            os.path.join(os.getcwd(), 'static', 'data', 'company_emails.json')  # Absolute path from working dir
-        ]
-        
-        json_path = None
-        for path in possible_paths:
-            if os.path.exists(path):
-                json_path = os.path.abspath(path)
-                break
-                
-        if not json_path:
-            error_msg = f"Error: JSON file not found in any of these locations:\n"
-            error_msg += "\n".join([f"- {os.path.abspath(p)}" for p in possible_paths])
-            print(error_msg)
-            return []
-            
-        print(f"Found JSON file at: {json_path}")
-        
-        # Read and parse the JSON file
-        print(f"Reading file: {json_path}")
-        with open(json_path, 'r', encoding='utf-8') as f:
-            json_content = f.read().strip()
-            print(f"File size: {len(json_content)} bytes")
-            
-            if not json_content:
-                print("Error: JSON file is empty")
-                return []
-                
-            # Try to parse the JSON
-            try:
-                json_data = json.loads(json_content)
-                
-                # Check if the data is a list of companies
-                if isinstance(json_data, list):
-                    companies = []
-                    for i, company in enumerate(json_data):
-                        # Handle different possible field names
-                        company_name = company.get('Company Name') or company.get('name') or ''
-                        company_email = company.get('EmailID') or company.get('email') or ''
-                        
-                        if company_name:  # Only add companies with names
-                            companies.append({
-                                'id': str(i + 1),
-                                'name': company_name.strip(),
-                                'email': company_email.strip()
-                            })
-                    
-                    print(f"Successfully loaded {len(companies)} companies from JSON")
-                    
-                    # Debug: Print first 5 companies
-                    if companies:
-                        print("\nSample companies (first 5):")
-                        for i, c in enumerate(companies[:5]):
-                            print(f"  {i+1}. ID: {c['id']}, Name: '{c['name']}', Email: '{c['email']}'")
-                    else:
-                        print("WARNING: No companies found in JSON file")
-                    
-                    return companies
-                else:
-                    print(f"Error: Expected list but got {type(json_data).__name__}")
-                    if isinstance(json_data, dict):
-                        print("JSON keys:", json_data.keys())
-                    return []
-                    
-            except json.JSONDecodeError as e:
-                print(f"Error parsing JSON: {e}")
-                print(f"First 200 chars of file: {json_content[:200]}...")
-                return []
-                
-            except json.JSONDecodeError as e:
-                print(f"Error parsing JSON: {str(e)}")
-                # Print a sample of the file content for debugging
-                sample = json_content[:200] + '...' if len(json_content) > 200 else json_content
-                print(f"File content sample: {sample}")
-                return []
-                
-    except Exception as e:
-        print(f"Error in load_companies_data: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return []
-    finally:
-        print("=== End of load_companies_data() ===\n")
-        return []
-
-@app.route('/get_companies')
-def get_companies():
-    """
-    API endpoint to get companies as JSON
-    Returns:
-        JSON response with companies list or error message
-    """
-    try:
-        print("\n=== /get_companies endpoint called ===")
-        companies = load_companies_data()
-        
-        if not companies:
-            print("WARNING: No companies found or error loading companies")
-            return jsonify({
-                'status': 'error',
-                'message': 'No companies found or error loading company data',
-                'companies': []
-            }), 200
-            
-        print(f"Returning {len(companies)} companies")
-        return jsonify({
-            'status': 'success',
-            'count': len(companies),
-            'companies': companies
-        })
-        
-    except Exception as e:
-        error_msg = f"Error in /get_companies: {str(e)}"
-        print(error_msg)
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'status': 'error',
-            'message': 'Failed to load company data',
-            'error': str(e),
-            'companies': []
-        }), 500
-
-# Keep the old route for backward compatibility
-@app.route('/get_companies_list')
-@login_required
-def get_companies_list():
-    return get_companies()
+    return send_from_directory('static/products/blankets', filename)
 
 # Profile page
 @app.route('/profile')
@@ -2962,7 +2728,7 @@ def mpacks():
     company_id = request.args.get('company_id')
     
     # Initialize company info
-    company_name = ''
+    company_name = 'Not selected'
     company_email = ''
     
     # If company_id is provided in the URL
@@ -2987,7 +2753,7 @@ def mpacks():
         
         # If we have a selected company but no session vars, update them
         if selected_company and not company_name:
-            company_name = selected_company.get('name', '')
+            company_name = selected_company.get('name', 'Not selected')
             company_email = selected_company.get('email', '')
             session['company_name'] = company_name
             session['company_email'] = company_email
@@ -3001,7 +2767,7 @@ def mpacks():
     
     # Ensure we have values in session
     if not company_name:
-        company_name = ''
+        company_name = 'Not selected'
         session['company_name'] = company_name
     if not company_email:
         company_email = ''
@@ -3027,7 +2793,7 @@ def blankets():
     company_id = request.args.get('company_id')
     
     # Initialize company info
-    company_name = ''
+    company_name = 'Not selected'
     company_email = ''
     
     # If company_id is provided in the URL
@@ -3058,7 +2824,7 @@ def blankets():
     
     # Ensure we have values in session
     if not company_name:
-        company_name = ''
+        company_name = 'Not selected'
     if not company_email:
         company_email = ''
     

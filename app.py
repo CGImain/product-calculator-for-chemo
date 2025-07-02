@@ -2769,48 +2769,76 @@ def load_companies_data():
     print("\n=== Starting load_companies_data() ===")
     print("Loading companies from JSON file only (MongoDB disabled)")
     
-    json_path = os.path.join('static', 'data', 'company_emails.json')
-    json_path = os.path.abspath(json_path)
-    print(f"Looking for JSON file at: {json_path}")
-    
-    if not os.path.exists(json_path):
-        error_msg = f"Error: JSON file not found at {json_path}"
-        print(error_msg)
-        return []
-    
     try:
+        # Get the current directory of the script
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Try multiple possible paths to find the JSON file
+        possible_paths = [
+            os.path.join(base_dir, 'static', 'data', 'company_emails.json'),  # Development path
+            os.path.join(base_dir, '..', 'static', 'data', 'company_emails.json'),  # Alternative path
+            os.path.join('static', 'data', 'company_emails.json'),  # Relative path
+            os.path.abspath('static/data/company_emails.json')  # Absolute path from current working directory
+        ]
+        
+        json_path = None
+        for path in possible_paths:
+            print(f"Checking for file at: {path}")
+            if os.path.exists(path):
+                json_path = path
+                print(f"Found file at: {json_path}")
+                break
+        
+        if not json_path:
+            print("Error: Could not find company_emails.json in any of the expected locations")
+            print("Searched in:")
+            for path in possible_paths:
+                print(f"- {path}")
+            return []
+        
+        # Read and parse the JSON file
+        print(f"Reading file: {json_path}")
         with open(json_path, 'r', encoding='utf-8') as f:
-            json_companies = json.load(f)
-            print(f"Successfully loaded {len(json_companies)} companies from JSON file")
+            json_content = f.read()
+            print(f"File size: {len(json_content)} bytes")
             
-            # Transform to match the expected format
-            companies = [{
-                'id': str(i + 1),  # Generate a simple numeric ID
-                'name': company.get('Company Name', '').strip(),
-                'email': company.get('EmailID', '').strip()
-            } for i, company in enumerate(json_companies)]
-            
-            # Remove any companies with empty names
-            companies = [c for c in companies if c['name']]
-            print(f"After filtering empty names: {len(companies)} companies remaining")
-            
-            # Debug: Print first 5 companies
-            print("\nSample companies (first 5):")
-            for i, c in enumerate(companies[:5]):
-                print(f"  {i+1}. ID: {c['id']}, Name: '{c['name']}', Email: '{c['email']}'")
-            
-            if not companies:
-                print("WARNING: No valid companies found in JSON file")
-            else:
-                print(f"\nSuccessfully loaded {len(companies)} companies from JSON")
-            
-            return companies
-            
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON file: {str(e)}")
-        return []
+            # Try to parse the JSON
+            try:
+                json_companies = json.loads(json_content)
+                print(f"Successfully parsed JSON, found {len(json_companies)} companies")
+                
+                # Transform to match the expected format
+                companies = [{
+                    'id': str(i + 1),  # Generate a simple numeric ID
+                    'name': company.get('Company Name', '').strip(),
+                    'email': company.get('EmailID', '').strip()
+                } for i, company in enumerate(json_companies)]
+                
+                # Remove any companies with empty names
+                companies = [c for c in companies if c['name']]
+                print(f"After filtering empty names: {len(companies)} companies remaining")
+                
+                # Debug: Print first 5 companies
+                print("\nSample companies (first 5):")
+                for i, c in enumerate(companies[:5]):
+                    print(f"  {i+1}. ID: {c['id']}, Name: '{c['name']}', Email: '{c['email']}'")
+                
+                if not companies:
+                    print("WARNING: No valid companies found in JSON file")
+                else:
+                    print(f"\nSuccessfully loaded {len(companies)} companies from JSON")
+                
+                return companies
+                
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON: {str(e)}")
+                # Print a sample of the file content for debugging
+                sample = json_content[:200] + '...' if len(json_content) > 200 else json_content
+                print(f"File content sample: {sample}")
+                return []
+                
     except Exception as e:
-        print(f"Error loading companies from JSON: {str(e)}")
+        print(f"Error in load_companies_data: {str(e)}")
         import traceback
         traceback.print_exc()
         return []

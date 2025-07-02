@@ -2741,24 +2741,45 @@ def get_bar_data():
 def load_companies_data():
     """Helper function to load companies data as a Python list"""
     try:
+        companies = []
+        
         # Try to load companies from MongoDB if available
-        if USE_MONGO and mongo_db:
-            companies_collection = mongo_db.companies
-            companies = list(companies_collection.find({}, {'_id': 0}))
-            if companies:
-                return companies
+        if USE_MONGO and mongo_db and mongo_db is not None:
+            try:
+                companies_collection = mongo_db.companies
+                mongo_companies = list(companies_collection.find({}, {'_id': 0}))
+                if mongo_companies:
+                    print(f"Loaded {len(mongo_companies)} companies from MongoDB")
+                    # Ensure consistent format
+                    companies = [{
+                        'id': str(company.get('id', idx + 1)),
+                        'name': company.get('name', company.get('Company Name', '')),
+                        'email': company.get('email', company.get('EmailID', ''))
+                    } for idx, company in enumerate(mongo_companies)]
+                    return companies
+            except Exception as mongo_err:
+                print(f"MongoDB error, falling back to JSON: {str(mongo_err)}")
         
         # Fall back to company_emails.json
-        with open('static/data/company_emails.json', 'r', encoding='utf-8') as f:
-            companies = json.load(f)
-            # Transform to match the expected format
-            return [{
-                'id': str(i + 1),  # Generate a simple numeric ID
-                'name': company['Company Name'],
-                'email': company['EmailID']
-            } for i, company in enumerate(companies)]
+        try:
+            with open('static/data/company_emails.json', 'r', encoding='utf-8') as f:
+                json_companies = json.load(f)
+                print(f"Loaded {len(json_companies)} companies from JSON file")
+                # Transform to match the expected format
+                companies = [{
+                    'id': str(i + 1),  # Generate a simple numeric ID
+                    'name': company.get('Company Name', ''),
+                    'email': company.get('EmailID', '')
+                } for i, company in enumerate(json_companies)]
+                return companies
+        except Exception as json_err:
+            print(f"Error loading companies from JSON: {str(json_err)}")
+            
+        return []
     except Exception as e:
-        print(f"Error loading companies: {str(e)}")
+        print(f"Unexpected error in load_companies_data: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return []
 
 @app.route('/get_companies')

@@ -2725,6 +2725,18 @@ def get_blanket_data():
         app.logger.error(f"Error loading blanket data: {str(e)}")
         return jsonify({'error': 'Failed to load blanket data'}), 500
 
+# Serve bar data
+@app.route('/bar_data')
+def get_bar_data():
+    try:
+        file_path = os.path.join(app.root_path, 'static', 'products', 'blankets', 'bar.json')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            bar_data = json.load(f)
+        return jsonify(bar_data)
+    except Exception as e:
+        app.logger.error(f"Error loading bar data: {str(e)}")
+        return jsonify({'error': 'Failed to load bar data'}), 500
+
 # Serve companies data
 @app.route('/get_companies')
 @login_required

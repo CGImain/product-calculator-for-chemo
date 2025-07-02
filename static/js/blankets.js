@@ -19,11 +19,20 @@ window.onload = () => {
       select.addEventListener("change", () => {
         document.getElementById("categorySection").style.display = 'block';
       });
+    })
+    .catch(error => {
+      console.error('Error loading machine data:', error);
+      alert('Error loading machine data. Please refresh the page to try again.');
     });
     
   // Load blanket categories
   fetch("/blanket_categories")
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
     .then(data => {
       const categorySelect = document.getElementById("categorySelect");
       categorySelect.innerHTML = '<option value="All">All Categories</option>';
@@ -46,21 +55,37 @@ window.onload = () => {
     })
     .catch(error => {
       console.error('Error loading blanket categories:', error);
+      alert('Error loading blanket categories. Please refresh the page to try again.');
     });
 
   // Load blankets data
   fetch("/blanket_data")
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
     .then(data => {
       blanketData = data.products || [];
       // Initial load - show all blankets
       populateBlanketSelect(blanketData);
+    })
+    .catch(error => {
+      console.error('Error loading blanket data:', error);
+      alert('Error loading blanket data. Please refresh the page to try again.');
     });
 
-  fetch("/static/products/blankets/bar.json")
-    .then(res => res.json())
+  // Load bar data
+  fetch("/bar_data")
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
     .then(data => {
-      barData = data.bars;
+      barData = data.bars || [];
       const barSelect = document.getElementById("barSelect");
       barSelect.innerHTML = '<option value="">--Select--</option>';
       barData.forEach(bar => {

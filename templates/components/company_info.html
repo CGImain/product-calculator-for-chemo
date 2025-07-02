@@ -307,11 +307,20 @@ async function loadCompaniesData() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
-        console.log(`Received ${data.length} companies from server`);
+        const responseData = await response.json();
+        console.log('Server response:', responseData);
+        
+        // Check if we have a valid response with companies array
+        if (!responseData || !responseData.companies || !Array.isArray(responseData.companies)) {
+            console.error('Invalid companies data format:', responseData);
+            showToast('Error: Invalid companies data format', 'error');
+            return [];
+        }
+        
+        console.log(`Received ${responseData.companies.length} companies from server`);
         
         // Process and validate the companies data
-        companiesData = data.map((company, index) => {
+        companiesData = responseData.companies.map((company, index) => {
             // Ensure we have valid data
             const id = String(company.id || company._id || index + 1);
             const name = company.name || company['Company Name'] || `Company ${index + 1}`;

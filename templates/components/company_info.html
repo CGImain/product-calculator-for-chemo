@@ -54,7 +54,25 @@ let companiesData = [];
 function getCompanyData() {
     console.log('Getting company data...');
     
-    // Try to get from sessionStorage first (check both new and old key formats)
+    // First, try to get from the server-side session (if available in the DOM)
+    const serverCompanyName = document.getElementById('serverCompanyName')?.textContent.trim();
+    const serverCompanyEmail = document.getElementById('serverCompanyEmail')?.textContent.trim();
+    const serverCompanyId = document.getElementById('serverCompanyId')?.textContent.trim();
+    
+    if (serverCompanyName && serverCompanyName !== 'Not selected') {
+        console.log('Using company data from server session:', { 
+            name: serverCompanyName, 
+            email: serverCompanyEmail, 
+            id: serverCompanyId 
+        });
+        return {
+            name: serverCompanyName,
+            email: serverCompanyEmail,
+            id: serverCompanyId
+        };
+    }
+    
+    // Fall back to client-side storage if server data not available
     let companyName = sessionStorage.getItem('company_name') || sessionStorage.getItem('companyName');
     let companyEmail = sessionStorage.getItem('company_email') || sessionStorage.getItem('companyEmail');
     let companyId = sessionStorage.getItem('company_id') || sessionStorage.getItem('companyId');
@@ -81,18 +99,8 @@ function getCompanyData() {
                 // Update sessionStorage with consistent keys
                 if (companyName) {
                     sessionStorage.setItem('company_name', companyName);
-                    sessionStorage.setItem('companyName', companyName); // Keep old key for backward compatibility
+                    sessionStorage.setItem('companyName', companyName);
                     console.log('Updated company name in sessionStorage');
-                }
-                if (companyEmail) {
-                    sessionStorage.setItem('company_email', companyEmail);
-                    sessionStorage.setItem('companyEmail', companyEmail);
-                    console.log('Updated company email in sessionStorage');
-                }
-                if (companyId) {
-                    sessionStorage.setItem('company_id', companyId);
-                    sessionStorage.setItem('companyId', companyId);
-                    console.log('Updated company ID in sessionStorage');
                 }
             } catch (e) {
                 console.error('Error parsing company data:', e);

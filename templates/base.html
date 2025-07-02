@@ -84,6 +84,10 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Hidden elements for server-side company data -->
+    <div id="serverCompanyName" style="display: none;">{{ session.company_name if session.company_name else '' }}</div>
+    <div id="serverCompanyEmail" style="display: none;">{{ session.company_email if session.company_email else '' }}</div>
+    <div id="serverCompanyId" style="display: none;">{{ session.company_id if session.company_id else '' }}</div>
 
     <style>
         /* Custom navbar styles */

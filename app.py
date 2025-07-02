@@ -1114,33 +1114,17 @@ def get_cart_count():
 @login_required
 def index():
     try:
-        print("\n=== Index Route ===")
-        print("Loading companies data...")
         companies = load_companies_data()
-        
-        if not companies:
-            print("WARNING: No companies were loaded!")
-        else:
-            print(f"Successfully loaded {len(companies)} companies to pass to template")
-            print("Sample companies being passed to template:")
-            for i, company in enumerate(companies[:3]):
-                print(f"  {i+1}. ID: {company.get('id')}, Name: '{company.get('name')}', Email: '{company.get('email')}'")
         
         # Ensure companies is a list before passing to template
         if not isinstance(companies, list):
-            print("WARNING: Companies is not a list, converting to empty list")
             companies = []
             
         return render_template('index.html', companies=companies)
         
-    except Exception as e:
-        print(f"ERROR in index route: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        # Ensure we always return a list, even if empty
+    except Exception:
+        # Return empty companies list on error
         return render_template('index.html', companies=[])
-    finally:
-        print("=== End of Index Route ===\n")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

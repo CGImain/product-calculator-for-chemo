@@ -6,7 +6,7 @@
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="fas fa-building me-2 text-primary"></i>
-                    <span class="fw-semibold" id="companyNameDisplay">Loading company...</span>
+                    <span class="fw-semibold" id="companyNameDisplay">Not selected</span>
                 </div>
                 <button class="btn btn-sm btn-outline-primary" id="toggleSearchBtn">
                     <i class="fas fa-edit me-1"></i> Change
@@ -52,72 +52,107 @@ let companiesData = [];
 
 // Function to safely get company data from storage
 function getCompanyData() {
+    console.log('Getting company data...');
+    
     // Try to get from sessionStorage first (check both new and old key formats)
     let companyName = sessionStorage.getItem('company_name') || sessionStorage.getItem('companyName');
     let companyEmail = sessionStorage.getItem('company_email') || sessionStorage.getItem('companyEmail');
     let companyId = sessionStorage.getItem('company_id') || sessionStorage.getItem('companyId');
     
+    console.log('Initial sessionStorage values:', { companyName, companyEmail, companyId });
+    
     // If not in sessionStorage, try localStorage
     if (!companyName) {
+        console.log('No company name in sessionStorage, checking localStorage...');
         const savedCompany = localStorage.getItem('selectedCompany');
+        
         if (savedCompany) {
             try {
+                console.log('Found saved company in localStorage:', savedCompany);
                 const companyData = JSON.parse(savedCompany);
+                console.log('Parsed company data:', companyData);
+                
                 companyName = companyData.name || companyData.company_name || companyData.companyName || '';
                 companyEmail = companyData.email || companyData.company_email || companyData.companyEmail || '';
                 companyId = companyData.id || companyData.company_id || companyData.companyId || '';
+                
+                console.log('Extracted values:', { companyName, companyEmail, companyId });
                 
                 // Update sessionStorage with consistent keys
                 if (companyName) {
                     sessionStorage.setItem('company_name', companyName);
                     sessionStorage.setItem('companyName', companyName); // Keep old key for backward compatibility
+                    console.log('Updated company name in sessionStorage');
                 }
                 if (companyEmail) {
                     sessionStorage.setItem('company_email', companyEmail);
                     sessionStorage.setItem('companyEmail', companyEmail);
+                    console.log('Updated company email in sessionStorage');
                 }
                 if (companyId) {
                     sessionStorage.setItem('company_id', companyId);
                     sessionStorage.setItem('companyId', companyId);
+                    console.log('Updated company ID in sessionStorage');
                 }
             } catch (e) {
                 console.error('Error parsing company data:', e);
             }
+        } else {
+            console.log('No company data found in localStorage');
         }
     }
     
-    return { 
+    const result = { 
         name: companyName, 
         email: companyEmail,
         id: companyId
     };
+    
+    console.log('Returning company data:', result);
+    return result;
 }
 
 // Function to update company info display
 function updateCompanyInfoDisplay() {
+    console.log('Updating company info display...');
     const company = getCompanyData();
+    
+    console.log('Company data for display:', company);
     
     // Update the display
     const nameDisplay = document.getElementById('companyNameDisplay');
     const emailDisplay = document.getElementById('companyEmailDisplay');
     
+    console.log('Name display element:', nameDisplay);
+    console.log('Email display element:', emailDisplay);
+    
     if (nameDisplay) {
-        nameDisplay.textContent = company.name || 'Not selected';
+        const displayName = company.name || 'Not selected';
+        console.log('Setting company name to:', displayName);
+        nameDisplay.textContent = displayName;
         nameDisplay.title = company.name || '';
+    } else {
+        console.error('Could not find company name display element');
     }
     
     if (emailDisplay) {
         if (company.email) {
+            console.log('Setting company email to:', company.email);
             emailDisplay.innerHTML = `<a href="mailto:${company.email}" class="text-decoration-none">${company.email}</a>`;
             emailDisplay.title = company.email;
         } else {
+            console.log('No company email found, clearing email display');
             emailDisplay.textContent = '';
             emailDisplay.title = '';
         }
+    } else {
+        console.error('Could not find company email display element');
     }
     
     // Also update any customer info sections
     updateCustomerInfoSections(company);
+    
+    console.log('Finished updating company info display');
 }
 
 // Function to update customer info sections with company data
@@ -265,13 +300,35 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// Initialize the component
-document.addEventListener('DOMContentLoaded', async function() {
-    // Load companies data
-    await loadCompaniesData();
-    
-    // Update company info display immediately
-    updateCompanyInfoDisplay();
+// Function to initialize the company info component
+async function initializeCompanyInfo() {
+    try {
+        // First, try to load the company data
+        const company = getCompanyData();
+        
+        // If no company data is found, load companies data
+        if (!company || !company.id) {
+            await loadCompaniesData();
+            // Get the updated company data
+            const updatedCompany = getCompanyData();
+            if (updatedCompany && updatedCompany.id) {
+                updateCompanyInfoDisplay();
+            }
+        } else {
+            // We already have company data, just update the display
+            updateCompanyInfoDisplay();
+        }
+    } catch (error) {
+        console.error('Error initializing company info:', error);
+        // Still try to update display in case we have partial data
+        updateCompanyInfoDisplay();
+    }
+}
+
+// Initialize the component when DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize company info
+    initializeCompanyInfo();
     
     // Set up event listeners
     const toggleSearchBtn = document.getElementById('toggleSearchBtn');

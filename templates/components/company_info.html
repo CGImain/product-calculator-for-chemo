@@ -443,37 +443,27 @@ function showToast(message, type = 'info') {
 
 // Function to initialize the company info component
 async function initializeCompanyInfo() {
-    console.log('Initializing company info component...');
-    
     try {
         // First, try to load the company data
         const company = getCompanyData();
-        console.log('Initial company data:', company);
         
         // Always update the display first with whatever data we have
         updateCompanyInfoDisplay();
         
         // If no company data is found, try to load companies data
         if (!company || !company.id) {
-            console.log('No company data found, loading companies...');
             await loadCompaniesData();
-            // Get the updated company data after loading
-            const updatedCompany = getCompanyData();
-            console.log('Updated company data after load:', updatedCompany);
-            
             // Update the display again with the loaded data
             updateCompanyInfoDisplay();
         }
     } catch (error) {
-        console.error('Error initializing company info:', error);
-        // Still try to update display in case we have partial data
+        // Update display even if there was an error, in case we have partial data
         updateCompanyInfoDisplay();
     }
     
     // Add event listener for storage events to update display when company changes in another tab
     window.addEventListener('storage', function(event) {
         if (event.key === 'company_name' || event.key === 'company_email' || event.key === 'company_id') {
-            console.log('Storage event detected, updating company display...');
             updateCompanyInfoDisplay();
         }
     });
@@ -481,7 +471,6 @@ async function initializeCompanyInfo() {
     // Also update display when page becomes visible again
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
-            console.log('Page became visible, updating company display...');
             updateCompanyInfoDisplay();
         }
     });

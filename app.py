@@ -2766,9 +2766,6 @@ def get_bar_data():
 # Serve companies data
 def load_companies_data():
     """Helper function to load companies data from JSON file"""
-    print("\n=== Starting load_companies_data() ===")
-    print("Loading companies from JSON file")
-    
     try:
         # Try multiple possible paths
         possible_paths = [
@@ -2784,21 +2781,13 @@ def load_companies_data():
                 break
                 
         if not json_path:
-            error_msg = f"Error: JSON file not found in any of these locations:\n"
-            error_msg += "\n".join([f"- {os.path.abspath(p)}" for p in possible_paths])
-            print(error_msg)
             return []
             
-        print(f"Found JSON file at: {json_path}")
-        
         # Read and parse the JSON file
-        print(f"Reading file: {json_path}")
         with open(json_path, 'r', encoding='utf-8') as f:
             json_content = f.read().strip()
-            print(f"File size: {len(json_content)} bytes")
             
             if not json_content:
-                print("Error: JSON file is empty")
                 return []
                 
             # Try to parse the JSON
@@ -2820,35 +2809,14 @@ def load_companies_data():
                                 'email': company_email.strip()
                             })
                     
-                    print(f"Successfully loaded {len(companies)} companies from JSON")
-                    
-                    # Debug: Print first 5 companies
-                    if companies:
-                        print("\nSample companies (first 5):")
-                        for i, c in enumerate(companies[:5]):
-                            print(f"  {i+1}. ID: {c['id']}, Name: '{c['name']}', Email: '{c['email']}'")
-                    else:
-                        print("WARNING: No companies found in JSON file")
-                    
                     return companies
-                else:
-                    print(f"Error: Expected list but got {type(json_data).__name__}")
-                    if isinstance(json_data, dict):
-                        print("JSON keys:", json_data.keys())
-                    return []
+                return []
                     
-            except json.JSONDecodeError as e:
-                print(f"Error parsing JSON: {e}")
-                print(f"First 200 chars of file: {json_content[:200]}...")
+            except json.JSONDecodeError:
                 return []
                 
-    except Exception as e:
-        print(f"Error in load_companies_data: {str(e)}")
-        import traceback
-        traceback.print_exc()
+    except Exception:
         return []
-    finally:
-        print("=== End of load_companies_data() ===\n")
 
 @app.route('/get_companies')
 def get_companies():
@@ -2858,18 +2826,15 @@ def get_companies():
         JSON response with companies list or error message
     """
     try:
-        print("\n=== /get_companies endpoint called ===")
         companies = load_companies_data()
         
         if not companies:
-            print("WARNING: No companies found or error loading companies")
             return jsonify({
                 'status': 'error',
                 'message': 'No companies found or error loading company data',
                 'companies': []
             }), 200
             
-        print(f"Returning {len(companies)} companies")
         return jsonify({
             'status': 'success',
             'count': len(companies),
@@ -2877,14 +2842,9 @@ def get_companies():
         })
         
     except Exception as e:
-        error_msg = f"Error in /get_companies: {str(e)}"
-        print(error_msg)
-        import traceback
-        traceback.print_exc()
         return jsonify({
             'status': 'error',
             'message': 'Failed to load company data',
-            'error': str(e),
             'companies': []
         }), 500
 

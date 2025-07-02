@@ -119,6 +119,7 @@ function getCompanyData() {
 function updateCompanyInfoDisplay() {
     try {
         const company = getCompanyData();
+        console.log('Updating company info with:', company); // Debug log
         
         // Get all relevant DOM elements
         const nameDisplay = document.getElementById('companyNameDisplay');
@@ -126,7 +127,6 @@ function updateCompanyInfoDisplay() {
         const companyInfoBar = document.getElementById('companyInfoBar');
         const companyInfoContainer = document.getElementById('companyInfoContainer');
         const toggleSearchBtn = document.getElementById('toggleSearchBtn');
-        const navCompanyDisplay = document.getElementById('companyNameDisplay');
         
         // Check if we have valid company data
         const hasValidCompany = company && (company.name || company.id);
@@ -140,14 +140,21 @@ function updateCompanyInfoDisplay() {
             
             // Update the company name display
             if (nameDisplay) {
-                nameDisplay.textContent = company.name || 'No company selected';
+                const displayName = company.name || 'No company selected';
+                nameDisplay.textContent = displayName;
+                console.log('Setting company name to:', displayName); // Debug log
             }
             
             // Update the company email display
             if (emailDisplay) {
-                emailDisplay.textContent = company.email || '';
-                if (company.email) {
+                const displayEmail = company.email || '';
+                emailDisplay.textContent = displayEmail;
+                console.log('Setting company email to:', displayEmail); // Debug log
+                
+                if (displayEmail) {
                     companyInfoContainer.style.display = 'flex';
+                    // Update the email link
+                    emailDisplay.innerHTML = `<a href="mailto:${displayEmail}" class="text-decoration-none">${displayEmail}</a>`;
                 } else {
                     companyInfoContainer.style.display = 'none';
                 }
@@ -479,51 +486,6 @@ async function initializeCompanyInfo() {
         }
     });
 }
-
-// Initialize the component when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize company info
-    initializeCompanyInfo();
-    
-    // Set up event listeners
-    const toggleSearchBtn = document.getElementById('toggleSearchBtn');
-    const cancelBtn = document.getElementById('companyCancelBtn');
-    const searchInput = document.getElementById('companySearchInput');
-    
-    if (toggleSearchBtn) {
-        toggleSearchBtn.addEventListener('click', showSearchBox);
-    }
-    
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', hideSearchBox);
-    }
-    
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            renderSearchResults(e.target.value);
-        });
-    }
-    
-    // Close search results when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#companySearchBox') && !e.target.closest('#toggleSearchBtn')) {
-            hideSearchBox();
-        }
-    });
-    
-    // Initial update
-    updateCompanyInfoDisplay();
-    
-    // Also update after a short delay to ensure all scripts are loaded
-    setTimeout(updateCompanyInfoDisplay, 100);
-});
-
-// Listen for storage events to update when company changes in other tabs
-window.addEventListener('storage', function(e) {
-    if (e.key === 'companyName' || e.key === 'companyEmail' || e.key === 'companyId' || e.key === 'selectedCompany') {
-        updateCompanyInfoDisplay();
-    }
-});
 
 // Make the function available globally for other scripts
 window.updateCompanyInfoDisplay = updateCompanyInfoDisplay;

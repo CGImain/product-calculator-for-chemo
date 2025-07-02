@@ -140,8 +140,9 @@ function getCompanyData() {
 // Function to update company info display
 function updateCompanyInfoDisplay() {
     console.log('Updating company info display...');
-    const company = getCompanyData();
     
+    // Force reload company data to ensure we have the latest
+    const company = getCompanyData();
     console.log('Company data for display:', company);
     
     // Get all relevant DOM elements
@@ -151,18 +152,23 @@ function updateCompanyInfoDisplay() {
     const companyInfoContainer = document.getElementById('companyInfoContainer');
     const toggleSearchBtn = document.getElementById('toggleSearchBtn');
     
+    // Debug: Log all found elements
+    console.log('Found elements:', {
+        nameDisplay: !!nameDisplay,
+        emailDisplay: !!emailDisplay,
+        companyInfoBar: !!companyInfoBar,
+        companyInfoContainer: !!companyInfoContainer,
+        toggleSearchBtn: !!toggleSearchBtn
+    });
+    
     // Only proceed if we have all required elements
     if (!nameDisplay || !emailDisplay || !companyInfoBar || !companyInfoContainer) {
         console.error('One or more required elements not found');
         return;
     }
     
-    // Clear existing content
-    nameDisplay.textContent = '';
-    emailDisplay.textContent = '';
-    
-    // We always expect to have company data at this point
-    if (company.name) {
+    // Show the company info bar if we have company data
+    if (company && company.name) {
         console.log('Setting company name to:', company.name);
         
         // Update company name
@@ -179,12 +185,19 @@ function updateCompanyInfoDisplay() {
             companyInfoContainer.style.display = 'none';
         }
         
-        // Show the company info bar
+        // Show the company info bar and container
         companyInfoBar.style.display = 'flex';
+        companyInfoBar.style.opacity = '1';
         
         // Enable the change button
         if (toggleSearchBtn) {
             toggleSearchBtn.disabled = false;
+        }
+        
+        // Also update the navigation display
+        const navCompanyDisplay = document.getElementById('companyNameDisplay');
+        if (navCompanyDisplay) {
+            navCompanyDisplay.textContent = company.name;
         }
     } else {
         console.log('No company data available, hiding display');
@@ -225,15 +238,36 @@ function updateCustomerInfoSections(company) {
 // Function to load companies data
 async function loadCompaniesData() {
     try {
+        console.log('Loading companies data...');
         const response = await fetch('/get_companies');
         if (response.ok) {
             companiesData = await response.json();
+            console.log(`Loaded ${companiesData.length} companies`);
+            
+            // Ensure all companies have the required fields
+            companiesData = companiesData.map(company => ({
+                id: company.id || '',
+                name: company.name || company['Company Name'] || 'Unknown Company',
+                email: company.email || company['EmailID'] || ''
+            }));
+            
+            console.log('Processed companies data:', companiesData.slice(0, 3)); // Log first 3 companies
+            
             // After loading companies, update the display
             updateCompanyInfoDisplay();
+            
+            // If we have a company in sessionStorage but not in the current display, update it
+            const currentCompany = getCompanyData();
+            if (currentCompany && currentCompany.id && !document.getElementById('companyNameDisplay')?.textContent) {
+                updateCompanyInfoDisplay();
+            }
+            
             return companiesData;
+        } else {
+            const errorText = await response.text();
+            console.error('Failed to load companies data:', response.status, errorText);
+            return [];
         }
-        console.error('Failed to load companies data');
-        return [];
     } catch (error) {
         console.error('Error loading companies data:', error);
         return [];
@@ -264,63 +298,100 @@ function hideSearchBox() {
 // Function to render search results
 function renderSearchResults(query = '') {
     const searchResults = document.getElementById('companySearchResults');
-    if (!searchResults) return;
+    if (!searchResults) {
+        console.error('Search results container not found');
+        return;
+    }
     
     if (!query.trim()) {
         searchResults.style.display = 'none';
         return;
     }
     
-    const queryLower = query.toLowerCase();
-    const filtered = companiesData.filter(company => 
-        company.name.toLowerCase().includes(queryLower) || 
-        (company.email && company.email.toLowerCase().includes(queryLower))
-    );
+    console.log('Searching for:', query);
+    const queryLower = query.toLowerCase().trim();
     
-    if (filtered.length === 0) {
-        searchResults.innerHTML = '<div class="p-2 text-muted">No companies found</div>';
-    } else {
-        searchResults.innerHTML = filtered.map(company => `
-            <div class="search-result-item p-2 border-bottom" 
-                 data-id="${company.id}" 
-                 data-name="${company.name}" 
-                 data-email="${company.email || ''}">
-                <div class="fw-semibold">${company.name}</div>
-                ${company.email ? `<div class="small text-muted">${company.email}</div>` : ''}
-            </div>
-        `).join('');
-    }
-    
-    searchResults.style.display = 'block';
-    
-    // Add click handlers to search result items
-    document.querySelectorAll('.search-result-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const company = {
-                id: this.dataset.id,
-                name: this.dataset.name,
-                email: this.dataset.email
-            };
-            
-            // Update storage
-            sessionStorage.setItem('companyName', company.name);
-            sessionStorage.setItem('companyEmail', company.email);
-            sessionStorage.setItem('companyId', company.id);
-            localStorage.setItem('selectedCompany', JSON.stringify(company));
-            
-            // Update display
-            updateCompanyInfoDisplay();
-            hideSearchBox();
-            
-            // Show success message
-            showToast('Company updated successfully', 'success');
-            
-            // Trigger storage event to update other tabs
-            window.dispatchEvent(new Event('storage'));
+    try {
+        // Search in both name and email fields
+        const filtered = companiesData.filter(company => {
+            if (!company) return false;
+            const nameMatch = company.name && company.name.toLowerCase().includes(queryLower);
+            const emailMatch = company.email && company.email.toLowerCase().includes(queryLower);
+            return nameMatch || emailMatch;
         });
-    });
+        
+        console.log(`Found ${filtered.length} matching companies`);
+        
+        if (filtered.length === 0) {
+            searchResults.innerHTML = `
+                <div class="p-2 text-muted">
+                    No companies found for "${query}"
+                    <div class="small">Try a different search term</div>
+                </div>`;
+        } else {
+            searchResults.innerHTML = filtered.slice(0, 10).map(company => `
+                <div class="search-result-item p-2 border-bottom hover-bg-light" 
+                     style="cursor: pointer;"
+                     data-id="${company.id || ''}" 
+                     data-name="${company.name || ''}" 
+                     data-email="${company.email || ''}">
+                    <div class="fw-semibold">${company.name || 'Unnamed Company'}</div>
+                    ${company.email ? `<div class="small text-muted text-truncate">${company.email}</div>` : ''}
+                </div>
+            `).join('');
+            
+            // Add click handlers to search result items
+            document.querySelectorAll('.search-result-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const company = {
+                        id: this.dataset.id,
+                        name: this.dataset.name,
+                        email: this.dataset.email
+                    };
+                    
+                    console.log('Company selected:', company);
+                    
+                    // Update storage
+                    sessionStorage.setItem('company_id', company.id);
+                    sessionStorage.setItem('company_name', company.name);
+                    sessionStorage.setItem('company_email', company.email);
+                    
+                    // Update display
+                    updateCompanyInfoDisplay();
+                    
+                    // Hide search box
+                    hideSearchBox();
+                    
+                    // Show success message
+                    showToast(`Company changed to ${company.name}`, 'success');
+                    
+                    // Trigger a custom event that other components can listen to
+                    const event = new CustomEvent('companyChanged', { detail: company });
+                    window.dispatchEvent(event);
+                });
+                
+                // Add hover effect
+                item.addEventListener('mouseenter', function() {
+                    this.classList.add('bg-light');
+                });
+                item.addEventListener('mouseleave', function() {
+                    this.classList.remove('bg-light');
+                });
+            });
+        }
+        
+        searchResults.style.display = 'block';
+    } catch (error) {
+        console.error('Error rendering search results:', error);
+        searchResults.innerHTML = `
+            <div class="p-2 text-danger">
+                Error loading search results. Please try again.
+            </div>`;
+        searchResults.style.display = 'block';
+    }
 }
 
+// Rest of the code remains the same
 // Function to show toast message
 function showToast(message, type = 'info') {
     const toastContainer = document.getElementById('toastContainer');
@@ -351,20 +422,25 @@ function showToast(message, type = 'info') {
 
 // Function to initialize the company info component
 async function initializeCompanyInfo() {
+    console.log('Initializing company info component...');
+    
     try {
         // First, try to load the company data
         const company = getCompanyData();
+        console.log('Initial company data:', company);
         
-        // If no company data is found, load companies data
+        // Always update the display first with whatever data we have
+        updateCompanyInfoDisplay();
+        
+        // If no company data is found, try to load companies data
         if (!company || !company.id) {
+            console.log('No company data found, loading companies...');
             await loadCompaniesData();
-            // Get the updated company data
+            // Get the updated company data after loading
             const updatedCompany = getCompanyData();
-            if (updatedCompany && updatedCompany.id) {
-                updateCompanyInfoDisplay();
-            }
-        } else {
-            // We already have company data, just update the display
+            console.log('Updated company data after load:', updatedCompany);
+            
+            // Update the display again with the loaded data
             updateCompanyInfoDisplay();
         }
     } catch (error) {
@@ -372,6 +448,22 @@ async function initializeCompanyInfo() {
         // Still try to update display in case we have partial data
         updateCompanyInfoDisplay();
     }
+    
+    // Add event listener for storage events to update display when company changes in another tab
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'company_name' || event.key === 'company_email' || event.key === 'company_id') {
+            console.log('Storage event detected, updating company display...');
+            updateCompanyInfoDisplay();
+        }
+    });
+    
+    // Also update display when page becomes visible again
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            console.log('Page became visible, updating company display...');
+            updateCompanyInfoDisplay();
+        }
+    });
 }
 
 // Initialize the component when DOM is fully loaded

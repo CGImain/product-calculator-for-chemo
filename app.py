@@ -2739,25 +2739,34 @@ def get_bar_data():
 
 # Serve companies data
 @app.route('/get_companies')
+def get_companies():
+    try:
+        # Try to load companies from MongoDB if available
+        if USE_MONGO and mongo_db:
+            companies_collection = mongo_db.companies
+            companies = list(companies_collection.find({}, {'_id': 0}))
+            if companies:
+                return jsonify(companies)
+        
+        # Fall back to company_emails.json
+        with open('static/data/company_emails.json', 'r', encoding='utf-8') as f:
+            companies = json.load(f)
+            # Transform to match the expected format
+            formatted_companies = [{
+                'id': str(i + 1),  # Generate a simple numeric ID
+                'name': company['Company Name'],
+                'email': company['EmailID']
+            } for i, company in enumerate(companies)]
+            return jsonify(formatted_companies)
+    except Exception as e:
+        print(f"Error loading companies: {str(e)}")
+        return jsonify([])
+
+# Keep the old route for backward compatibility
+@app.route('/get_companies_list')
 @login_required
 def get_companies_list():
-    try:
-        file_path = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
-        with open(file_path, 'r', encoding='utf-8') as f:
-            companies = json.load(f)
-        
-        # Format the response as expected by the frontend
-        formatted_companies = [{
-            'id': str(company.get('id', '')),
-            'name': company.get('Company Name', ''),
-            'email': company.get('EmailID', '')
-        } for company in companies if company.get('EmailID')]  # Only include companies with email
-        
-        return jsonify(formatted_companies)
-    except Exception as e:
-        app.logger.error(f"Error loading companies: {str(e)}")
-        return jsonify({'error': 'Failed to load companies'}), 500
-
+    return get_companies()
 
 # Profile page
 @app.route('/profile')

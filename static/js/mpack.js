@@ -6,36 +6,55 @@ let currentThickness = ''; // Track current thickness
 document.addEventListener("DOMContentLoaded", () => {
   loadMachines();
 
-  document.getElementById("machineSelect").addEventListener("change", () => {
-    document.getElementById("thicknessSection").style.display = "block";
-  });
+  // Safely add event listener to machine select
+  const machineSelect = document.getElementById("machineSelect");
+  if (machineSelect) {
+    machineSelect.addEventListener("change", () => {
+      const mpackSection = document.getElementById("mpackSection");
+      if (mpackSection) {
+        mpackSection.style.display = "block";
+      }
+    });
+  }
 
   // Update thickness change handler to recalculate prices
-  document.getElementById("thicknessSelect").addEventListener("change", () => {
-    loadSizes();
-    // Reset current discount when thickness changes
-    currentDiscount = 0;
-    const discountSelect = document.getElementById("discountSelect");
-    if (discountSelect) discountSelect.value = "";
-    calculateFinalPrice();
-  });
+  const thicknessSelect = document.getElementById("thicknessSelect");
+  if (thicknessSelect) {
+    thicknessSelect.addEventListener("change", () => {
+      loadSizes();
+      // Reset current discount when thickness changes
+      currentDiscount = 0;
+      const discountSelect = document.getElementById("discountSelect");
+      if (discountSelect) discountSelect.value = "";
+      calculateFinalPrice();
+    });
+  }
   
   // Update size selection handler
-  document.getElementById("sizeSelect").addEventListener("change", () => {
-    handleSizeSelection();
-    calculateFinalPrice();
-  });
-  
-  // Update sheet input handler
-  document.getElementById("sheetInput").addEventListener("input", () => {
-    calculateFinalPrice();
-  });
+  const sizeSelect = document.getElementById("sizeSelect");
+  if (sizeSelect) {
+    sizeSelect.addEventListener("change", () => {
+      handleSizeSelection();
+      calculateFinalPrice();
+    });
+  }
+
+  // Initialize size search functionality handler
+  const sheetInput = document.getElementById("sheetInput");
+  if (sheetInput) {
+    sheetInput.addEventListener("input", () => {
+      calculateFinalPrice();
+    });
+  }
   
   // Update discount select handler
-  document.getElementById("discountSelect").addEventListener("change", () => {
-    applyDiscount();
-    calculateFinalPrice();
-  });
+  const discountSelect = document.getElementById("discountSelect");
+  if (discountSelect) {
+    discountSelect.addEventListener("change", () => {
+      applyDiscount();
+      calculateFinalPrice();
+    });
+  }
 });
 
 function loadMachines() {

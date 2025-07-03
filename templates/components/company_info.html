@@ -96,6 +96,61 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Also update after a short delay to catch any async updates
     setTimeout(updateFromSession, 300);
+    
+    // Add event listeners
+    const changeBtn = document.getElementById('companyChangeBtn');
+    const cancelBtn = document.getElementById('companyCancelBtn');
+    const confirmBtn = document.getElementById('companyConfirmBtn');
+    const searchInput = document.getElementById('companySearchInput');
+    
+    if (changeBtn) {
+        changeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            showSearchBox();
+            loadCompaniesData().then(() => {
+                if (searchInput) searchInput.focus();
+            });
+        });
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            hideSearchBox();
+        });
+    }
+    
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (selectedCompany) {
+                updateCompanyInfo(selectedCompany);
+                hideSearchBox();
+            }
+        });
+    }
+    
+    // Handle search input
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                renderSearchResults(this.value);
+            }, 300);
+        });
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const searchBox = document.getElementById('companySearchBox');
+        const searchResults = document.getElementById('companySearchResults');
+        
+        if (searchBox && !searchBox.contains(e.target) && 
+            e.target !== changeBtn && !changeBtn.contains(e.target)) {
+            hideSearchBox();
+        }
+    });
 });
 
 // Function to safely get company data from storage
@@ -441,30 +496,70 @@ function showToast(message, type = 'info') {
 }
 
 // Function to update company info display
-function updateCompanyInfoDisplay(company) {
+function updateCompanyInfo(company) {
     try {
+        if (!company || !company.name) {
+            console.error('Invalid company data:', company);
+            return false;
+        }
+
+        // Update the selected company
+        selectedCompany = company;
+        
+        // Update the display
         const nameDisplay = document.getElementById('companyNameDisplay');
         const emailDisplay = document.getElementById('companyEmailDisplay');
         const companyInfoContainer = document.getElementById('companyInfoContainer');
         
-        if (company) {
-            if (nameDisplay) nameDisplay.textContent = company.name || '';
-            if (emailDisplay) emailDisplay.textContent = company.email || '';
-            if (companyInfoContainer) companyInfoContainer.style.display = company.email ? 'flex' : 'none';
-            
-            // Update session storage
-            if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem('selectedCompany', JSON.stringify(company));
-            }
+        if (nameDisplay) nameDisplay.textContent = company.name;
+        
+        if (company.email) {
+            if (emailDisplay) emailDisplay.textContent = company.email;
+            if (companyInfoContainer) companyInfoContainer.style.display = 'flex';
+        } else if (companyInfoContainer) {
+            companyInfoContainer.style.display = 'none';
         }
+        
+        // Update storage
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('company_id', company.id || '');
+            sessionStorage.setItem('company_name', company.name);
+            sessionStorage.setItem('company_email', company.email || '');
+            sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+        }
+        
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('selectedCompany', JSON.stringify(company));
+        }
+        
+        // Update any customer info sections
+        if (typeof updateCustomerInfoSections === 'function') {
+            updateCustomerInfoSections(company);
+        }
+        
+        // Show success message
+        showToast(`Company updated to ${company.name}`, 'success');
+        
+        // Dispatch event that company was changed
+        const event = new CustomEvent('companyChanged', { detail: company });
+        window.dispatchEvent(event);
+        
+        return true;
     } catch (error) {
-        console.error('Error updating company info display:', error);
+        console.error('Error updating company info:', error);
+        showToast('Error updating company information', 'error');
+        return false;
     }
 }
 
+// Alias for backward compatibility
+function updateCompanyInfoDisplay(company) {
+    return updateCompanyInfo(company);
+}
+
 // Make the function available globally
+window.updateCompanyInfo = updateCompanyInfo;
 window.updateCompanyInfoDisplay = updateCompanyInfoDisplay;
-window.updateCompanyInfo = updateCompanyInfoDisplay;
 </script>
 
 <style>

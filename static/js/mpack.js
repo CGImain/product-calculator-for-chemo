@@ -3,16 +3,52 @@ let currentNetPrice = 0;
 let currentDiscount = 0; // Track current discount percentage
 let currentThickness = ''; // Track current thickness
 
+// Debug function to log element status
+function logElementStatus(id) {
+  const el = document.getElementById(id);
+  console.log(`Element ${id}:`, el ? 'Found' : 'Not found');
+  return el;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  loadMachines();
+  console.log("MPACK JS loaded");
+  
+  try {
+    loadMachines();
+  } catch (error) {
+    console.error("Error loading machines:", error);
+  }
+
+  // Debug log element statuses
+  console.log("Checking required elements...");
+  logElementStatus("machineSelect");
+  logElementStatus("mpackSection");
+  logElementStatus("thicknessSelect");
+  logElementStatus("sizeSelect");
+  logElementStatus("sheetInput");
+  logElementStatus("discountSelect");
 
   // Safely add event listener to machine select
   const machineSelect = document.getElementById("machineSelect");
-  if (machineSelect) {
+  const mpackSection = document.getElementById("mpackSection");
+  
+  if (!machineSelect) {
+    console.error("machineSelect element not found!");
+  }
+  
+  if (!mpackSection) {
+    console.error("mpackSection element not found!");
+  }
+  
+  if (machineSelect && mpackSection) {
+    console.log("Setting up machine select change handler...");
     machineSelect.addEventListener("change", () => {
-      const mpackSection = document.getElementById("mpackSection");
-      if (mpackSection) {
+      console.log("Machine select changed, showing mpack section...");
+      try {
         mpackSection.style.display = "block";
+        console.log("mpackSection should now be visible");
+      } catch (error) {
+        console.error("Error showing mpack section:", error);
       }
     });
   }

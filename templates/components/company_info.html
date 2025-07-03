@@ -51,23 +51,45 @@
 let companies = [];
 let selectedCompany = null;
 
-// Initialize with empty display
+// Initialize with server-side data if available
+const serverCompany = {
+    name: '{{ session.company_name|default("")|tojson|safe }}',
+    email: '{{ session.company_email|default("")|tojson|safe }}',
+    id: '{{ session.company_id|default("")|tojson|safe }}'
+};
+
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    const nameDisplay = document.getElementById('companyNameDisplay');
-    const emailDisplay = document.getElementById('companyEmailDisplay');
-    const companyInfoContainer = document.getElementById('companyInfoContainer');
+    // First, try to get company data from server-side
+    if (serverCompany && (serverCompany.name || serverCompany.id)) {
+        // Update storage with server-side data
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('selectedCompany', JSON.stringify({
+                name: serverCompany.name,
+                email: serverCompany.email,
+                id: serverCompany.id
+            }));
+        }
+    }
     
-    if (nameDisplay) nameDisplay.textContent = '';
-    if (emailDisplay) emailDisplay.textContent = '';
-    if (companyInfoContainer) companyInfoContainer.style.display = 'none';
+    // Then update the display
+    updateCompanyInfoDisplay();
     
-    // Load company data after a short delay
+    // Also update after a short delay to catch any async updates
     setTimeout(updateCompanyInfoDisplay, 100);
 });
 
 // Function to safely get company data from storage
 function getCompanyData() {
     try {
+        // First check if we have server-side data
+        if (serverCompany && (serverCompany.name || serverCompany.id)) {
+            return {
+                name: serverCompany.name,
+                email: serverCompany.email,
+                id: serverCompany.id
+            };
+        }
         // Get from server-rendered elements first
         const companyName = document.getElementById('companyNameDisplay')?.textContent.trim();
         const companyEmail = document.getElementById('companyEmailDisplay')?.textContent.trim();
@@ -118,24 +140,25 @@ function updateCompanyInfoDisplay() {
         const emailDisplay = document.getElementById('companyEmailDisplay');
         const companyInfoContainer = document.getElementById('companyInfoContainer');
         
+        // Always clear the display first
+        if (nameDisplay) nameDisplay.textContent = '';
+        if (emailDisplay) emailDisplay.textContent = '';
+        if (companyInfoContainer) companyInfoContainer.style.display = 'none';
+        
         // Check if we have valid company data
         const hasValidCompany = company && (company.name || company.id);
         
         // Update the display based on whether we have company data
         if (hasValidCompany) {
             // Update the company name display
-            if (nameDisplay) {
-                nameDisplay.textContent = company.name || '';
+            if (nameDisplay && company.name) {
+                nameDisplay.textContent = company.name;
             }
             
             // Update the company email display if it exists
-            if (emailDisplay && companyInfoContainer) {
-                if (company.email) {
-                    emailDisplay.textContent = company.email;
-                    companyInfoContainer.style.display = 'flex';
-                } else {
-                    companyInfoContainer.style.display = 'none';
-                }
+            if (emailDisplay && companyInfoContainer && company.email) {
+                emailDisplay.textContent = company.email;
+                companyInfoContainer.style.display = 'flex';
             }
             
             // Update the selected company
@@ -159,7 +182,6 @@ function updateCompanyInfoDisplay() {
                 showToast(`Company updated to ${company.name}`, 'success');
                 window.companyJustChanged = false;
             }
-        } else {
         }
     } catch (error) {
         console.error('Error updating company info display:', error);

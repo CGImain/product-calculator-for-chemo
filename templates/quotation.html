@@ -50,7 +50,7 @@
     <div class="card shadow-sm">
         <div class="card-body p-4">
     <div class="text-center mb-4">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="company-logo">
+        <img src="{{ url_for('static', filename='images/chemo logo.png') }}" alt="Company Logo" class="company-logo">
         <h2 class="mb-0">QUOTATION</h2>
         <p class="text-muted">{{ now.strftime('%B %d, %Y') }}</p>
     </div>
@@ -234,10 +234,12 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Calculator
-        </a>
+    <div class="row justify-content-center mt-4 pt-3 border-top">
+        <div class="col-12 col-md-6">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-100 py-3" style="font-size: 1.1rem;">
+                <i class="fas fa-calculator me-2"></i>Back to Calculator
+            </a>
+        </div>
     </div>
 
 <script>

@@ -197,10 +197,9 @@ function initCompanyInfo() {
 // Update company display in the navigation
 function updateNavCompanyDisplay(companyName) {
     const companyDisplay = document.getElementById('companyNameDisplay');
-    if (companyDisplay) {
-        companyDisplay.textContent = companyName || 'No company selected';
+
     }
-}
+
 
 // Initialize cart when the page loads
 document.addEventListener('DOMContentLoaded', function() {

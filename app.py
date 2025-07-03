@@ -3001,14 +3001,6 @@ def blankets():
         if not company_id and hasattr(current_user, 'company_id'):
             company_id = current_user.company_id
     
-    # Ensure we have values in session
-    if not company_name:
-        company_name = 'No Company Selected'
-    if not company_email:
-        company_email = ''
-    if not company_id:
-        company_id = ''
-    
     # Update session with final values
     session['company_name'] = company_name
     session['company_email'] = company_email

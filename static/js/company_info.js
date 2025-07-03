@@ -20,7 +20,7 @@
 
         // Function to update company display
         function updateCompanyDisplay(name, email) {
-            if (nameDisplay) nameDisplay.textContent = name || 'No Company Selected';
+            if (nameDisplay) nameDisplay.textContent = name ||'';
             if (emailDisplay) emailDisplay.textContent = email || '';
             
             // Show/hide email container based on whether we have an email

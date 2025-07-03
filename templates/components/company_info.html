@@ -88,33 +88,44 @@ function updateFromSession() {
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Get server data
+// Initialize company info when component loads
+(function initCompanyInfo() {
+    // Get server data from hidden element
     const serverData = document.getElementById('serverCompanyData');
-    const companyData = {
-        name: serverData?.dataset.companyName || '',
-        email: serverData?.dataset.companyEmail || '',
-        id: serverData?.dataset.companyId || ''
-    };
-
-    // If we have server data, use it
-    if (companyData.name) {
-        // Update storage
-        if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
-        }
+    let companyData = null;
+    
+    // Check for server data first
+    if (serverData) {
+        companyData = {
+            name: serverData.dataset.companyName || '',
+            email: serverData.dataset.companyEmail || '',
+            id: serverData.dataset.companyId || ''
+        };
         
-        // Update UI
-        updateCompanyInfoDisplay(companyData);
-    } else if (typeof sessionStorage !== 'undefined') {
-        // Fall back to storage if no server data
+        // Only proceed if we have valid data
+        if (companyData.name) {
+            // Update storage if needed
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
+            }
+            
+            // Update UI once
+            updateCompanyInfoDisplay(companyData);
+            setupEventListeners();
+            return; // Exit early if we have valid server data
+        }
+    }
+    
+    // Fall back to storage if no server data
+    if (typeof sessionStorage !== 'undefined') {
         try {
             const storedCompany = sessionStorage.getItem('selectedCompany');
             if (storedCompany) {
                 const storedData = JSON.parse(storedCompany);
-                if (storedData && storedData.name) {
+                if (storedData?.name) {
                     updateCompanyInfoDisplay(storedData);
+                    setupEventListeners();
+                    return;
                 }
             }
         } catch (e) {
@@ -122,9 +133,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Set up event listeners
-    setupEventListeners();
-});
+    // If we get here, no valid company data was found
+    console.log('No company data found in server or storage');
+})();
 
 // Function to safely get company data from storage
 function getCompanyData() {

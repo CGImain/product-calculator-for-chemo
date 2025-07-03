@@ -226,30 +226,7 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Initialize company data before any components load -->
-    <script>
-    // Initialize company data in sessionStorage if it doesn't exist
-    document.addEventListener('DOMContentLoaded', function() {
-        // Only initialize if not already set
-        if (!sessionStorage.getItem('companyName')) {
-            const companyData = {
-                name: '{{ session.get("company_name", "") | safe }}',
-                email: '{{ session.get("company_email", "") | safe }}'
-            };
-            
-            if (companyData.name) {
-                sessionStorage.setItem('companyName', companyData.name);
-                sessionStorage.setItem('companyEmail', companyData.email);
-                
-                // Also update localStorage for persistence
-                localStorage.setItem('selectedCompany', JSON.stringify({
-                    name: companyData.name,
-                    email: companyData.email
-                }));
-            }
-        }
-    });
-    </script>
+    <!-- Company initialization moved to company_info.html -->
     
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

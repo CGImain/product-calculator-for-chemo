@@ -210,7 +210,7 @@ function loadSizes() {
     if (finalDiscountedPrice) finalDiscountedPrice.textContent = "0.00";
     
     const discountSection = document.getElementById("discountSection");
-    if (discountSection) discountSection.style.display = "none";
+    if (discountSection) discountSection.style.display = "block";
     
     const discountPromptSection = document.getElementById("discountPromptSection");
     if (discountPromptSection) {
@@ -377,13 +377,13 @@ function calculateFinalPrice() {
     discountPromptSection.style.display = quantity > 0 ? "block" : "none";
   }
   
-  // Show discount details if discount is applied (matching blankets.js format)
-  if (currentDiscount > 0) {
-    const discountDetails = document.getElementById("discountDetails");
-    if (discountDetails) {
-      const totalBeforeDiscount = basePrice;
-      const totalAfterDiscount = discountedPrice;
-      
+  // Always show discount details (matching blankets.js format)
+  const discountDetails = document.getElementById("discountDetails");
+  if (discountDetails) {
+    const totalBeforeDiscount = basePrice;
+    const totalAfterDiscount = discountedPrice;
+    
+    if (currentDiscount > 0) {
       discountDetails.innerHTML = `
         <div class="price-breakdown">
           <div class="d-flex justify-content-between">

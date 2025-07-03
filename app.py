@@ -646,7 +646,7 @@ def get_user_cart():
                         price = float(product.get('unit_price', 0))
                         quantity = int(product.get('quantity', 1))
                         discount_percent = float(product.get('discount_percent', 0))
-                        gst_percent = float(product.get('gst_percent', 18))
+                        gst_percent = float(product.get('gst_percent', 12))
                         
                         discount_amount = (price * discount_percent / 100)
                         price_after_discount = price - discount_amount
@@ -1898,7 +1898,7 @@ def quotation_preview():
             price = float(item.get('unit_price', 0))
             quantity = int(item.get('quantity', 1))
             discount_percent = float(item.get('discount_percent', 0))
-            gst_percent = float(item.get('gst_percent', 0))
+            gst_percent = float(item.get('gst_percent', 12))
             
             subtotal = price * quantity
             discount_amount = (subtotal * discount_percent / 100) if discount_percent else 0

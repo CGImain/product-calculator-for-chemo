@@ -2148,7 +2148,7 @@ def send_quotation():
 
         # Build email content with improved table layout and consistent white background
         email_content = f"""
-        <div style='font-family: Arial, sans-serif; color: #333; max-width: 1200px; margin: 0 auto; line-height: 1.6; background-color: #f8f9fa; padding: 20px;'>
+        <div style='font-family: Arial, sans-serif; color: #333; max-width: 1200px; margin: 0 auto; line-height: 1.6; background-color: #e0caa9; padding: 20px;'>
           <div style='background-color: white; border-radius: 0.5rem; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); padding: 2rem; margin-bottom: 1.5rem;'>
             <div style='text-align: center; margin-bottom: 2rem;'>
               <img src='https://i.ibb.co/tMhqbML1/chemo-logo.png' alt='CGI Logo' style='max-width: 200px; margin-bottom: 1rem;'>
@@ -2156,27 +2156,29 @@ def send_quotation():
               <p style='color: #6c757d; margin: 0; font-size: 0.9rem;'>{today}</p>
             </div>
             
-            <div style='display: flex; gap: 1.5rem; margin-bottom: 2rem;'>
+            <div style='display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;'>
               <!-- Company Information -->
-              <div style='flex: 1; border: 1px solid #dee2e6; border-radius: 0.25rem; overflow: hidden; background-color: white;'>
+              <div style='flex: 1; min-width: 300px; border: 1px solid #dee2e6; border-radius: 0.25rem; overflow: hidden; background-color: white;'>
                 <div style='background-color: #f8f9fa; padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(0,0,0,0.125); display: flex; justify-content: space-between; align-items: center;'>
                   <h5 style='margin: 0; font-size: 1rem;'>Company Information</h5>
                   <span style='background-color: #198754; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 10px;'>Verified</span>
                 </div>
-                <div style='padding: 1.25rem;'>
-                  <div style='margin-bottom: 1rem;'>
-                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Company Name</div>
-                    <div style='font-weight: 600;'>CGI - Chemo Graphics INTERNATIONAL</div>
+                <div style='padding: 1.25rem; height: 100%; display: flex; flex-direction: column;'>
+                  <div style='flex: 1;'>
+                    <div style='margin-bottom: 1rem;'>
+                      <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Company Name</div>
+                      <div style='font-weight: 600;'>CGI - Chemo Graphics INTERNATIONAL</div>
+                    </div>
+                    <div style='margin-bottom: 1rem;'>
+                      <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Address</div>
+                      <div>113, 114 High Tech Industrial Centre,<br>Caves Rd, Jogeshwari East,<br>Mumbai, Maharashtra 400060</div>
+                    </div>
+                    <div style='margin-bottom: 1rem;'>
+                      <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Email</div>
+                      <div><a href='mailto:info@chemo.in' style='color: #0d6efd; text-decoration: none;'>info@chemo.in</a></div>
+                    </div>
                   </div>
-                  <div style='margin-bottom: 1rem;'>
-                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Address</div>
-                    <div>113, 114 High Tech Industrial Centre,<br>Caves Rd, Jogeshwari East,<br>Mumbai, Maharashtra 400060</div>
-                  </div>
-                  <div style='margin-bottom: 1rem;'>
-                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Email</div>
-                    <div><a href='mailto:info@chemo.in' style='color: #0d6efd; text-decoration: none;'>info@chemo.in</a></div>
-                  </div>
-                  <div style='padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #e9ecef;'>
+                  <div style='padding-top: 1rem; margin-top: auto; border-top: 1px solid #e9ecef;'>
                     <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Prepared by:</div>
                     <div style='font-weight: 600;'>{current_user.username}</div>
                     <div><a href='mailto:{current_user.email}' style='color: #0d6efd; text-decoration: none;'>{current_user.email}</a></div>
@@ -2185,23 +2187,29 @@ def send_quotation():
               </div>
               
               <!-- Customer Information -->
-              <div style='flex: 1; border: 1px solid #dee2e6; border-radius: 0.25rem; overflow: hidden; background-color: white;'>
+              <div style='flex: 1; min-width: 300px; border: 1px solid #dee2e6; border-radius: 0.25rem; overflow: hidden; background-color: white;'>
                 <div style='background-color: #f8f9fa; padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(0,0,0,0.125); display: flex; justify-content: space-between; align-items: center;'>
                   <h5 style='margin: 0; font-size: 1rem;'>Customer Information</h5>
                   <span style='background-color: #198754; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 10px;'>Verified</span>
                 </div>
-                <div style='padding: 1.25rem;'>
-                  <div style='margin-bottom: 1rem;'>
-                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Company Name</div>
-                    <div style='font-weight: 600;'>{customer_name}</div>
+                <div style='padding: 1.25rem; height: 100%; display: flex; flex-direction: column;'>
+                  <div style='flex: 1;'>
+                    <div style='margin-bottom: 1rem;'>
+                      <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Company Name</div>
+                      <div style='font-weight: 600;'>{customer_name}</div>
+                    </div>
+                    <div style='margin-bottom: 1rem;'>
+                      <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Email</div>
+                      <div><a href='mailto:{customer_email}' style='color: #0d6efd; text-decoration: none;'>{customer_email}</a></div>
+                    </div>
+                    <div style='margin-bottom: 1rem;'>
+                      <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Date</div>
+                      <div>{today}</div>
+                    </div>
                   </div>
-                  <div style='margin-bottom: 1rem;'>
-                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Email</div>
-                    <div><a href='mailto:{customer_email}' style='color: #0d6efd; text-decoration: none;'>{customer_email}</a></div>
-                  </div>
-                  <div style='margin-bottom: 1rem;'>
-                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Date</div>
-                    <div>{today}</div>
+                  <div style='padding-top: 1rem; margin-top: auto; border-top: 1px solid #e9ecef;'>
+                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Quotation #</div>
+                    <div style='font-weight: 600;'>{quote_id}</div>
                   </div>
                 </div>
               </div>
@@ -2218,25 +2226,7 @@ def send_quotation():
                 {'<p style="margin-bottom: 1.5rem;"><strong>Notes:</strong><br>' + notes + '</p>' if notes else ''}
                 
                 <div style='overflow-x: auto; margin: 1.5rem 0;'>
-                <table style='width: 100%; border-collapse: collapse; font-size: 0.9rem; background-color: white; border: 1px solid #dee2e6;'>
-                  <thead>
-                    <tr style='background-color: #f8f9fa;'>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Item</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Machine</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Product</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Type</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Thickness</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Size</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Barri...</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: right;'>Qty</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: right;'>Disc. %</th>
-                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: right;'>Amount (₹)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows_html}
-                  </tbody>
-                </table>
+                <!-- Table rows have been removed as requested -->
               </div>
               
                 <p style='margin: 2rem 0 1rem 0;'>Thank you for your business!<br>— Team CGI</p>

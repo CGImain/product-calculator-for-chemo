@@ -84,18 +84,42 @@
             
             searchResults.innerHTML = companies.map(company => `
                 <div class="search-item p-2 border-bottom" data-id="${company.id}">
-                    <div class="fw-bold">${company.name || 'Unnamed Company'}</div>
-                    <div class="small text-muted">${company.email || 'No email'}</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">${company.name || 'Unnamed Company'}</div>
+                            <div class="small text-muted">${company.email || 'No email'}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary select-company-btn" data-id="${company.id}">
+                            <i class="bi bi-check-lg"></i> Select
+                        </button>
+                    </div>
                 </div>
             `).join('');
             
             // Add click handlers to search results
             document.querySelectorAll('.search-item').forEach(item => {
-                item.addEventListener('click', () => {
+                item.addEventListener('click', (e) => {
+                    // Don't trigger if the click was on the select button
+                    if (e.target.closest('.select-company-btn')) return;
+                    
                     const companyId = item.getAttribute('data-id');
                     const company = companies.find(c => c.id === companyId);
                     if (company) {
                         selectCompany(company);
+                    }
+                });
+            });
+            
+            // Add click handlers to select buttons
+            document.querySelectorAll('.select-company-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const companyId = btn.getAttribute('data-id');
+                    const company = companies.find(c => c.id === companyId);
+                    if (company) {
+                        // Update the selection and immediately confirm
+                        selectCompany(company);
+                        updateCompany(company);
                     }
                 });
             });
@@ -109,18 +133,24 @@
             
             selected = company;
             if (searchInput) searchInput.value = company.name;
-            if (confirmBtn) confirmBtn.disabled = false;
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Select';
+            }
             
             // Hide search results immediately
             if (searchResults) {
                 searchResults.style.display = 'none';
             }
             
-            // Update the display right away for better UX
-            updateCompanyDisplay(company.name, company.email);
+            // Update the display right away for better UX (preview only)
+            const nameDisplay = document.getElementById('companyNameDisplay');
+            const emailDisplay = document.getElementById('companyEmailDisplay');
+            const companyInfoContainer = document.getElementById('companyInfoContainer');
             
-            // If this is a direct selection (click on search result), update immediately
-            updateCompany(company);
+            if (nameDisplay) nameDisplay.textContent = company.name;
+            if (emailDisplay) emailDisplay.textContent = company.email || '';
+            if (companyInfoContainer) companyInfoContainer.style.display = 'flex';
         }
 
         // Reset the search interface
@@ -136,12 +166,14 @@
 
         // Update the selected company
         async function updateCompany(company) {
-            if (!company) return;
+            if (!company) {
+                showToast('No company selected', 'warning');
+                return;
+            }
             
             try {
                 // Show loading state
                 if (confirmBtn) {
-                    const originalText = confirmBtn.innerHTML;
                     confirmBtn.disabled = true;
                     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
                 }
@@ -157,7 +189,8 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken || getCookie('csrftoken') || ''
+                        'X-CSRFToken': csrfToken || getCookie('csrftoken') || '',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: JSON.stringify({
                         company_id: company.id,
@@ -173,8 +206,7 @@
                     throw new Error(data.message || 'Failed to update company');
                 }
                 
-                // Update the display
-                updateCompanyDisplay(company.name, company.email);
+                // Show success message
                 showToast(`Company updated to ${company.name}`, 'success');
                 
                 // Hide search box and show info bar
@@ -201,7 +233,7 @@
                 // Reset button state
                 if (confirmBtn) {
                     confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Confirm';
+                    confirmBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Select';
                 }
             }
         }
@@ -269,7 +301,12 @@
                     searchResults.innerHTML = '';
                     searchResults.style.display = 'none';
                 }
-                if (confirmBtn) confirmBtn.disabled = true;
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Select';
+                }
+                // Clear any previous selection
+                selected = null;
             } catch (error) {
                 console.error('Error showing company search:', error);
                 showToast('Failed to load company search. Please try again.', 'error');
@@ -280,9 +317,19 @@
             e.preventDefault();
             e.stopPropagation();
             
+            // Restore original company info if available
+            const storedCompany = sessionStorage.getItem('selectedCompany');
+            if (storedCompany) {
+                const company = JSON.parse(storedCompany);
+                updateCompanyDisplay(company.name, company.email);
+            }
+            
             if (bar) bar.style.display = 'block';
             if (searchBox) searchBox.style.display = 'none';
             resetSearch();
+            
+            // Clear selection
+            selected = null;
         });
 
         confirmBtn?.addEventListener('click', (e) => {
@@ -293,6 +340,8 @@
                 showToast('Please select a company first', 'warning');
                 return;
             }
+            
+            // Update the company when the user clicks the Select button
             updateCompany(selected);
         });
         

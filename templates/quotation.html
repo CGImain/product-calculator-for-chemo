@@ -53,87 +53,84 @@
         <p class="text-muted">{{ now.strftime('%B %d, %Y') }}</p>
     </div>
     
-    <div class="row mb-4">
+    <div class="row g-4 mb-4">
         <!-- Company Information -->
-        <div class="col-md-6 mb-4">
+        <div class="col-md-6">
             <div class="card h-100">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Company Information</h5>
                     <span class="badge bg-success">Verified</span>
                 </div>
-                <div class="card-body customer-info-section">
-                    <div id="customerInfoContent">
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-building me-2 text-primary"></i>
-                                <div>
-                                    <div class="text-muted small">Company Name</div>
-                                    <div class="fw-semibold">CGI - Chemo Graphics India</div>
-                                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-building me-2 text-primary"></i>
+                            <div>
+                                <div class="text-muted small">Company Name</div>
+                                <div class="fw-semibold">CGI - Chemo Graphics India</div>
                             </div>
                         </div>
-                        <div class="mb-2">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-map-marker-alt me-2 text-muted"></i>
-                                <div>
-                                    <div class="text-muted small">Address</div>
-                                    <div>113, 114 High Tech Industrial Centre,<br>Caves Rd, Jogeshwari East,<br>Mumbai, Maharashtra 400060</div>
-                                </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex">
+                            <i class="fas fa-map-marker-alt me-2 text-muted mt-1"></i>
+                            <div>
+                                <div class="text-muted small">Address</div>
+                                <div>113, 114 High Tech Industrial Centre,<br>Caves Rd, Jogeshwari East,<br>Mumbai, Maharashtra 400060</div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-envelope me-2 text-muted"></i>
-                                <div>
-                                    <div class="text-muted small">Email</div>
-                                    <div><a href="mailto:INFO@CHEMO.IN">INFO@CHEMO.IN</a></div>
-                                </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-envelope me-2 text-muted"></i>
+                            <div>
+                                <div class="text-muted small">Email</div>
+                                <div><a href="mailto:INFO@CHEMO.IN">INFO@CHEMO.IN</a></div>
                             </div>
                         </div>
-                        <div class="mt-3 pt-2 border-top">
-                            <div class="text-muted small">Prepared by:</div>
-                            <div class="fw-semibold">{{ current_user.username }}</div>
-                            <div><a href="mailto:{{ current_user.email }}">{{ current_user.email }}</a></div>
-                        </div>
+                    </div>
+                    <div class="mt-auto pt-3 border-top">
+                        <div class="text-muted small">Prepared by:</div>
+                        <div class="fw-semibold">{{ current_user.username }}</div>
+                        <div><a href="mailto:{{ current_user.email }}">{{ current_user.email }}</a></div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Customer Information -->
-        <div class="col-md-6 mb-4">
+        <div class="col-md-6">
             <div class="card h-100">
-                <div class="card-header bg-light">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Customer Information</h5>
+                    <span class="badge bg-success">Verified</span>
                 </div>
-                <div class="card-body customer-info-section">
-                    <div id="customerInfoContent">
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-building me-2 text-primary"></i>
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-building me-2 text-primary"></i>
+                            <div>
+                                <div class="text-muted small">Company Name</div>
+                                <div class="fw-semibold">{{ session.get('company_name', 'Not specified') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-envelope me-2 text-muted"></i>
+                            <div>
+                                <div class="text-muted small">Email</div>
                                 <div>
-                                    <div class="text-muted small">Company Name</div>
-                                    <div class="fw-semibold">{{ session.get('company_name', 'Not specified') }}</div>
+                                    {% if session.get('company_email') %}
+                                        <a href="mailto:{{ session.company_email }}">{{ session.company_email }}</a>
+                                    {% else %}
+                                        <span class="text-muted">Not specified</span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-2">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-envelope me-2 text-muted"></i>
-                                <div>
-                                    <div class="text-muted small">Email</div>
-                                    <div>
-                                        {% if session.get('company_email') %}
-                                            <a href="mailto:{{ session.company_email }}">{{ session.company_email }}</a>
-                                        {% else %}
-                                            <span class="text-muted">Not specified</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="alert alert-success py-1 px-2 d-inline-block">
-                            <i class="fas fa-check-circle me-1"></i> Verified
-                        </div>
+                    </div>
+                    <div class="mt-auto"></div>
                 </div>
             </div>
         </div>

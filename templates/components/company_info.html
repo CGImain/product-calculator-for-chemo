@@ -88,72 +88,64 @@ function updateFromSession() {
     }
 }
 
-// Function to initialize company info
+// Main initialization function
 function initCompanyInfo() {
-    // Ensure the component container exists
     const container = document.getElementById('companyInfoBar');
-    if (!container) {
-        console.log('Company info container not found');
-        return;
-    }
+    if (!container) return;
 
-    // Get server data from hidden element
+    // Show loading state
+    container.style.display = 'flex';
+    container.style.opacity = '0.7';
+    
+    // Get data from server or storage
     const serverData = document.getElementById('serverCompanyData');
-    let companyData = null;
-    
-    // Check for server data first
-    if (serverData) {
-        companyData = {
-            name: serverData.dataset.companyName || '',
-            email: serverData.dataset.companyEmail || '',
-            id: serverData.dataset.companyId || ''
-        };
-        
-        // Only proceed if we have valid data
-        if (companyData.name) {
-            // Update storage if needed
-            if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
-            }
-            
-            // Show container and update UI
-            container.style.display = 'flex';
-            setTimeout(() => { container.style.opacity = '1'; }, 10);
-            updateCompanyInfoDisplay(companyData);
-            setupEventListeners();
-            return; // Exit early if we have valid server data
-        }
-    }
-    
-    // Fall back to storage if no server data
-    if (typeof sessionStorage !== 'undefined') {
+    const companyData = serverData ? {
+        name: serverData.dataset.companyName || '',
+        email: serverData.dataset.companyEmail || '',
+        id: serverData.dataset.companyId || ''
+    } : null;
+
+    // If we have valid server data, use it
+    if (companyData?.name) {
+        updateStorageAndUI(companyData);
+    } 
+    // Otherwise try loading from storage
+    else if (typeof sessionStorage !== 'undefined') {
         try {
-            const storedCompany = sessionStorage.getItem('selectedCompany');
-            if (storedCompany) {
-                const storedData = JSON.parse(storedCompany);
-                if (storedData?.name) {
-                    container.style.display = 'flex';
-                    setTimeout(() => { container.style.opacity = '1'; }, 10);
-                    updateCompanyInfoDisplay(storedData);
-                    setupEventListeners();
-                    return;
-                }
-            }
+            const stored = sessionStorage.getItem('selectedCompany');
+            if (stored) updateStorageAndUI(JSON.parse(stored));
         } catch (e) {
-            console.error('Error loading company from storage:', e);
+            console.error('Error loading company:', e);
         }
     }
     
-    // If we get here, no valid company data was found
-    console.log('No company data found in server or storage');
-    container.style.display = 'none';
+    // If we have no data, hide the container
+    if (!companyData?.name && !sessionStorage?.getItem('selectedCompany')) {
+        container.style.display = 'none';
+    }
 }
 
-// Initialize when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Small delay to ensure all elements are ready
-    setTimeout(initCompanyInfo, 10);
-});
+// Helper function to update storage and UI
+function updateStorageAndUI(company) {
+    if (!company?.name) return;
+    
+    const container = document.getElementById('companyInfoBar');
+    if (!container) return;
+    
+    // Update storage
+    if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+    }
+    
+    // Update UI
+    container.style.display = 'flex';
+    container.style.opacity = '1';
+    updateCompanyInfoDisplay(company);
+    setupEventListeners();
+}
+
+// Single initialization point
+document.addEventListener('DOMContentLoaded', initCompanyInfo);
 
 // Function to safely get company data from storage
 function getCompanyData() {

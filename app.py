@@ -2038,8 +2038,9 @@ def send_quotation():
             }
             session.modified = True
 
-        # Send to customer and operations email (remove duplicates)
-        recipients = list({email for email in [customer_email, 'operations@chemo.in'] if email})
+        # Send to customer, operations email, and current user (remove duplicates)
+        user_email = current_user.email if hasattr(current_user, 'email') else None
+        recipients = list({email for email in [customer_email, 'operations@chemo.in', user_email] if email})
 
         # Get current date
         today = datetime.utcnow().strftime('%d/%m/%Y')
@@ -2165,7 +2166,7 @@ def send_quotation():
                 <div style='padding: 1.25rem;'>
                   <div style='margin-bottom: 1rem;'>
                     <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Company Name</div>
-                    <div style='font-weight: 600;'>CGI - Chemo Graphics India</div>
+                    <div style='font-weight: 600;'>CGI - Chemo Graphics INTERNATIONAL</div>
                   </div>
                   <div style='margin-bottom: 1rem;'>
                     <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Address</div>
@@ -2262,7 +2263,7 @@ def send_quotation():
         msg = MIMEMultipart()
         msg['From'] = f"{EMAIL_FROM_NAME} <{EMAIL_FROM}>"
         msg['To'] = ', '.join(recipients)
-        msg['Subject'] = f"Quotation from Chemo India - {today}"
+        msg['Subject'] = f"Quotation from Chemo INTERNATIONAL - {today}"
         
         # Attach HTML version
         part = MIMEText(email_content, 'html')

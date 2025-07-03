@@ -1,34 +1,27 @@
 {# Company info bar with inline company selection #}
 <div id="companyInfoWrapper" class="company-info-wrapper">
-    <!-- Display bar -->
+    <!-- Display bar - initially visible with server-rendered content -->
     <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
         <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="fas fa-building me-2 text-primary"></i>
                     <span class="fw-semibold" id="companyNameDisplay">
-                        {% if session.company_name %}
-                            {{ session.company_name }}
-                        {% endif %}
+                        {{ session.company_name or 'Select a company' }}
                     </span>
                 </div>
                 <button class="btn btn-sm btn-outline-primary" id="companyChangeBtn">
                     <i class="fas fa-edit me-1"></i> Change
                 </button>
             </div>
-            {% if session.company_email %}
-            <div id="companyInfoContainer" class="d-flex align-items-center mt-1">
+            <div id="companyInfoContainer" class="d-flex align-items-center mt-1" {% if not session.company_email %}style="display: none;"{% endif %}>
                 <i class="fas fa-envelope me-2 text-muted"></i>
                 <small class="text-muted" id="companyEmailDisplay">
-                    {{ session.company_email }}
+                    {{ session.company_email or '' }}
                 </small>
             </div>
-            {% else %}
-            <div id="companyInfoContainer" class="d-flex align-items-center mt-1" style="display: none;">
-                <i class="fas fa-envelope me-2 text-muted"></i>
-                <small class="text-muted" id="companyEmailDisplay"></small>
-            </div>
-            {% endif %}
+        </div>
+    </div>
         </div>
     </div>
 
@@ -91,11 +84,30 @@ function updateFromSession() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Update from session data first
-    updateFromSession();
+    // Get company info from the server-rendered content
+    const nameDisplay = document.getElementById('companyNameDisplay');
+    const emailDisplay = document.getElementById('companyEmailDisplay');
     
-    // Also update after a short delay to catch any async updates
-    setTimeout(updateFromSession, 300);
+    // Only update from storage if we don't have server-rendered content
+    if ((!nameDisplay || !nameDisplay.textContent.trim() || nameDisplay.textContent.trim() === 'Select a company') &&
+        typeof sessionStorage !== 'undefined') {
+        
+        // Try to get from session storage
+        try {
+            const storedCompany = sessionStorage.getItem('selectedCompany');
+            if (storedCompany) {
+                const company = JSON.parse(storedCompany);
+                if (company && company.name) {
+                    updateCompanyInfoDisplay(company);
+                }
+            }
+        } catch (e) {
+            console.error('Error loading company from storage:', e);
+        }
+    }
+    
+    // Set up event listeners
+    setupEventListeners();
 });
 
 // Function to safely get company data from storage
@@ -153,54 +165,45 @@ function getCompanyData() {
 }
 
 // Function to update company info display
-function updateCompanyInfoDisplay() {
+function updateCompanyInfoDisplay(company) {
     try {
-        const nameEl = document.getElementById('serverCompanyName');
-        const emailEl = document.getElementById('serverCompanyEmail');
+        if (!company) {
+            company = getCompanyData();
+        }
         
         const nameDisplay = document.getElementById('companyNameDisplay');
         const emailDisplay = document.getElementById('companyEmailDisplay');
         const companyInfoContainer = document.getElementById('companyInfoContainer');
         
-        if (nameEl && nameEl.textContent.trim()) {
-            if (nameDisplay) nameDisplay.textContent = nameEl.textContent.trim();
+        if (!nameDisplay) return;
+        
+        // Only update if we have new data
+        if (company && company.name) {
+            nameDisplay.textContent = company.name;
             
-            // Update the selected company
-            selectedCompany = {
-                name: nameEl.textContent.trim(),
-                email: emailEl ? emailEl.textContent.trim() : '',
-                id: document.getElementById('serverCompanyId')?.textContent.trim() || ''
-            };
+            // Update email if available
+            if (emailDisplay && companyInfoContainer) {
+                if (company.email) {
+                    emailDisplay.textContent = company.email;
+                    companyInfoContainer.style.display = 'flex';
+                } else {
+                    companyInfoContainer.style.display = 'none';
+                }
+            }
             
             // Update storage
             if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem('selectedCompany', JSON.stringify(selectedCompany));
+                sessionStorage.setItem('selectedCompany', JSON.stringify(company));
             }
-            if (typeof localStorage !== 'undefined') {
-                localStorage.setItem('selectedCompany', JSON.stringify(selectedCompany));
-            }
-        }
-        
-        if (emailEl && emailEl.textContent.trim()) {
-            if (emailDisplay) emailDisplay.textContent = emailEl.textContent.trim();
-            if (companyInfoContainer) companyInfoContainer.style.display = 'flex';
-        } else if (companyInfoContainer) {
-            companyInfoContainer.style.display = 'none';
-        }
             
-        // Update customer info sections if they exist
-        if (typeof updateCustomerInfoSections === 'function' && selectedCompany) {
-            updateCustomerInfoSections(selectedCompany);
+            // Update any customer info sections
+            if (typeof updateCustomerInfoSections === 'function') {
+                updateCustomerInfoSections(company);
+            }
         }
         
-        // Show success message if this was a change
-        if (window.companyJustChanged && selectedCompany) {
-            showToast(`Company updated to ${selectedCompany.name}`, 'success');
-            window.companyJustChanged = false;
-        }
     } catch (error) {
-        console.error('Error updating company info:', error);
-        showToast('Error updating company information', 'error');
+        console.error('Error updating company info display:', error);
     }
 }
 
@@ -438,28 +441,6 @@ function showToast(message, type = 'info') {
     setTimeout(() => {
         toast.remove();
     }, 3000);
-}
-
-// Function to update company info display
-function updateCompanyInfoDisplay(company) {
-    try {
-        const nameDisplay = document.getElementById('companyNameDisplay');
-        const emailDisplay = document.getElementById('companyEmailDisplay');
-        const companyInfoContainer = document.getElementById('companyInfoContainer');
-        
-        if (company) {
-            if (nameDisplay) nameDisplay.textContent = company.name || '';
-            if (emailDisplay) emailDisplay.textContent = company.email || '';
-            if (companyInfoContainer) companyInfoContainer.style.display = company.email ? 'flex' : 'none';
-            
-            // Update session storage
-            if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem('selectedCompany', JSON.stringify(company));
-            }
-        }
-    } catch (error) {
-        console.error('Error updating company info display:', error);
-    }
 }
 
 // Make the function available globally

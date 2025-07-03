@@ -2147,37 +2147,36 @@ def send_quotation():
 
         # Build email content with improved table layout and consistent white background
         email_content = f"""
-        <div style='font-family: Arial, sans-serif; color: #333; max-width: 1000px; margin: auto; line-height: 1.6; background-color: #f8f9fa; padding: 20px;'>
-          <div style='background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 20px;'>
-            <div style='text-align: center; margin-bottom: 30px;'>
-              <h2 style='margin: 0 0 5px 0; color: #2c3e50;'>QUOTATION</h2>
-              <p style='color: #6c757d; margin: 0;'>{today}</p>
+        <div style='font-family: Arial, sans-serif; color: #333; max-width: 1200px; margin: 0 auto; line-height: 1.6; background-color: #f8f9fa; padding: 20px;'>
+          <div style='background-color: white; border-radius: 0.5rem; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); padding: 2rem; margin-bottom: 1.5rem;'>
+            <div style='text-align: center; margin-bottom: 2rem;'>
+              <img src='https://chemo.in/wp-content/uploads/2023/07/logo.png' alt='CGI Logo' style='max-width: 200px; margin-bottom: 1rem;'>
+              <h2 style='margin: 0 0 0.5rem 0; color: #2c3e50;'>QUOTATION</h2>
+              <p style='color: #6c757d; margin: 0; font-size: 0.9rem;'>{today}</p>
             </div>
             
-            <div style='display: flex; gap: 20px; margin-bottom: 30px;'>
+            <div style='display: flex; gap: 1.5rem; margin-bottom: 2rem;'>
               <!-- Company Information -->
-              <div style='flex: 1; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background-color: white;'>
-                <div style='background-color: #f8f9fa; padding: 12px 15px; border-bottom: 1px solid #e0e0e0;'>
-                  <h5 style='margin: 0; display: flex; justify-content: space-between; align-items: center;'>
-                    Company Information
-                    <span style='background-color: #198754; color: white; font-size: 12px; padding: 2px 8px; border-radius: 10px;'>Verified</span>
-                  </h5>
+              <div style='flex: 1; border: 1px solid #dee2e6; border-radius: 0.25rem; overflow: hidden; background-color: white;'>
+                <div style='background-color: #f8f9fa; padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(0,0,0,0.125); display: flex; justify-content: space-between; align-items: center;'>
+                  <h5 style='margin: 0; font-size: 1rem;'>Company Information</h5>
+                  <span style='background-color: #198754; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 10px;'>Verified</span>
                 </div>
-                <div style='padding: 15px;'>
-                  <div style='margin-bottom: 15px;'>
-                    <div style='color: #6c757d; font-size: 13px;'>Company Name</div>
+                <div style='padding: 1.25rem;'>
+                  <div style='margin-bottom: 1rem;'>
+                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Company Name</div>
                     <div style='font-weight: 600;'>CGI - Chemo Graphics India</div>
                   </div>
-                  <div style='margin-bottom: 15px;'>
-                    <div style='color: #6c757d; font-size: 13px;'>Address</div>
+                  <div style='margin-bottom: 1rem;'>
+                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Address</div>
                     <div>113, 114 High Tech Industrial Centre,<br>Caves Rd, Jogeshwari East,<br>Mumbai, Maharashtra 400060</div>
                   </div>
-                  <div style='margin-bottom: 15px;'>
-                    <div style='color: #6c757d; font-size: 13px;'>Email</div>
+                  <div style='margin-bottom: 1rem;'>
+                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Email</div>
                     <div><a href='mailto:info@chemo.in' style='color: #0d6efd; text-decoration: none;'>info@chemo.in</a></div>
                   </div>
-                  <div style='padding-top: 15px; margin-top: 15px; border-top: 1px solid #e9ecef;'>
-                    <div style='color: #6c757d; font-size: 13px;'>Prepared by:</div>
+                  <div style='padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #e9ecef;'>
+                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Prepared by:</div>
                     <div style='font-weight: 600;'>{current_user.username}</div>
                     <div><a href='mailto:{current_user.email}' style='color: #0d6efd; text-decoration: none;'>{current_user.email}</a></div>
                   </div>
@@ -2185,50 +2184,63 @@ def send_quotation():
               </div>
               
               <!-- Customer Information -->
-              <div style='flex: 1; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background-color: white;'>
-                <div style='background-color: #f8f9fa; padding: 12px 15px; border-bottom: 1px solid #e0e0e0;'>
-                  <h5 style='margin: 0; display: flex; justify-content: space-between; align-items: center;'>
-                    Customer Information
-                    <span style='background-color: #198754; color: white; font-size: 12px; padding: 2px 8px; border-radius: 10px;'>Verified</span>
-                  </h5>
+              <div style='flex: 1; border: 1px solid #dee2e6; border-radius: 0.25rem; overflow: hidden; background-color: white;'>
+                <div style='background-color: #f8f9fa; padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(0,0,0,0.125); display: flex; justify-content: space-between; align-items: center;'>
+                  <h5 style='margin: 0; font-size: 1rem;'>Customer Information</h5>
+                  <span style='background-color: #198754; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 10px;'>Verified</span>
                 </div>
-                <div style='padding: 15px;'>
-                  <div style='margin-bottom: 15px;'>
-                    <div style='color: #6c757d; font-size: 13px;'>Company Name</div>
+                <div style='padding: 1.25rem;'>
+                  <div style='margin-bottom: 1rem;'>
+                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Company Name</div>
                     <div style='font-weight: 600;'>{customer_name}</div>
                   </div>
-                  <div style='margin-bottom: 15px;'>
-                    <div style='color: #6c757d; font-size: 13px;'>Email</div>
+                  <div style='margin-bottom: 1rem;'>
+                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Email</div>
                     <div><a href='mailto:{customer_email}' style='color: #0d6efd; text-decoration: none;'>{customer_email}</a></div>
                   </div>
-                  <div style='margin-bottom: 15px;'>
-                    <div style='color: #6c757d; font-size: 13px;'>Date</div>
+                  <div style='margin-bottom: 1rem;'>
+                    <div style='color: #6c757d; font-size: 0.8rem; margin-bottom: 0.25rem;'>Date</div>
                     <div>{today}</div>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div style='margin: 20px 0; padding: 20px; background-color: white; border: 1px solid #e0e0e0; border-radius: 4px;'>
-              <p>Hello,</p>
-              <p>This is {current_user.username} from CGI.</p>
-              <p>Here is the proposed quotation for the required products:</p>
-              {'<p><strong>Notes:</strong><br>' + notes + '</p>' if notes else ''}
+            <div style='margin: 1.5rem 0; padding: 1.5rem; background-color: white; border: 1px solid #dee2e6; border-radius: 0.25rem;'>
+              <p style='margin-bottom: 1rem;'>Hello,</p>
+              <p style='margin-bottom: 1rem;'>This is {current_user.username} from CGI.</p>
+              <p style='margin-bottom: 1.5rem;'>Here is the proposed quotation for the required products:</p>
+              {'<p style="margin-bottom: 1.5rem;"><strong>Notes:</strong><br>' + notes + '</p>' if notes else ''}
               
-              <div style='overflow-x: auto; margin-top: 20px;'>
-                <table style='width: 100%; border-collapse: collapse; font-size: 14px; background-color: white;'>
+              <div style='overflow-x: auto; margin: 1.5rem 0;'>
+                <table style='width: 100%; border-collapse: collapse; font-size: 0.9rem; background-color: white; border: 1px solid #dee2e6;'>
+                  <thead>
+                    <tr style='background-color: #f8f9fa;'>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Item</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Machine</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Product</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Type</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Thickness</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Size</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: left;'>Barri...</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: right;'>Qty</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: right;'>Disc. %</th>
+                      <th style='padding: 0.75rem; border: 1px solid #dee2e6; text-align: right;'>Amount (₹)</th>
+                    </tr>
+                  </thead>
                   <tbody>
-                  {rows_html}
+                    {rows_html}
+                  </tbody>
                 </table>
               </div>
               
-              <p style='margin-top: 30px;'>Thank you for your business!<br>— Team CGI</p>
+              <p style='margin: 2rem 0 1rem 0;'>Thank you for your business!<br>— Team CGI</p>
             </div>
             
-            <div style='margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; text-align: center;'>
-              <small style='color: #6c757d; font-size: 12px;'>
+            <div style='margin-top: 1.5rem; padding: 1rem; background-color: #f8f9fa; border-radius: 0.25rem; text-align: center;'>
+              <p style='color: #6c757d; font-size: 0.8rem; margin: 0;'>
                 This quotation is not a contract or invoice. It is our best estimate.
-              </small>
+              </p>
             </div>
           </div>
         </div>

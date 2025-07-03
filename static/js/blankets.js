@@ -105,16 +105,42 @@ window.onload = () => {
       };
     });
 
-  fetch("/static/data/discount.json")
-    .then(res => res.json())
-    .then(data => {
-      discountData = data.discounts || [];
-      console.log('Discount data loaded:', discountData);
-    })
-    .catch(error => {
-      console.error('Error loading discount data:', error);
-      discountData = [];
-    });
+  // Load discounts when the page loads
+  function loadDiscounts() {
+    fetch("/discounts")
+      .then(res => res.json())
+      .then(data => {
+        const select = document.getElementById("discountSelect");
+        select.innerHTML = '<option value="">-- Select Discount --</option>';
+        data.discounts.forEach(item => {
+          const option = document.createElement("option");
+          option.value = item.percentage;
+          option.text = `${item.name} (${item.percentage}%)`;
+          select.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Error loading discounts:', error);
+        // Fallback to default discounts if loading fails
+        const defaultDiscounts = [
+          { name: "Bulk Order", percentage: 5 },
+          { name: "Wholesale", percentage: 10 },
+          { name: "Dealer", percentage: 15 },
+          { name: "Special Offer", percentage: 20 }
+        ];
+        const select = document.getElementById("discountSelect");
+        select.innerHTML = '<option value="">-- Select Discount --</option>';
+        defaultDiscounts.forEach(item => {
+          const option = document.createElement("option");
+          option.value = item.percentage;
+          option.text = `${item.name} (${item.percentage}%)`;
+          select.appendChild(option);
+        });
+      });
+  }
+
+  // Call loadDiscounts when the page loads
+  loadDiscounts();
 
   fetch("/static/data/thickness.json")
     .then(res => res.json())
@@ -205,6 +231,18 @@ window.onload = () => {
     }
   });
 
+  // Call calculatePrice when the page loads to initialize values
+  calculatePrice();
+
+  // Add event listeners for automatic calculation
+  document.getElementById('lengthInput').addEventListener('input', calculatePrice);
+  document.getElementById('widthInput').addEventListener('input', calculatePrice);
+  document.getElementById('thicknessSelect').addEventListener('change', calculatePrice);
+  document.getElementById('barSelect').addEventListener('change', calculatePrice);
+  document.getElementById('quantityInput').addEventListener('input', calculatePrice);
+  document.getElementById('discountSelect').addEventListener('change', calculatePrice);
+  document.getElementById('gstSelect').addEventListener('change', calculatePrice);
+
   // Add click handler for calculate button
   const calculateBtn = document.querySelector('button[onclick*="calculatePrice"]');
   if (calculateBtn) {
@@ -219,19 +257,17 @@ window.onload = () => {
   }
 
   // Utility: show/hide discount section based on selected blanket
-function updateDiscountSection() {
-  const discountSection = document.getElementById('discountSection');
-  if (!discountSection) return;
-  const blanketSelect = document.getElementById('blanketSelect');
-  if (!blanketSelect) return;
-  if (blanketSelect.value) {
-    discountSection.style.display = 'block';
-  } else {
-    discountSection.style.display = 'none';
+  function updateDiscountSection() {
+    const discountSection = document.getElementById('discountSection');
+    const discountSelect = document.getElementById('discountSelect');
+    
+    if (!discountSection || !discountSelect) {
+      console.error('Discount section or select element not found');
+      return;
+    }
   }
-}
 
-// Hook add-to-cart button
+  // Hook add-to-cart button
   const addBtn = document.getElementById("addToCartBlanket");
   if (addBtn) {
     addBtn.addEventListener("click", () => {
@@ -311,7 +347,7 @@ function calculatePrice() {
   const width = parseFloat(document.getElementById("widthInput")?.value) || 0;
   const unit = document.getElementById("unitSelect")?.value || 'mm';
   const thickness = document.getElementById("thicknessSelect")?.value || '';
-  const quantity = parseInt(document.getElementById("quantityInput")?.value) || 0;
+  const quantity = parseInt(document.getElementById("quantityInput")?.value) || 1;
   const blanketSelect = document.getElementById("blanketSelect");
   
   console.log('Input values:', { length, width, unit, thickness, quantity });
@@ -330,75 +366,109 @@ function calculatePrice() {
   }
   
   console.log('Selected blanket:', selectedBlanket);
-
-  // Convert dimensions to meters
-  const lengthM = convertToMeters(length, unit);
-  const widthM = convertToMeters(width, unit);
-  const areaSqM = lengthM * widthM;
-  const areaSqYard = areaSqM * 1.19599; // 1 sq.m = 1.19599 sq.yd
-
-  // Update area display
-  const areaElement = document.getElementById("calculatedArea");
-  if (areaElement) {
-    areaElement.innerText = `Area per unit: ${areaSqM.toFixed(4)} m² (${areaSqYard.toFixed(4)} yd²)`;
-  }
-
-  // Calculate base price using ratePerSqMt (rate per square meter)
-  console.log('Calculating base price:', {
-    areaSqM,
-    ratePerSqMt: parseFloat(selectedBlanket.ratePerSqMt) || 0,
-    currentBarRate
-  });
   
-  // Prefer ratePerSqMt if provided, otherwise fallback to base_rate
+  try {
+    // Convert dimensions to meters
+    const lengthM = convertToMeters(length, unit);
+    const widthM = convertToMeters(width, unit);
+    const areaSqM = lengthM * widthM;
+    const areaSqYard = areaSqM * 1.19599; // 1 sq.m = 1.19599 sq.yd
+    
+    // Update area display
+    const areaElement = document.getElementById("calculatedArea");
+    if (areaElement) {
+      areaElement.innerText = `Area per unit: ${areaSqM.toFixed(4)} m² (${areaSqYard.toFixed(4)} yd²)`;
+    }
+    
+    // Calculate base price using ratePerSqMt (rate per square meter)
     const ratePerSqMt = parseFloat(selectedBlanket.ratePerSqMt || selectedBlanket.base_rate || 0);
-  basePrice = areaSqM * ratePerSqMt;
-  console.log('Base price calculated:', basePrice);
-  
-  const basePriceElement = document.getElementById("basePrice");
-  if (basePriceElement) {
-    const displayText = `Base Price: ₹${basePrice.toFixed(2)}`;
-    console.log('Updating base price display:', displayText);
-    basePriceElement.innerText = displayText;
-  } else {
-    console.warn('basePriceElement not found');
+    basePrice = areaSqM * ratePerSqMt;
+    
+    // Calculate price with barring
+    priceWithBar = basePrice + (currentBarRate * areaSqM);
+    
+    // Update UI
+    document.getElementById('basePrice').textContent = `Base Price: ₹${basePrice.toFixed(2)}`;
+    
+    // Get discount percentage from select
+    const discountSelect = document.getElementById('discountSelect');
+    currentDiscount = parseFloat(discountSelect.value) || 0;
+    
+    // Calculate final price with discount and GST
+    let finalPrice = priceWithBar;
+    let discountAmount = 0;
+    
+    if (currentDiscount > 0) {
+      discountAmount = (priceWithBar * currentDiscount) / 100;
+      finalPrice = priceWithBar - discountAmount;
+      
+      // Update discount display
+      const discountValue = document.getElementById('discountedValue');
+      if (discountValue) {
+        discountValue.textContent = `Discount (${currentDiscount}%): -₹${discountAmount.toFixed(2)}`;
+        discountValue.style.display = 'block';
+      }
+      
+      document.getElementById('netUnitPrice').textContent = `Price after Discount: ₹${finalPrice.toFixed(2)}`;
+    } else {
+      // Hide discount display if no discount
+      const discountValue = document.getElementById('discountedValue');
+      if (discountValue) {
+        discountValue.style.display = 'none';
+      }
+      document.getElementById('netUnitPrice').textContent = `Net Price: ₹${finalPrice.toFixed(2)}`;
+    }
+    
+    // Apply GST
+    const gstRate = parseFloat(document.getElementById('gstSelect').value) || 0;
+    const gstAmount = (finalPrice * gstRate) / 100;
+    const totalPrice = finalPrice + gstAmount;
+    
+    // Update price summary
+    const finalPriceElement = document.getElementById('finalPrice');
+    if (finalPriceElement) {
+      let summaryHTML = `
+        <div class="d-flex justify-content-between">
+          <span>Base Price:</span>
+          <span>₹${basePrice.toFixed(2)}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Barring:</span>
+          <span>₹${(currentBarRate * areaSqM).toFixed(2)}</span>
+        </div>`;
+      
+      if (currentDiscount > 0) {
+        summaryHTML += `
+        <div class="d-flex justify-content-between text-danger">
+          <span>Discount (${currentDiscount}%):</span>
+          <span>-₹${discountAmount.toFixed(2)}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Subtotal:</span>
+          <span>₹${finalPrice.toFixed(2)}</span>
+        </div>`;
+      }
+      
+      summaryHTML += `
+        <div class="d-flex justify-content-between">
+          <span>GST (${gstRate}%):</span>
+          <span>₹${gstAmount.toFixed(2)}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold">
+          <span>Total:</span>
+          <span>₹${totalPrice.toFixed(2)}</span>
+        </div>`;
+      
+      finalPriceElement.innerHTML = summaryHTML;
+    }
+    
+  } catch (error) {
+    console.error('Error in calculatePrice:', error);
   }
-
-  // Update price with bar
-  priceWithBar = basePrice + currentBarRate;
-  console.log('Price with bar:', priceWithBar);
-  
-  // Only show base price in the left column
-  const netUnitPriceElement = document.querySelectorAll("#netUnitPrice")[0];
-  if (netUnitPriceElement) {
-    netUnitPriceElement.innerText = ''; // Clear the left column price
-  }
-  
-  // Show net price/unit after barring type in the right column
-  const netPriceAfterBarElement = document.querySelectorAll("#netUnitPrice")[1];
-  if (netPriceAfterBarElement) {
-    const displayText = `Net Price/Unit: ₹${priceWithBar.toFixed(2)}`;
-    console.log('Updating net unit price after bar:', displayText);
-    netPriceAfterBarElement.innerText = displayText;
-  }
-
-  // Calculate total price
-  const totalNetPrice = priceWithBar * quantity;
-  console.log('Total net price:', totalNetPrice);
-  
-  const totalNetPriceElement = document.getElementById("totalNetPrice");
-  if (totalNetPriceElement) {
-    const displayText = `Total Net Price: ₹${totalNetPrice.toFixed(2)}`;
-    console.log('Updating total net price:', displayText);
-    totalNetPriceElement.innerText = displayText;
-  } else {
-    console.warn('totalNetPriceElement not found');
-  }
-
-  // Apply discount and GST
-  applyDiscount();
-  applyGST();
 }
+
+
 
 function applyDiscount() {
   const discountSelect = document.getElementById("discountSelect");
@@ -465,46 +535,6 @@ function applyGST() {
       </div>
     `;
   }
-}
-
-function showDiscountSection() {
-  const discountSection = document.getElementById('discountSection');
-  const discountSelect = document.getElementById('discountSelect');
-  
-  if (!discountSection || !discountSelect) {
-    console.error('Discount section or select element not found');
-    return;
-  }
-  
-  // Toggle display
-  const isVisible = discountSection.style.display !== 'none';
-  discountSection.style.display = isVisible ? 'none' : 'block';
-  
-  // Only initialize discount options if showing the section
-  if (!isVisible) {
-    // Clear existing options except the first one
-    while (discountSelect.options.length > 1) {
-      discountSelect.remove(1);
-    }
-    
-    // Add discount options if we have data
-    if (discountData && discountData.length > 0) {
-      discountData.forEach(discount => {
-        const option = new Option(`${discount}%`, discount);
-        discountSelect.add(option);
-      });
-      
-      // Add event listener for discount change
-      discountSelect.onchange = applyDiscount;
-      
-      console.log('Discount options loaded:', discountData);
-    } else {
-      console.warn('No discount data available');
-    }
-  }
-  
-  // Recalculate price when showing/hiding discount
-  calculatePrice();
 }
 
 function addBlanketToCart() {

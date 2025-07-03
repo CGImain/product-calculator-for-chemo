@@ -303,35 +303,35 @@ function handleSizeSelection() {
 }
 
 function loadDiscounts() {
-  // This function loads discounts from the server
-  fetch('/api/discounts')
-    .then(response => response.json())
-    .then(discounts => {
-      const select = document.getElementById('discountSelect');
-      if (!select) return;
-      
-      // Clear existing options except the first one
-      while (select.options.length > 1) {
-        select.remove(1);
-      }
-      
-      // Add new discount options
-      discounts.forEach(discount => {
-        const option = document.createElement('option');
-        option.value = discount.percent;
-        option.textContent = `${discount.name} (${discount.percent}%)`;
-        select.appendChild(option);
-      });
-      
-      // Add event listener for discount selection
-      select.addEventListener('change', function() {
-        currentDiscount = parseFloat(this.value) || 0;
-        calculateFinalPrice();
-      });
-    })
-    .catch(error => {
-      console.error('Error loading discounts:', error);
-    });
+  // Static list of discounts
+  const discounts = [
+    { name: 'Bulk Order', percent: 5 },
+    { name: 'Wholesale', percent: 10 },
+    { name: 'Retailer', percent: 15 },
+    { name: 'Special Offer', percent: 20 }
+  ];
+
+  const select = document.getElementById('discountSelect');
+  if (!select) return;
+  
+  // Clear existing options except the first one
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+  
+  // Add new discount options
+  discounts.forEach(discount => {
+    const option = document.createElement('option');
+    option.value = discount.percent;
+    option.textContent = `${discount.name} (${discount.percent}%)`;
+    select.appendChild(option);
+  });
+  
+  // Add event listener for discount selection
+  select.addEventListener('change', function() {
+    currentDiscount = parseFloat(this.value) || 0;
+    calculateFinalPrice();
+  });
 }
 
 function resetCalculations() {

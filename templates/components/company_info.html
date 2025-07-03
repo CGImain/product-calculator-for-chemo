@@ -1,6 +1,14 @@
 {# Company info bar with inline company selection #}
 <div id="companyInfoWrapper" class="company-info-wrapper">
-    <!-- Display bar - initially visible with server-rendered content -->
+    <!-- Hidden server data -->
+    <div id="serverCompanyData" 
+         data-company-name="{{ session.company_name or '' }}" 
+         data-company-email="{{ session.company_email or '' }}" 
+         data-company-id="{{ session.company_id or '' }}" 
+         style="display: none;">
+    </div>
+    
+    <!-- Display bar -->
     <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
         <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center justify-content-between">
@@ -20,8 +28,6 @@
                     {{ session.company_email or '' }}
                 </small>
             </div>
-        </div>
-    </div>
         </div>
     </div>
 
@@ -84,21 +90,31 @@ function updateFromSession() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Get company info from the server-rendered content
-    const nameDisplay = document.getElementById('companyNameDisplay');
-    const emailDisplay = document.getElementById('companyEmailDisplay');
-    
-    // Only update from storage if we don't have server-rendered content
-    if ((!nameDisplay || !nameDisplay.textContent.trim() || nameDisplay.textContent.trim() === 'Select a company') &&
-        typeof sessionStorage !== 'undefined') {
+    // Get server data
+    const serverData = document.getElementById('serverCompanyData');
+    const companyData = {
+        name: serverData?.dataset.companyName || '',
+        email: serverData?.dataset.companyEmail || '',
+        id: serverData?.dataset.companyId || ''
+    };
+
+    // If we have server data, use it
+    if (companyData.name) {
+        // Update storage
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
+        }
         
-        // Try to get from session storage
+        // Update UI
+        updateCompanyInfoDisplay(companyData);
+    } else if (typeof sessionStorage !== 'undefined') {
+        // Fall back to storage if no server data
         try {
             const storedCompany = sessionStorage.getItem('selectedCompany');
             if (storedCompany) {
-                const company = JSON.parse(storedCompany);
-                if (company && company.name) {
-                    updateCompanyInfoDisplay(company);
+                const storedData = JSON.parse(storedCompany);
+                if (storedData && storedData.name) {
+                    updateCompanyInfoDisplay(storedData);
                 }
             }
         } catch (e) {

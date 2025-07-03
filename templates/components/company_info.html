@@ -313,6 +313,8 @@ function selectCompany(company) {
     const nameDisplay = document.getElementById('companyNameDisplay');
     const emailDisplay = document.getElementById('companyEmailDisplay');
     const companyInfoContainer = document.getElementById('companyInfoContainer');
+    const searchBox = document.getElementById('companySearchBox');
+    const searchResults = document.getElementById('companySearchResults');
     
     if (nameDisplay) nameDisplay.textContent = company.name;
     
@@ -333,8 +335,19 @@ function selectCompany(company) {
         localStorage.setItem('selectedCompany', JSON.stringify(company));
     }
     
-    // Hide the search box
-    hideSearchBox();
+    // Hide the search box and results
+    if (searchBox) searchBox.style.display = 'none';
+    if (searchResults) searchResults.style.display = 'none';
+    
+    // Clear search input
+    const searchInput = document.getElementById('companySearchInput');
+    if (searchInput) searchInput.value = '';
+    
+    // Close any open dropdowns
+    const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+    dropdowns.forEach(dropdown => {
+        dropdown.classList.remove('show');
+    });
     
     // Show success message
     showToast(`Company updated to ${company.name}`, 'success');

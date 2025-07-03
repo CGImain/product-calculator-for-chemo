@@ -265,29 +265,13 @@ function handleSizeSelection() {
     return;
   }
   
-  // Show price section when a size is selected
-  const priceSection = document.getElementById("priceSection");
-  const sheetInputSection = document.getElementById("sheetInputSection");
-  if (priceSection) priceSection.style.display = "block";
-  if (sheetInputSection) sheetInputSection.style.display = "block";
-  
-  // Update net price display safely
+  // Update net price
   currentNetPrice = parseFloat(priceMap[selectedId] || 0);
-  const netPriceElement = document.getElementById("netPrice");
-  if (netPriceElement) {
-    netPriceElement.textContent = currentNetPrice.toFixed(2);
-  }
   
-  // Reset sheet input and calculate initial price
+  // Reset sheet input to 1
   const sheetInput = document.getElementById("sheetInput");
   if (sheetInput) {
-    sheetInput.value = "";
-  }
-  
-  // Show price section if it exists
-  const totalPriceSection = document.getElementById("totalPriceSection");
-  if (totalPriceSection) {
-    totalPriceSection.style.display = "block";
+    sheetInput.value = "1";
   }
   
   // Reset discount when size changes
@@ -297,45 +281,80 @@ function handleSizeSelection() {
     discountSelect.value = "";
   }
   
-  // Load discounts and update prices
-  loadDiscounts();
+  // Update price display
   calculateFinalPrice();
 }
 
-function loadDiscounts() {
-  // Static list of discounts
-  const discounts = [
-    { name: 'Bulk Order', percent: 5 },
-    { name: 'Wholesale', percent: 10 },
-    { name: 'Retailer', percent: 15 },
-    { name: 'Special Offer', percent: 20 }
-  ];
-
+async function loadDiscounts() {
   const select = document.getElementById('discountSelect');
   if (!select) return;
   
-  // Clear existing options except the first one
-  while (select.options.length > 1) {
-    select.remove(1);
+  try {
+    // Clear existing options except the first one
+    while (select.options.length > 1) {
+      select.remove(1);
+    }
+    
+    // Fetch discounts from JSON file
+    const response = await fetch('/static/data/discount.json');
+    if (!response.ok) {
+      throw new Error('Failed to load discounts');
+    }
+    
+    const data = await response.json();
+    const discounts = data.discounts || [];
+    
+    // Add new discount options
+    discounts.forEach(percent => {
+      const percentNum = parseFloat(percent);
+      if (!isNaN(percentNum)) {
+        const option = document.createElement('option');
+        option.value = percentNum;
+        option.textContent = `${percentNum}%`;
+        select.appendChild(option);
+      }
+    });
+    
+    // Remove any existing change event listeners to prevent duplicates
+    const newSelect = select.cloneNode(true);
+    select.parentNode.replaceChild(newSelect, select);
+    
+    // Add event listener for discount selection
+    newSelect.addEventListener('change', function() {
+      currentDiscount = parseFloat(this.value) || 0;
+      calculateFinalPrice();
+    });
+    
+  } catch (error) {
+    console.error('Error loading discounts:', error);
+    // Fallback to default discounts if loading fails
+    const defaultDiscounts = [5, 10, 15, 20];
+    defaultDiscounts.forEach(percent => {
+      const option = document.createElement('option');
+      option.value = percent;
+      option.textContent = `${percent}%`;
+      select.appendChild(option);
+    });
   }
-  
-  // Add new discount options
-  discounts.forEach(discount => {
-    const option = document.createElement('option');
-    option.value = discount.percent;
-    option.textContent = `${discount.name} (${discount.percent}%)`;
-    select.appendChild(option);
-  });
-  
-  // Add event listener for discount selection
-  select.addEventListener('change', function() {
-    currentDiscount = parseFloat(this.value) || 0;
-    calculateFinalPrice();
-  });
 }
 
 function resetCalculations() {
   currentNetPrice = 0;
+  currentDiscount = 0;
+  
+  // Reset input fields
+  const sheetInput = document.getElementById("sheetInput");
+  if (sheetInput) sheetInput.value = "1";
+  
+  // Reset discount select
+  const discountSelect = document.getElementById("discountSelect");
+  if (discountSelect) discountSelect.value = "";
+  
+  // Reset price summary
+  const priceSummary = document.getElementById("priceSummary");
+  if (priceSummary) {
+    priceSummary.innerHTML = '<p class="text-muted mb-0">Select options to see pricing</p>';
+  }
   
   // Reset price displays
   const priceElements = ["netPrice", "totalPrice", "gstAmount", "finalPrice", "finalDiscountedPrice"];
@@ -344,18 +363,13 @@ function resetCalculations() {
     if (el) el.textContent = "0.00";
   });
   
-  // Reset input fields
-  const sheetInput = document.getElementById("sheetInput");
-  if (sheetInput) sheetInput.value = "";
-  
   // Show/hide sections appropriately
   const sections = {
     "priceSection": "none",
     "sheetInputSection": "none",
     "totalPriceSection": "none",
-    "discountPromptSection": "none",
-    "discountSection": "none",
-    "addToCartBtn": "none"
+    "discountPromptSection": "block",
+    "discountSection": "none"
   };
   
   Object.entries(sections).forEach(([id, display]) => {
@@ -363,120 +377,85 @@ function resetCalculations() {
     if (el) el.style.display = display;
   });
   
-  // Show size section if we have a size select
-  const sizeSection = document.getElementById("sizeSection");
-  if (sizeSection) sizeSection.style.display = "block";
-  
   // Reset discount prompt if no discount is applied
-  if (currentDiscount <= 0) {
-    const discountPrompt = document.getElementById("discountPromptSection");
-    if (discountPrompt) {
-      discountPrompt.innerHTML = `
-        <label class="form-label">Apply Discount?</label>
-        <button class="btn btn-outline-primary btn-sm" onclick="showDiscountSection(true)">Yes</button>
-        <button class="btn btn-outline-secondary btn-sm" onclick="showDiscountSection(false)">No</button>
-      `;
-    }
+  const discountPrompt = document.getElementById("discountPromptSection");
+  if (discountPrompt) {
+    discountPrompt.innerHTML = `
+      <label class="form-label">Apply Discount?</label>
+      <button class="btn btn-outline-primary btn-sm" onclick="showDiscountSection(true)">Yes</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="showDiscountSection(false)">No</button>
+    `;
   }
 }
 
 function calculateFinalPrice() {
   const sheetInput = document.getElementById("sheetInput");
   const quantity = parseInt(sheetInput.value) || 0;
+  const gstRate = parseFloat(document.getElementById("gstSelect").value) || 0;
   
-  // Calculate base price (price per sheet * quantity)
+  if (currentNetPrice <= 0 || quantity <= 0) {
+    resetCalculations();
+    return;
+  }
+  
+  // Calculate base price without GST
   const basePrice = currentNetPrice * quantity;
   
-  // Apply discount if any (same as blankets.js)
-  const discountAmount = currentDiscount > 0 ? (basePrice * currentDiscount / 100) : 0;
+  // Apply discount if any
+  const discountAmount = (basePrice * currentDiscount) / 100;
   const discountedPrice = basePrice - discountAmount;
   
-  // Calculate GST on the discounted price (same as blankets.js)
-  const gstAmount = (discountedPrice * 12) / 100;
-  const finalUnitPrice = discountedPrice + gstAmount;
-  const finalPrice = finalUnitPrice; // For consistency with blankets.js naming
+  // Calculate GST on the discounted price
+  const gstAmount = (discountedPrice * gstRate) / 100;
+  const finalPrice = discountedPrice + gstAmount;
   
-  // Update the price displays (matching blankets.js format)
-  const netPriceEl = document.getElementById("netPrice");
-  const totalPriceEl = document.getElementById("totalPrice");
-  const gstAmountEl = document.getElementById("gstAmount");
-  const finalPriceEl = document.getElementById("finalPrice");
-  const totalPriceSection = document.getElementById("totalPriceSection");
-  const discountPromptSection = document.getElementById("discountPromptSection");
-  
-  if (netPriceEl) netPriceEl.textContent = currentNetPrice.toFixed(2);
-  if (totalPriceEl) totalPriceEl.textContent = basePrice.toFixed(2);
-  if (gstAmountEl) gstAmountEl.textContent = gstAmount.toFixed(2);
-  if (finalPriceEl) finalPriceEl.textContent = finalPrice.toFixed(2);
-  
-  // Show the price sections
-  if (totalPriceSection) totalPriceSection.style.display = "block";
-  if (discountPromptSection) {
-    discountPromptSection.style.display = quantity > 0 ? "block" : "none";
-  }
-  
-  // Update discount details
-  const discountDetails = document.getElementById("discountDetails");
-  if (discountDetails) {
-    const totalBeforeDiscount = basePrice;
-    const totalAfterDiscount = discountedPrice;
+  // Update the price summary
+  const priceSummary = document.getElementById("priceSummary");
+  if (priceSummary) {
+    let summaryHTML = '';
     
-    let discountHTML = '';
     if (currentDiscount > 0) {
-      discountHTML = `
-        <div class="price-breakdown">
-          <div class="d-flex justify-content-between">
-            <span>Subtotal (${quantity} units):</span>
-            <span>₹${totalBeforeDiscount.toFixed(2)}</span>
-          </div>
-          <div class="d-flex justify-content-between text-danger">
-            <span>Discount (${currentDiscount}%):</span>
-            <span>-₹${discountAmount.toFixed(2)}</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <span>After Discount:</span>
-            <span>₹${totalAfterDiscount.toFixed(2)}</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <span>GST (12%):</span>
-            <span>₹${gstAmount.toFixed(2)}</span>
-          </div>
-          <hr>
-          <div class="d-flex justify-content-between fw-bold">
-            <span>Total Price:</span>
-            <span>₹${finalPrice.toFixed(2)}</span>
-          </div>
+      summaryHTML = `
+        <div class="d-flex justify-content-between">
+          <span>Price (${quantity} sheets):</span>
+          <span>₹${currentNetPrice.toFixed(2)} × ${quantity} = ₹${basePrice.toFixed(2)}</span>
+        </div>
+        <div class="d-flex justify-content-between text-danger">
+          <span>Discount (${currentDiscount}%):</span>
+          <span>-₹${discountAmount.toFixed(2)}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Subtotal:</span>
+          <span>₹${discountedPrice.toFixed(2)}</span>
         </div>`;
     } else {
-      discountHTML = `
-        <div class="price-breakdown">
-          <div class="d-flex justify-content-between">
-            <span>Subtotal (${quantity} units):</span>
-            <span>₹${totalBeforeDiscount.toFixed(2)}</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <span>GST (12%):</span>
-            <span>₹${gstAmount.toFixed(2)}</span>
-          </div>
-          <hr>
-          <div class="d-flex justify-content-between fw-bold">
-            <span>Total Price:</span>
-            <span>₹${finalPrice.toFixed(2)}</span>
-          </div>
+      summaryHTML = `
+        <div class="d-flex justify-content-between">
+          <span>Price (${quantity} sheets):</span>
+          <span>₹${currentNetPrice.toFixed(2)} × ${quantity} = ₹${basePrice.toFixed(2)}</span>
         </div>`;
     }
     
-    discountDetails.innerHTML = discountHTML;
-  } else {
-    // No discount applied - clear discount details
-    const discountDetails = document.getElementById("discountDetails");
-    if (discountDetails) {
-      discountDetails.innerHTML = '';
-    }
+    // Add GST and total
+    summaryHTML += `
+      <div class="d-flex justify-content-between">
+        <span>GST (${gstRate}%):</span>
+        <span>+₹${gstAmount.toFixed(2)}</span>
+      </div>
+      <hr>
+      <div class="d-flex justify-content-between fw-bold">
+        <span>Total:</span>
+        <span>₹${finalPrice.toFixed(2)}</span>
+      </div>`;
+    
+    priceSummary.innerHTML = summaryHTML;
   }
   
-  // Show/hide add to cart button based on quantity
-  document.getElementById("addToCartBtn").style.display = quantity > 0 ? "block" : "none";
+  // Show add to cart button
+  const addToCartBtn = document.getElementById("addToCartBtn");
+  if (addToCartBtn) {
+    addToCartBtn.style.display = "block";
+  }
 }
 
 function showDiscountSection(apply) {

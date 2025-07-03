@@ -6,16 +6,29 @@
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="fas fa-building me-2 text-primary"></i>
-                    <span class="fw-semibold" id="companyNameDisplay"></span>
+                    <span class="fw-semibold" id="companyNameDisplay">
+                        {% if session.company_name %}
+                            {{ session.company_name }}
+                        {% endif %}
+                    </span>
                 </div>
                 <button class="btn btn-sm btn-outline-primary" id="companyChangeBtn">
                     <i class="fas fa-edit me-1"></i> Change
                 </button>
             </div>
-            <div id="companyInfoContainer" class="d-flex align-items-center mt-1" style="display: none !important;">
+            {% if session.company_email %}
+            <div id="companyInfoContainer" class="d-flex align-items-center mt-1">
+                <i class="fas fa-envelope me-2 text-muted"></i>
+                <small class="text-muted" id="companyEmailDisplay">
+                    {{ session.company_email }}
+                </small>
+            </div>
+            {% else %}
+            <div id="companyInfoContainer" class="d-flex align-items-center mt-1" style="display: none;">
                 <i class="fas fa-envelope me-2 text-muted"></i>
                 <small class="text-muted" id="companyEmailDisplay"></small>
             </div>
+            {% endif %}
         </div>
     </div>
 
@@ -51,54 +64,54 @@
 let companies = [];
 let selectedCompany = null;
 
-// Get server-side data from hidden elements
-function getServerCompanyData() {
+// Simple function to update company info from session storage
+function updateFromSession() {
     try {
         const nameEl = document.getElementById('serverCompanyName');
         const emailEl = document.getElementById('serverCompanyEmail');
-        const idEl = document.getElementById('serverCompanyId');
         
-        const name = nameEl ? nameEl.textContent.trim() : '';
-        const email = emailEl ? emailEl.textContent.trim() : '';
-        const id = idEl ? idEl.textContent.trim() : '';
+        if (nameEl && nameEl.textContent.trim()) {
+            const nameDisplay = document.getElementById('companyNameDisplay');
+            if (nameDisplay) nameDisplay.textContent = nameEl.textContent.trim();
+        }
         
-        if (name || id) {
-            return { name, email, id };
+        const emailContainer = document.getElementById('companyInfoContainer');
+        const emailDisplay = document.getElementById('companyEmailDisplay');
+        
+        if (emailEl && emailEl.textContent.trim()) {
+            if (emailDisplay) emailDisplay.textContent = emailEl.textContent.trim();
+            if (emailContainer) emailContainer.style.display = 'flex';
+        } else if (emailContainer) {
+            emailContainer.style.display = 'none';
         }
     } catch (e) {
-        console.error('Error getting server company data:', e);
+        console.error('Error updating from session:', e);
     }
-    return null;
 }
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // First, try to get company data from server-side
-    const serverCompany = getServerCompanyData();
-    
-    if (serverCompany && (serverCompany.name || serverCompany.id)) {
-        // Update storage with server-side data
-        if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem('selectedCompany', JSON.stringify(serverCompany));
-        }
-        // Update the display immediately
-        updateCompanyInfoDisplay(serverCompany);
-    } else {
-        // If no server data, try to load from storage
-        updateCompanyInfoDisplay();
-    }
+    // Update from session data first
+    updateFromSession();
     
     // Also update after a short delay to catch any async updates
-    setTimeout(updateCompanyInfoDisplay, 300);
+    setTimeout(updateFromSession, 300);
 });
 
 // Function to safely get company data from storage
 function getCompanyData() {
     try {
-        // First check if we have server-side data
-        const serverData = getServerCompanyData();
-        if (serverData && (serverData.name || serverData.id)) {
-            return serverData;
+        // Get from server-rendered elements
+        const nameEl = document.getElementById('serverCompanyName');
+        const emailEl = document.getElementById('serverCompanyEmail');
+        const idEl = document.getElementById('serverCompanyId');
+        
+        if (nameEl && nameEl.textContent.trim()) {
+            return {
+                name: nameEl.textContent.trim(),
+                email: emailEl ? emailEl.textContent.trim() : '',
+                id: idEl ? idEl.textContent.trim() : ''
+            };
         }
         // Get from server-rendered elements first
         const companyName = document.getElementById('companyNameDisplay')?.textContent.trim();
@@ -140,62 +153,53 @@ function getCompanyData() {
 }
 
 // Function to update company info display
-function updateCompanyInfoDisplay(companyData = null) {
+function updateCompanyInfoDisplay() {
     try {
-        const company = companyData || getCompanyData();
-        console.log('Updating company info with:', company);
+        const nameEl = document.getElementById('serverCompanyName');
+        const emailEl = document.getElementById('serverCompanyEmail');
         
-        // Get all relevant DOM elements
         const nameDisplay = document.getElementById('companyNameDisplay');
         const emailDisplay = document.getElementById('companyEmailDisplay');
         const companyInfoContainer = document.getElementById('companyInfoContainer');
         
-        // Always clear the display first
-        if (nameDisplay) nameDisplay.textContent = '';
-        if (emailDisplay) emailDisplay.textContent = '';
-        if (companyInfoContainer) companyInfoContainer.style.display = 'none';
-        
-        // Check if we have valid company data
-        const hasValidCompany = company && (company.name || company.id);
-        
-        if (hasValidCompany) {
-            // Update the company name display
-            if (nameDisplay) {
-                nameDisplay.textContent = company.name || 'Company #' + company.id;
-            }
-            
-            // Update the company email display if it exists
-            if (emailDisplay && companyInfoContainer) {
-                if (company.email) {
-                    emailDisplay.textContent = company.email;
-                    companyInfoContainer.style.display = 'flex';
-                }
-            }
+        if (nameEl && nameEl.textContent.trim()) {
+            if (nameDisplay) nameDisplay.textContent = nameEl.textContent.trim();
             
             // Update the selected company
-            selectedCompany = company;
+            selectedCompany = {
+                name: nameEl.textContent.trim(),
+                email: emailEl ? emailEl.textContent.trim() : '',
+                id: document.getElementById('serverCompanyId')?.textContent.trim() || ''
+            };
             
             // Update storage
             if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+                sessionStorage.setItem('selectedCompany', JSON.stringify(selectedCompany));
             }
             if (typeof localStorage !== 'undefined') {
-                localStorage.setItem('selectedCompany', JSON.stringify(company));
-            }
-            
-            // Update customer info sections if they exist
-            if (typeof updateCustomerInfoSections === 'function') {
-                updateCustomerInfoSections(company);
-            }
-            
-            // Show success message if this was a change
-            if (window.companyJustChanged) {
-                showToast(`Company updated to ${company.name}`, 'success');
-                window.companyJustChanged = false;
+                localStorage.setItem('selectedCompany', JSON.stringify(selectedCompany));
             }
         }
+        
+        if (emailEl && emailEl.textContent.trim()) {
+            if (emailDisplay) emailDisplay.textContent = emailEl.textContent.trim();
+            if (companyInfoContainer) companyInfoContainer.style.display = 'flex';
+        } else if (companyInfoContainer) {
+            companyInfoContainer.style.display = 'none';
+        }
+            
+        // Update customer info sections if they exist
+        if (typeof updateCustomerInfoSections === 'function' && selectedCompany) {
+            updateCustomerInfoSections(selectedCompany);
+        }
+        
+        // Show success message if this was a change
+        if (window.companyJustChanged && selectedCompany) {
+            showToast(`Company updated to ${selectedCompany.name}`, 'success');
+            window.companyJustChanged = false;
+        }
     } catch (error) {
-        console.error('Error updating company info display:', error);
+        console.error('Error updating company info:', error);
         showToast('Error updating company information', 'error');
     }
 }

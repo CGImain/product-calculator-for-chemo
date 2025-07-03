@@ -146,19 +146,31 @@
                     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
                 }
                 
-                const response = await fetch('/api/update-company', {
+                // First, try to get the CSRF token from the meta tag
+                let csrfToken = '';
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                if (csrfMeta) {
+                    csrfToken = csrfMeta.getAttribute('content');
+                }
+                
+                const response = await fetch('/api/user/update-company', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken') || ''
+                        'X-CSRFToken': csrfToken || getCookie('csrftoken') || ''
                     },
                     body: JSON.stringify({
-                        company_id: company.id
-                    })
+                        company_id: company.id,
+                        company_name: company.name,
+                        company_email: company.email
+                    }),
+                    credentials: 'same-origin'  // Include cookies for session
                 });
                 
+                const data = await response.json();
+                
                 if (!response.ok) {
-                    throw new Error('Failed to update company');
+                    throw new Error(data.message || 'Failed to update company');
                 }
                 
                 // Update the display
@@ -172,6 +184,11 @@
                 // Reset search
                 resetSearch();
                 
+                // Store in sessionStorage for immediate UI updates
+                if (typeof sessionStorage !== 'undefined') {
+                    sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+                }
+                
                 // Reload the page to update any dependent components
                 setTimeout(() => {
                     window.location.reload();
@@ -179,7 +196,7 @@
                 
             } catch (error) {
                 console.error('Error updating company:', error);
-                showToast('Failed to update company. Please try again.', 'error');
+                showToast(error.message || 'Failed to update company. Please try again.', 'error');
                 
                 // Reset button state
                 if (confirmBtn) {

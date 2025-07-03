@@ -8,8 +8,8 @@
          style="display: none;">
     </div>
     
-    <!-- Display bar -->
-    <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
+    <!-- Display bar - hidden by default -->
+    <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3" style="display: none; opacity: 0; transition: opacity 0.3s ease;">
         <div class="d-flex flex-column w-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
@@ -88,8 +88,15 @@ function updateFromSession() {
     }
 }
 
-// Initialize company info when component loads
-(function initCompanyInfo() {
+// Function to initialize company info
+function initCompanyInfo() {
+    // Ensure the component container exists
+    const container = document.getElementById('companyInfoBar');
+    if (!container) {
+        console.log('Company info container not found');
+        return;
+    }
+
     // Get server data from hidden element
     const serverData = document.getElementById('serverCompanyData');
     let companyData = null;
@@ -109,7 +116,9 @@ function updateFromSession() {
                 sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
             }
             
-            // Update UI once
+            // Show container and update UI
+            container.style.display = 'flex';
+            setTimeout(() => { container.style.opacity = '1'; }, 10);
             updateCompanyInfoDisplay(companyData);
             setupEventListeners();
             return; // Exit early if we have valid server data
@@ -123,6 +132,8 @@ function updateFromSession() {
             if (storedCompany) {
                 const storedData = JSON.parse(storedCompany);
                 if (storedData?.name) {
+                    container.style.display = 'flex';
+                    setTimeout(() => { container.style.opacity = '1'; }, 10);
                     updateCompanyInfoDisplay(storedData);
                     setupEventListeners();
                     return;
@@ -135,7 +146,14 @@ function updateFromSession() {
     
     // If we get here, no valid company data was found
     console.log('No company data found in server or storage');
-})();
+    container.style.display = 'none';
+}
+
+// Initialize when DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Small delay to ensure all elements are ready
+    setTimeout(initCompanyInfo, 10);
+});
 
 // Function to safely get company data from storage
 function getCompanyData() {

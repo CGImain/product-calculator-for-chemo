@@ -10,13 +10,14 @@ function logElementStatus(id) {
   return el;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("MPACK JS loaded");
   
   try {
     loadMachines();
+    await loadDiscounts(); // Load discounts when the page loads
   } catch (error) {
-    console.error("Error loading machines:", error);
+    console.error("Error initializing page:", error);
   }
 
   // Debug log element statuses
@@ -300,8 +301,13 @@ function handleSizeSelection() {
 }
 
 async function loadDiscounts() {
+  console.log('Loading discounts...');
   const select = document.getElementById('discountSelect');
-  if (!select) return;
+  
+  if (!select) {
+    console.error('Discount select element not found');
+    return;
+  }
   
   try {
     // Clear existing options except the first one
@@ -309,14 +315,22 @@ async function loadDiscounts() {
       select.remove(1);
     }
     
-    // Fetch discounts from JSON file
+    console.log('Fetching discounts from /static/data/discount.json');
     const response = await fetch('/static/data/discount.json');
+    
     if (!response.ok) {
-      throw new Error('Failed to load discounts');
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
+    console.log('Received discount data:', data);
+    
     const discounts = data.discounts || [];
+    console.log(`Processing ${discounts.length} discount(s)`);
+    
+    if (discounts.length === 0) {
+      console.warn('No discounts found in the JSON file');
+    }
     
     // Add new discount options
     discounts.forEach(percent => {
@@ -326,6 +340,9 @@ async function loadDiscounts() {
         option.value = percentNum;
         option.textContent = `${percentNum}%`;
         select.appendChild(option);
+        console.log(`Added discount option: ${percentNum}%`);
+      } else {
+        console.warn(`Invalid discount percentage: ${percent}`);
       }
     });
     
@@ -336,18 +353,24 @@ async function loadDiscounts() {
     // Add event listener for discount selection
     newSelect.addEventListener('change', function() {
       currentDiscount = parseFloat(this.value) || 0;
+      console.log(`Selected discount: ${currentDiscount}%`);
       calculateFinalPrice();
     });
     
+    console.log('Discounts loaded successfully');
+    
   } catch (error) {
     console.error('Error loading discounts:', error);
+    
     // Fallback to default discounts if loading fails
+    console.warn('Falling back to default discounts');
     const defaultDiscounts = [5, 10, 15, 20];
     defaultDiscounts.forEach(percent => {
       const option = document.createElement('option');
       option.value = percent;
       option.textContent = `${percent}%`;
       select.appendChild(option);
+      console.log(`Added default discount option: ${percent}%`);
     });
   }
 }

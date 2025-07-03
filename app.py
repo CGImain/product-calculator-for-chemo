@@ -1973,39 +1973,68 @@ def send_quotation():
         if not products:
             return jsonify({'error': 'Cart is empty'}), 400
 
-        # Get company info from session with proper fallbacks
-        selected_company = session.get('selected_company', {})
-        if not isinstance(selected_company, dict):
-            selected_company = {}
+        # Get company info with proper fallbacks - prioritize database over session
+        customer_name = 'Not specified'
+        customer_email = ''
+        
+        # First try to get from user's company_id if available
+        if hasattr(current_user, 'company_id') and current_user.company_id:
+            customer_name = get_company_name_by_id(current_user.company_id)
+            customer_email = get_company_email_by_id(current_user.company_id)
+        
+        # If not found in user's company_id, try session
+        if customer_name == 'Not specified' or not customer_email:
+            selected_company = session.get('selected_company', {})
+            if not isinstance(selected_company, dict):
+                selected_company = {}
             
-        # Get customer email with proper fallbacks
-        customer_email = (
-            selected_company.get('email') or 
-            session.get('company_email') or 
-            (hasattr(current_user, 'email') and current_user.email) or 
-            ''
-        )
+            # Get from session if available
+            if not customer_email:
+                customer_email = (
+                    selected_company.get('email') or 
+                    session.get('company_email') or 
+                    (hasattr(current_user, 'email') and current_user.email) or 
+                    ''
+                )
+            
+            if customer_name == 'Not specified':
+                customer_name = (
+                    selected_company.get('name') or 
+                    session.get('company_name') or 
+                    (hasattr(current_user, 'company_name') and current_user.company_name) or 
+                    'Not specified'
+                )
+        
+        # Final fallback to user's email if still no email
+        if not customer_email and hasattr(current_user, 'email'):
+            customer_email = current_user.email
         
         if not customer_email:
             return jsonify({'error': 'Customer email is required'}), 400
             
-        # Get customer name with proper fallbacks
-        customer_name = (
-            selected_company.get('name') or 
-            session.get('company_name') or 
-            (hasattr(current_user, 'company_name') and current_user.company_name) or 
-            (hasattr(current_user, 'company_id') and get_company_name_by_id(current_user.company_id)) or 
-            'Not specified'
-        )
-        
         # Update session with the latest values
         if customer_name and customer_name != 'Not specified':
+            # Update user's company info in database if using MongoDB
+            if MONGO_AVAILABLE and USE_MONGO and hasattr(current_user, 'id'):
+                try:
+                    users_col.update_one(
+                        {'_id': current_user.id},
+                        {'$set': {
+                            'company_name': customer_name,
+                            'company_email': customer_email,
+                            'company_id': current_user.company_id if hasattr(current_user, 'company_id') else None
+                        }}
+                    )
+                except Exception as e:
+                    app.logger.error(f"Error updating user's company info: {str(e)}")
+            
+            # Update session
             session['company_name'] = customer_name
             session['company_email'] = customer_email
             session['selected_company'] = {
                 'name': customer_name,
                 'email': customer_email,
-                'id': session.get('company_id', '')
+                'id': current_user.company_id if hasattr(current_user, 'company_id') else session.get('company_id', '')
             }
             session.modified = True
 
@@ -2631,18 +2660,49 @@ def update_company():
         if not company_id:
             return jsonify({'error': 'Company ID is required'}), 400
 
+        # If company_name or company_email is not provided, try to get them from company_emails.json
+        if not company_name:
+            company_name = get_company_name_by_id(company_id) or 'Not specified'
+        if not company_email:
+            company_email = get_company_email_by_id(company_id) or ''
+
         # Update user's company information in the database
         if MONGO_AVAILABLE and USE_MONGO:
             # Update in MongoDB
             user_id = current_user.get_id()
-            user = mu_find_user_by_id(user_id)
-            if user:
-                user['company_id'] = company_id
-                if company_name:
-                    user['company_name'] = company_name
-                if company_email:
-                    user['company_email'] = company_email
-                mu_update_user(user_id, user)
+            update_data = {
+                'company_id': company_id,
+                'company_name': company_name,
+                'company_email': company_email
+            }
+            
+            # Update the user document
+            result = users_col.update_one(
+                {'_id': user_id},
+                {'$set': update_data}
+            )
+            
+            if result.matched_count == 0:
+                return jsonify({'error': 'User not found'}), 404
+                
+            # Update the current_user object
+            if hasattr(current_user, 'company_id'):
+                current_user.company_id = company_id
+            if hasattr(current_user, 'company_name'):
+                current_user.company_name = company_name
+            if hasattr(current_user, 'company_email'):
+                current_user.company_email = company_email
+                
+            # Update session data
+            session['company_id'] = company_id
+            session['company_name'] = company_name
+            session['company_email'] = company_email
+            session['selected_company'] = {
+                'id': company_id,
+                'name': company_name,
+                'email': company_email
+            }
+            session.modified = True
         else:
             # Fallback to SQLAlchemy if needed
             current_user.company_id = company_id

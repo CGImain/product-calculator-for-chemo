@@ -2206,13 +2206,17 @@ def send_quotation():
               </div>
             </div>
             
-            <div style='margin: 1.5rem 0; padding: 1.5rem; background-color: white; border: 1px solid #dee2e6; border-radius: 0.25rem;'>
-              <p style='margin-bottom: 1rem;'>Hello,</p>
-              <p style='margin-bottom: 1rem;'>This is {current_user.username} from CGI.</p>
-              <p style='margin-bottom: 1.5rem;'>Here is the proposed quotation for the required products:</p>
-              {'<p style="margin-bottom: 1.5rem;"><strong>Notes:</strong><br>' + notes + '</p>' if notes else ''}
-              
-              <div style='overflow-x: auto; margin: 1.5rem 0;'>
+            <div style='margin: 1.5rem 0; border: 1px solid #dee2e6; border-radius: 0.25rem; overflow: hidden;'>
+              <div style='background-color: #f8f9fa; padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(0,0,0,0.125);'>
+                <h5 style='margin: 0; font-size: 1rem;'>Quotation Details</h5>
+              </div>
+              <div style='padding: 1.5rem; background-color: white;'>
+                <p style='margin-bottom: 1rem;'>Hello,</p>
+                <p style='margin-bottom: 1rem;'>This is {current_user.username} from CGI.</p>
+                <p style='margin-bottom: 1.5rem;'>Here is the proposed quotation for the required products:</p>
+                {'<p style="margin-bottom: 1.5rem;"><strong>Notes:</strong><br>' + notes + '</p>' if notes else ''}
+                
+                <div style='overflow-x: auto; margin: 1.5rem 0;'>
                 <table style='width: 100%; border-collapse: collapse; font-size: 0.9rem; background-color: white; border: 1px solid #dee2e6;'>
                   <thead>
                     <tr style='background-color: #f8f9fa;'>
@@ -2234,7 +2238,8 @@ def send_quotation():
                 </table>
               </div>
               
-              <p style='margin: 2rem 0 1rem 0;'>Thank you for your business!<br>— Team CGI</p>
+                <p style='margin: 2rem 0 1rem 0;'>Thank you for your business!<br>— Team CGI</p>
+              </div>
             </div>
             
             <div style='margin-top: 1.5rem; padding: 1rem; background-color: #f8f9fa; border-radius: 0.25rem; text-align: center;'>

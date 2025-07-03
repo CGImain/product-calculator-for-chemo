@@ -284,16 +284,54 @@ function handleSizeSelection() {
     sheetInput.value = "";
   }
   
-  // Show total price section
-  document.getElementById("totalPriceSection").style.display = "block";
+  // Show price section if it exists
+  const totalPriceSection = document.getElementById("totalPriceSection");
+  if (totalPriceSection) {
+    totalPriceSection.style.display = "block";
+  }
   
   // Reset discount when size changes
   currentDiscount = 0;
   const discountSelect = document.getElementById("discountSelect");
-  if (discountSelect) discountSelect.value = "";
+  if (discountSelect) {
+    discountSelect.value = "";
+  }
   
-  // Update prices
+  // Load discounts and update prices
+  loadDiscounts();
   calculateFinalPrice();
+}
+
+function loadDiscounts() {
+  // This function loads discounts from the server
+  fetch('/api/discounts')
+    .then(response => response.json())
+    .then(discounts => {
+      const select = document.getElementById('discountSelect');
+      if (!select) return;
+      
+      // Clear existing options except the first one
+      while (select.options.length > 1) {
+        select.remove(1);
+      }
+      
+      // Add new discount options
+      discounts.forEach(discount => {
+        const option = document.createElement('option');
+        option.value = discount.percent;
+        option.textContent = `${discount.name} (${discount.percent}%)`;
+        select.appendChild(option);
+      });
+      
+      // Add event listener for discount selection
+      select.addEventListener('change', function() {
+        currentDiscount = parseFloat(this.value) || 0;
+        calculateFinalPrice();
+      });
+    })
+    .catch(error => {
+      console.error('Error loading discounts:', error);
+    });
 }
 
 function resetCalculations() {
@@ -377,14 +415,15 @@ function calculateFinalPrice() {
     discountPromptSection.style.display = quantity > 0 ? "block" : "none";
   }
   
-  // Always show discount details (matching blankets.js format)
+  // Update discount details
   const discountDetails = document.getElementById("discountDetails");
   if (discountDetails) {
     const totalBeforeDiscount = basePrice;
     const totalAfterDiscount = discountedPrice;
     
+    let discountHTML = '';
     if (currentDiscount > 0) {
-      discountDetails.innerHTML = `
+      discountHTML = `
         <div class="price-breakdown">
           <div class="d-flex justify-content-between">
             <span>Subtotal (${quantity} units):</span>
@@ -400,21 +439,34 @@ function calculateFinalPrice() {
           </div>
           <div class="d-flex justify-content-between">
             <span>GST (12%):</span>
-            <span>+₹${gstAmount.toFixed(2)}</span>
+            <span>₹${gstAmount.toFixed(2)}</span>
           </div>
-          <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top">
-            <span>Final Amount:</span>
+          <hr>
+          <div class="d-flex justify-content-between fw-bold">
+            <span>Total Price:</span>
             <span>₹${finalPrice.toFixed(2)}</span>
           </div>
-        </div>
-      `;
+        </div>`;
+    } else {
+      discountHTML = `
+        <div class="price-breakdown">
+          <div class="d-flex justify-content-between">
+            <span>Subtotal (${quantity} units):</span>
+            <span>₹${totalBeforeDiscount.toFixed(2)}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>GST (12%):</span>
+            <span>₹${gstAmount.toFixed(2)}</span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between fw-bold">
+            <span>Total Price:</span>
+            <span>₹${finalPrice.toFixed(2)}</span>
+          </div>
+        </div>`;
     }
     
-    // Ensure discount section is visible
-    const discountSection = document.getElementById("discountSection");
-    if (discountSection) {
-      discountSection.style.display = "block";
-    }
+    discountDetails.innerHTML = discountHTML;
   } else {
     // No discount applied - clear discount details
     const discountDetails = document.getElementById("discountDetails");

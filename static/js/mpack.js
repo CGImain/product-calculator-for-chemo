@@ -265,10 +265,18 @@ function handleSizeSelection() {
     return;
   }
   
-  // Update net price
-  currentNetPrice = parseFloat(priceMap[selectedId] || 0);
+  // Show price section when a size is selected
+  const priceSection = document.getElementById("priceSection");
+  if (priceSection) priceSection.style.display = "block";
   
-  // Reset sheet input to 1
+  // Update net price display safely
+  currentNetPrice = parseFloat(priceMap[selectedId] || 0);
+  const netPriceElement = document.getElementById("netPrice");
+  if (netPriceElement) {
+    netPriceElement.textContent = currentNetPrice.toFixed(2);
+  }
+  
+  // Reset sheet input and calculate initial price
   const sheetInput = document.getElementById("sheetInput");
   if (sheetInput) {
     sheetInput.value = "1";
@@ -279,6 +287,12 @@ function handleSizeSelection() {
   const discountSelect = document.getElementById("discountSelect");
   if (discountSelect) {
     discountSelect.value = "";
+  }
+  
+  // Clear discount details
+  const discountDetails = document.getElementById("discountDetails");
+  if (discountDetails) {
+    discountDetails.innerHTML = "";
   }
   
   // Update price display
@@ -356,35 +370,28 @@ function resetCalculations() {
     priceSummary.innerHTML = '<p class="text-muted mb-0">Select options to see pricing</p>';
   }
   
-  // Reset price displays
-  const priceElements = ["netPrice", "totalPrice", "gstAmount", "finalPrice", "finalDiscountedPrice"];
-  priceElements.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = "0.00";
-  });
+  // Reset net price display
+  const netPriceElement = document.getElementById("netPrice");
+  if (netPriceElement) {
+    netPriceElement.textContent = "0.00";
+  }
   
-  // Show/hide sections appropriately
-  const sections = {
-    "priceSection": "none",
-    "sheetInputSection": "none",
-    "totalPriceSection": "none",
-    "discountPromptSection": "block",
-    "discountSection": "none"
-  };
+  // Clear discount details
+  const discountDetails = document.getElementById("discountDetails");
+  if (discountDetails) {
+    discountDetails.innerHTML = "";
+  }
   
-  Object.entries(sections).forEach(([id, display]) => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = display;
-  });
+  // Hide price section and add to cart button
+  const priceSection = document.getElementById("priceSection");
+  const addToCartBtn = document.getElementById("addToCartBtn");
   
-  // Reset discount prompt if no discount is applied
-  const discountPrompt = document.getElementById("discountPromptSection");
-  if (discountPrompt) {
-    discountPrompt.innerHTML = `
-      <label class="form-label">Apply Discount?</label>
-      <button class="btn btn-outline-primary btn-sm" onclick="showDiscountSection(true)">Yes</button>
-      <button class="btn btn-outline-secondary btn-sm" onclick="showDiscountSection(false)">No</button>
-    `;
+  if (priceSection) {
+    priceSection.style.display = "none";
+  }
+  
+  if (addToCartBtn) {
+    addToCartBtn.style.display = "none";
   }
 }
 
@@ -411,28 +418,35 @@ function calculateFinalPrice() {
   
   // Update the price summary
   const priceSummary = document.getElementById("priceSummary");
+  const netPriceElement = document.getElementById("netPrice");
+  
+  // Update net price display
+  if (netPriceElement) {
+    netPriceElement.textContent = currentNetPrice.toFixed(2);
+  }
+  
   if (priceSummary) {
     let summaryHTML = '';
     
     if (currentDiscount > 0) {
       summaryHTML = `
         <div class="d-flex justify-content-between">
-          <span>Price (${quantity} sheets):</span>
-          <span>₹${currentNetPrice.toFixed(2)} × ${quantity} = ₹${basePrice.toFixed(2)}</span>
+          <span>Subtotal (${quantity} sheets):</span>
+          <span>₹${basePrice.toFixed(2)}</span>
         </div>
         <div class="d-flex justify-content-between text-danger">
           <span>Discount (${currentDiscount}%):</span>
           <span>-₹${discountAmount.toFixed(2)}</span>
         </div>
         <div class="d-flex justify-content-between">
-          <span>Subtotal:</span>
+          <span>After Discount:</span>
           <span>₹${discountedPrice.toFixed(2)}</span>
         </div>`;
     } else {
       summaryHTML = `
         <div class="d-flex justify-content-between">
-          <span>Price (${quantity} sheets):</span>
-          <span>₹${currentNetPrice.toFixed(2)} × ${quantity} = ₹${basePrice.toFixed(2)}</span>
+          <span>Subtotal (${quantity} sheets):</span>
+          <span>₹${basePrice.toFixed(2)}</span>
         </div>`;
     }
     
@@ -440,21 +454,27 @@ function calculateFinalPrice() {
     summaryHTML += `
       <div class="d-flex justify-content-between">
         <span>GST (${gstRate}%):</span>
-        <span>+₹${gstAmount.toFixed(2)}</span>
+        <span>₹${gstAmount.toFixed(2)}</span>
       </div>
       <hr>
       <div class="d-flex justify-content-between fw-bold">
-        <span>Total:</span>
+        <span>Total Price:</span>
         <span>₹${finalPrice.toFixed(2)}</span>
       </div>`;
     
     priceSummary.innerHTML = summaryHTML;
   }
   
-  // Show add to cart button
+  // Show add to cart button and price section
   const addToCartBtn = document.getElementById("addToCartBtn");
+  const priceSection = document.getElementById("priceSection");
+  
   if (addToCartBtn) {
     addToCartBtn.style.display = "block";
+  }
+  
+  if (priceSection) {
+    priceSection.style.display = "block";
   }
 }
 

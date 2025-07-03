@@ -6,7 +6,7 @@
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="fas fa-building me-2 text-primary"></i>
-                    <span class="fw-semibold" id="companyNameDisplay">Loading company...</span>
+                    <span class="fw-semibold" id="companyNameDisplay"></span>
                 </div>
                 <button class="btn btn-sm btn-outline-primary" id="companyChangeBtn">
                     <i class="fas fa-edit me-1"></i> Change
@@ -50,6 +50,20 @@
 // Global variable to store companies data
 let companies = [];
 let selectedCompany = null;
+
+// Initialize with empty display
+document.addEventListener('DOMContentLoaded', function() {
+    const nameDisplay = document.getElementById('companyNameDisplay');
+    const emailDisplay = document.getElementById('companyEmailDisplay');
+    const companyInfoContainer = document.getElementById('companyInfoContainer');
+    
+    if (nameDisplay) nameDisplay.textContent = '';
+    if (emailDisplay) emailDisplay.textContent = '';
+    if (companyInfoContainer) companyInfoContainer.style.display = 'none';
+    
+    // Load company data after a short delay
+    setTimeout(updateCompanyInfoDisplay, 100);
+});
 
 // Function to safely get company data from storage
 function getCompanyData() {
@@ -111,7 +125,7 @@ function updateCompanyInfoDisplay() {
         if (hasValidCompany) {
             // Update the company name display
             if (nameDisplay) {
-                nameDisplay.textContent = company.name || 'No Company Selected';
+                nameDisplay.textContent = company.name || '';
             }
             
             // Update the company email display if it exists
@@ -401,7 +415,7 @@ function updateCompanyInfoDisplay(company) {
         const companyInfoContainer = document.getElementById('companyInfoContainer');
         
         if (company) {
-            if (nameDisplay) nameDisplay.textContent = company.name || 'No Company Selected';
+            if (nameDisplay) nameDisplay.textContent = company.name || '';
             if (emailDisplay) emailDisplay.textContent = company.email || '';
             if (companyInfoContainer) companyInfoContainer.style.display = company.email ? 'flex' : 'none';
             

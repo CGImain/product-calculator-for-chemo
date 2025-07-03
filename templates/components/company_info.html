@@ -96,61 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Also update after a short delay to catch any async updates
     setTimeout(updateFromSession, 300);
-    
-    // Add event listeners
-    const changeBtn = document.getElementById('companyChangeBtn');
-    const cancelBtn = document.getElementById('companyCancelBtn');
-    const confirmBtn = document.getElementById('companyConfirmBtn');
-    const searchInput = document.getElementById('companySearchInput');
-    
-    if (changeBtn) {
-        changeBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            showSearchBox();
-            loadCompaniesData().then(() => {
-                if (searchInput) searchInput.focus();
-            });
-        });
-    }
-    
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            hideSearchBox();
-        });
-    }
-    
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (selectedCompany) {
-                updateCompanyInfo(selectedCompany);
-                hideSearchBox();
-            }
-        });
-    }
-    
-    // Handle search input
-    if (searchInput) {
-        let searchTimeout;
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                renderSearchResults(this.value);
-            }, 300);
-        });
-    }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        const searchBox = document.getElementById('companySearchBox');
-        const searchResults = document.getElementById('companySearchResults');
-        
-        if (searchBox && !searchBox.contains(e.target) && 
-            e.target !== changeBtn && !changeBtn.contains(e.target)) {
-            hideSearchBox();
-        }
-    });
 });
 
 // Function to safely get company data from storage
@@ -357,114 +302,102 @@ function hideSearchBox() {
     if (searchInput) searchInput.value = '';
 }
 
+// Function to handle company selection
+function selectCompany(company) {
+    if (!company) return;
+    
+    // Update the selected company
+    selectedCompany = company;
+    
+    // Update the UI
+    const nameDisplay = document.getElementById('companyNameDisplay');
+    const emailDisplay = document.getElementById('companyEmailDisplay');
+    const companyInfoContainer = document.getElementById('companyInfoContainer');
+    
+    if (nameDisplay) nameDisplay.textContent = company.name;
+    
+    if (company.email && emailDisplay) {
+        emailDisplay.textContent = company.email;
+        if (companyInfoContainer) companyInfoContainer.style.display = 'flex';
+    } else if (companyInfoContainer) {
+        companyInfoContainer.style.display = 'none';
+    }
+    
+    // Save to session storage
+    if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+    }
+    
+    // Save to local storage for persistence
+    if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('selectedCompany', JSON.stringify(company));
+    }
+    
+    // Hide the search box
+    hideSearchBox();
+    
+    // Show success message
+    showToast(`Company updated to ${company.name}`, 'success');
+    
+    // Trigger a custom event that other components can listen to
+    window.dispatchEvent(new CustomEvent('companyChanged', { detail: company }));
+    
+    // Reload the page to update any dependent components
+    window.location.reload();
+}
+
 // Function to render search results
 function renderSearchResults(query = '') {
     const searchResults = document.getElementById('companySearchResults');
-    if (!searchResults) {
-        console.error('Search results container not found');
-        return;
-    }
+    if (!searchResults) return;
     
-    if (!query.trim()) {
+    // Clear previous results
+    searchResults.innerHTML = '';
+    
+    if (!query || query.trim() === '') {
         searchResults.style.display = 'none';
         return;
     }
     
-    console.log('Searching for:', query);
-    console.log('Total companies in memory:', companiesData.length);
-    console.log('Sample companies:', companiesData.slice(0, 3));
+    // Filter companies based on query
+    const filtered = companiesData.filter(company => 
+        company && (company.name || '').toLowerCase().includes(query.toLowerCase()) ||
+        (company.email || '').toLowerCase().includes(query.toLowerCase())
+    );
     
-    const queryLower = query.toLowerCase().trim();
+    if (filtered.length === 0) {
+        searchResults.innerHTML = '<div class="p-2 text-muted">No companies found</div>';
+        searchResults.style.display = 'block';
+        return;
+    }
     
-    try {
-        // Search in both name and email fields
-        const filtered = companiesData.filter(company => {
-            if (!company) return false;
-            
-            // Debug info for each company being checked
-            const name = company.name || '';
-            const email = company.email || '';
-            const nameMatch = name.toLowerCase().includes(queryLower);
-            const emailMatch = email.toLowerCase().includes(queryLower);
-            
-            if (nameMatch || emailMatch) {
-                console.log('Match found:', { name, email, query: queryLower });
-            }
-            
-            return nameMatch || emailMatch;
+    // Render the filtered companies
+    filtered.forEach(company => {
+        const div = document.createElement('div');
+        div.className = 'search-result-item p-2 border-bottom';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `
+            <div class="fw-semibold">${company.name || 'Unnamed Company'}</div>
+            ${company.email ? `<div class="small text-muted">${company.email}</div>` : ''}
+        `;
+        
+        div.addEventListener('click', () => {
+            selectCompany(company);
         });
         
-        console.log(`Found ${filtered.length} matching companies for query: ${query}`);
+        // Add hover effect
+        div.addEventListener('mouseenter', function() {
+            this.classList.add('bg-light');
+        });
         
-        console.log(`Found ${filtered.length} matching companies`);
+        div.addEventListener('mouseleave', function() {
+            this.classList.remove('bg-light');
+        });
         
-        if (filtered.length === 0) {
-            searchResults.innerHTML = `
-                <div class="p-2 text-muted">
-                    No companies found for "${query}"
-                    <div class="small">Try a different search term</div>
-                </div>`;
-        } else {
-            searchResults.innerHTML = filtered.slice(0, 10).map(company => `
-                <div class="search-result-item p-2 border-bottom hover-bg-light" 
-                     style="cursor: pointer;"
-                     data-id="${company.id || ''}" 
-                     data-name="${company.name || ''}" 
-                     data-email="${company.email || ''}">
-                    <div class="fw-semibold">${company.name || 'Unnamed Company'}</div>
-                    ${company.email ? `<div class="small text-muted text-truncate">${company.email}</div>` : ''}
-                </div>
-            `).join('');
-            
-            // Add click handlers to search result items
-            document.querySelectorAll('.search-result-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const company = {
-                        id: this.dataset.id,
-                        name: this.dataset.name,
-                        email: this.dataset.email
-                    };
-                    
-                    console.log('Company selected:', company);
-                    
-                    // Update storage
-                    sessionStorage.setItem('company_id', company.id);
-                    sessionStorage.setItem('company_name', company.name);
-                    sessionStorage.setItem('company_email', company.email);
-                    
-                    // Update display
-                    updateCompanyInfoDisplay();
-                    
-                    // Hide search box
-                    hideSearchBox();
-                    
-                    // Show success message
-                    showToast(`Company changed to ${company.name}`, 'success');
-                    
-                    // Trigger a custom event that other components can listen to
-                    const event = new CustomEvent('companyChanged', { detail: company });
-                    window.dispatchEvent(event);
-                });
-                
-                // Add hover effect
-                item.addEventListener('mouseenter', function() {
-                    this.classList.add('bg-light');
-                });
-                item.addEventListener('mouseleave', function() {
-                    this.classList.remove('bg-light');
-                });
-            });
-        }
-        
-        searchResults.style.display = 'block';
-    } catch (error) {
-        console.error('Error rendering search results:', error);
-        searchResults.innerHTML = `
-            <div class="p-2 text-danger">
-                Error loading search results. Please try again.
-            </div>`;
-        searchResults.style.display = 'block';
-    }
+        searchResults.appendChild(div);
+    });
+    
+    searchResults.style.display = 'block';
 }
 
 // Function to show toast message
@@ -496,70 +429,30 @@ function showToast(message, type = 'info') {
 }
 
 // Function to update company info display
-function updateCompanyInfo(company) {
+function updateCompanyInfoDisplay(company) {
     try {
-        if (!company || !company.name) {
-            console.error('Invalid company data:', company);
-            return false;
-        }
-
-        // Update the selected company
-        selectedCompany = company;
-        
-        // Update the display
         const nameDisplay = document.getElementById('companyNameDisplay');
         const emailDisplay = document.getElementById('companyEmailDisplay');
         const companyInfoContainer = document.getElementById('companyInfoContainer');
         
-        if (nameDisplay) nameDisplay.textContent = company.name;
-        
-        if (company.email) {
-            if (emailDisplay) emailDisplay.textContent = company.email;
-            if (companyInfoContainer) companyInfoContainer.style.display = 'flex';
-        } else if (companyInfoContainer) {
-            companyInfoContainer.style.display = 'none';
+        if (company) {
+            if (nameDisplay) nameDisplay.textContent = company.name || '';
+            if (emailDisplay) emailDisplay.textContent = company.email || '';
+            if (companyInfoContainer) companyInfoContainer.style.display = company.email ? 'flex' : 'none';
+            
+            // Update session storage
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+            }
         }
-        
-        // Update storage
-        if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem('company_id', company.id || '');
-            sessionStorage.setItem('company_name', company.name);
-            sessionStorage.setItem('company_email', company.email || '');
-            sessionStorage.setItem('selectedCompany', JSON.stringify(company));
-        }
-        
-        if (typeof localStorage !== 'undefined') {
-            localStorage.setItem('selectedCompany', JSON.stringify(company));
-        }
-        
-        // Update any customer info sections
-        if (typeof updateCustomerInfoSections === 'function') {
-            updateCustomerInfoSections(company);
-        }
-        
-        // Show success message
-        showToast(`Company updated to ${company.name}`, 'success');
-        
-        // Dispatch event that company was changed
-        const event = new CustomEvent('companyChanged', { detail: company });
-        window.dispatchEvent(event);
-        
-        return true;
     } catch (error) {
-        console.error('Error updating company info:', error);
-        showToast('Error updating company information', 'error');
-        return false;
+        console.error('Error updating company info display:', error);
     }
 }
 
-// Alias for backward compatibility
-function updateCompanyInfoDisplay(company) {
-    return updateCompanyInfo(company);
-}
-
 // Make the function available globally
-window.updateCompanyInfo = updateCompanyInfo;
 window.updateCompanyInfoDisplay = updateCompanyInfoDisplay;
+window.updateCompanyInfo = updateCompanyInfoDisplay;
 </script>
 
 <style>

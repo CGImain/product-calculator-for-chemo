@@ -26,28 +26,32 @@
 
   <div id="mpackSection" style="display:none;">
     <!-- Thickness -->
-    <div class="mb-3" id="thicknessSection">
-      <label for="thicknessSelect" class="form-label">Select Thickness (micron):</label>
-      <select id="thicknessSelect" class="form-select">
-        <option value="">-- Select Thickness --</option>
-        <option value="100">100</option>
-        <option value="125">125</option>
-        <option value="150">150</option>
-        <option value="200">200</option>
-        <option value="250">250</option>
-        <option value="300">300</option>
-        <option value="400">400</option>
-      </select>
-    </div>
-
-    <!-- Size with Search -->
-    <div class="mb-3" id="sizeSection">
-      <label for="sizeInput" class="form-label">Search Size:</label>
-      <input type="text" id="sizeInput" class="form-control" placeholder="Type to search sizes (e.g., 260x350)">
-      <div id="sizeSuggestions" class="list-group mt-2" style="display:none;max-height:200px;overflow-y:auto;"></div>
-      <select id="sizeSelect" style="display:none;">
-        <option value="">-- Select Size --</option>
-      </select>
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label for="thicknessSelect" class="form-label">Select Thickness (micron):</label>
+        <select id="thicknessSelect" class="form-select">
+          <option value="">-- Select Thickness --</option>
+          <option value="100">100</option>
+          <option value="125">125</option>
+          <option value="150">150</option>
+          <option value="200">200</option>
+          <option value="250">250</option>
+          <option value="300">300</option>
+          <option value="400">400</option>
+        </select>
+      </div>
+      
+      <!-- Size with Search -->
+      <div class="col-md-8">
+        <label for="sizeInput" class="form-label">Search Size:</label>
+        <div class="search-container">
+          <input type="text" id="sizeInput" class="form-control" placeholder="Type to search sizes (e.g., 260x350)">
+          <div id="sizeSuggestions" class="list-group mt-2" style="display:none;max-height:200px;overflow-y:auto;position: absolute;width: 100%;z-index: 1000;"></div>
+        </div>
+        <select id="sizeSelect" style="display:none;">
+          <option value="">-- Select Size --</option>
+        </select>
+      </div>
     </div>
 
     <button class="btn btn-primary mb-3" onclick="calculateMpackPrice()">Calculate Price</button>

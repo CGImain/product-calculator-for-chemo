@@ -266,16 +266,23 @@ function handleSizeSelection() {
   }
   
   // Show price section when a size is selected
-  document.getElementById("priceSection").style.display = "block";
-  document.getElementById("sheetInputSection").style.display = "block";
+  const priceSection = document.getElementById("priceSection");
+  const sheetInputSection = document.getElementById("sheetInputSection");
+  if (priceSection) priceSection.style.display = "block";
+  if (sheetInputSection) sheetInputSection.style.display = "block";
   
-  // Update net price display
+  // Update net price display safely
   currentNetPrice = parseFloat(priceMap[selectedId] || 0);
-  document.getElementById("netPrice").textContent = currentNetPrice.toFixed(2);
+  const netPriceElement = document.getElementById("netPrice");
+  if (netPriceElement) {
+    netPriceElement.textContent = currentNetPrice.toFixed(2);
+  }
   
   // Reset sheet input and calculate initial price
   const sheetInput = document.getElementById("sheetInput");
-  sheetInput.value = "";
+  if (sheetInput) {
+    sheetInput.value = "";
+  }
   
   // Show total price section
   document.getElementById("totalPriceSection").style.display = "block";
@@ -352,14 +359,23 @@ function calculateFinalPrice() {
   const finalPrice = finalUnitPrice; // For consistency with blankets.js naming
   
   // Update the price displays (matching blankets.js format)
-  document.getElementById("netPrice").textContent = currentNetPrice.toFixed(2);
-  document.getElementById("totalPrice").textContent = basePrice.toFixed(2);
-  document.getElementById("gstAmount").textContent = gstAmount.toFixed(2);
-  document.getElementById("finalPrice").textContent = finalPrice.toFixed(2);
+  const netPriceEl = document.getElementById("netPrice");
+  const totalPriceEl = document.getElementById("totalPrice");
+  const gstAmountEl = document.getElementById("gstAmount");
+  const finalPriceEl = document.getElementById("finalPrice");
+  const totalPriceSection = document.getElementById("totalPriceSection");
+  const discountPromptSection = document.getElementById("discountPromptSection");
+  
+  if (netPriceEl) netPriceEl.textContent = currentNetPrice.toFixed(2);
+  if (totalPriceEl) totalPriceEl.textContent = basePrice.toFixed(2);
+  if (gstAmountEl) gstAmountEl.textContent = gstAmount.toFixed(2);
+  if (finalPriceEl) finalPriceEl.textContent = finalPrice.toFixed(2);
   
   // Show the price sections
-  document.getElementById("totalPriceSection").style.display = "block";
-  document.getElementById("discountPromptSection").style.display = quantity > 0 ? "block" : "none";
+  if (totalPriceSection) totalPriceSection.style.display = "block";
+  if (discountPromptSection) {
+    discountPromptSection.style.display = quantity > 0 ? "block" : "none";
+  }
   
   // Show discount details if discount is applied (matching blankets.js format)
   if (currentDiscount > 0) {

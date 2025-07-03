@@ -105,9 +105,22 @@
 
         // Select a company from search results
         function selectCompany(company) {
+            if (!company) return;
+            
             selected = company;
             if (searchInput) searchInput.value = company.name;
             if (confirmBtn) confirmBtn.disabled = false;
+            
+            // Hide search results immediately
+            if (searchResults) {
+                searchResults.style.display = 'none';
+            }
+            
+            // Update the display right away for better UX
+            updateCompanyDisplay(company.name, company.email);
+            
+            // If this is a direct selection (click on search result), update immediately
+            updateCompany(company);
         }
 
         // Reset the search interface
@@ -126,10 +139,18 @@
             if (!company) return;
             
             try {
+                // Show loading state
+                if (confirmBtn) {
+                    const originalText = confirmBtn.innerHTML;
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+                }
+                
                 const response = await fetch('/api/update-company', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') || ''
                     },
                     body: JSON.stringify({
                         company_id: company.id
@@ -151,10 +172,37 @@
                 // Reset search
                 resetSearch();
                 
+                // Reload the page to update any dependent components
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+                
             } catch (error) {
                 console.error('Error updating company:', error);
                 showToast('Failed to update company. Please try again.', 'error');
+                
+                // Reset button state
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Confirm';
+                }
             }
+        }
+        
+        // Helper function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
 
         // Show a toast message
@@ -188,23 +236,57 @@
         }
 
         // Event handlers
-        changeBtn?.addEventListener('click', async () => {
-            await loadCompanies();
-            if (bar) bar.style.display = 'none';
-            if (searchBox) searchBox.style.display = 'block';
-            if (searchResults) searchResults.style.display = 'block';
-            if (searchInput) searchInput.focus();
+        changeBtn?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            try {
+                await loadCompanies();
+                if (bar) bar.style.display = 'none';
+                if (searchBox) searchBox.style.display = 'block';
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.focus();
+                }
+                if (searchResults) {
+                    searchResults.innerHTML = '';
+                    searchResults.style.display = 'none';
+                }
+                if (confirmBtn) confirmBtn.disabled = true;
+            } catch (error) {
+                console.error('Error showing company search:', error);
+                showToast('Failed to load company search. Please try again.', 'error');
+            }
         });
 
-        cancelBtn?.addEventListener('click', () => {
+        cancelBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
             if (bar) bar.style.display = 'block';
             if (searchBox) searchBox.style.display = 'none';
             resetSearch();
         });
 
-        confirmBtn?.addEventListener('click', () => {
-            if (!selected) return;
+        confirmBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!selected) {
+                showToast('Please select a company first', 'warning');
+                return;
+            }
             updateCompany(selected);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const isClickInside = wrapper?.contains(e.target);
+            if (!isClickInside && searchBox && searchBox.style.display === 'block') {
+                if (bar) bar.style.display = 'block';
+                searchBox.style.display = 'none';
+                resetSearch();
+            }
         });
 
         // Debounced search input handler

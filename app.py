@@ -2146,28 +2146,66 @@ def send_quotation():
         """
 
         # Build email content with improved table layout
-        email_content = f"""
+        email_content = """
         <div style='font-family: Arial, sans-serif; color: #333; max-width: 1000px; margin: auto; line-height: 1.6;'>
-          <h2 style='text-align: left; margin-bottom: 20px;'>QUOTATION</h2>
-          
-          <div style='margin-bottom: 20px;'>
-            <h4>Company Information</h4>
-            <p style='margin: 5px 0;'>
-              <strong>CGI - Chemo Graphics India</strong><br>
-              113, 114 High Tech Industrial Centre, Caves Rd, Jogeshwari East, Mumbai, Maharashtra 400060<br>
-              Email: info@chemo.in<br>
-              Date: {today}
-            </p>
+          <div style='text-align: center; margin-bottom: 20px;'>
+            <h2 style='margin-bottom: 5px;'>QUOTATION</h2>
+            <p style='color: #6c757d; margin: 0;'>{today}</p>
           </div>
           
-          <div style='margin: 20px 0;'>
-            <h4>Customer Information</h4>
-            <p style='margin: 5px 0;'>
-              <strong>Company:</strong> {customer_name}<br>
-              <strong>Email:</strong> <a href='mailto:{customer_email}'>{customer_email}</a><br>
-              <strong>Prepared By:</strong> {current_user.username}<br>
-              <strong>Date:</strong> {today}
-            </p>
+          <div style='display: flex; gap: 20px; margin-bottom: 30px;'>
+            <!-- Company Information -->
+            <div style='flex: 1; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden;'>
+              <div style='background-color: #f8f9fa; padding: 12px 15px; border-bottom: 1px solid #e0e0e0;'>
+                <h5 style='margin: 0; display: flex; justify-content: space-between; align-items: center;'>
+                  Company Information
+                  <span style='background-color: #198754; color: white; font-size: 12px; padding: 2px 8px; border-radius: 10px;'>Verified</span>
+                </h5>
+              </div>
+              <div style='padding: 15px;'>
+                <div style='margin-bottom: 15px;'>
+                  <div style='color: #6c757d; font-size: 13px;'>Company Name</div>
+                  <div style='font-weight: 600;'>CGI - Chemo Graphics India</div>
+                </div>
+                <div style='margin-bottom: 15px;'>
+                  <div style='color: #6c757d; font-size: 13px;'>Address</div>
+                  <div>113, 114 High Tech Industrial Centre,<br>Caves Rd, Jogeshwari East,<br>Mumbai, Maharashtra 400060</div>
+                </div>
+                <div style='margin-bottom: 15px;'>
+                  <div style='color: #6c757d; font-size: 13px;'>Email</div>
+                  <div><a href='mailto:info@chemo.in' style='color: #0d6efd; text-decoration: none;'>info@chemo.in</a></div>
+                </div>
+                <div style='padding-top: 15px; margin-top: 15px; border-top: 1px solid #e9ecef;'>
+                  <div style='color: #6c757d; font-size: 13px;'>Prepared by:</div>
+                  <div style='font-weight: 600;'>{current_user.username}</div>
+                  <div><a href='mailto:{current_user.email}' style='color: #0d6efd; text-decoration: none;'>{current_user.email}</a></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Customer Information -->
+            <div style='flex: 1; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden;'>
+              <div style='background-color: #f8f9fa; padding: 12px 15px; border-bottom: 1px solid #e0e0e0;'>
+                <h5 style='margin: 0; display: flex; justify-content: space-between; align-items: center;'>
+                  Customer Information
+                  <span style='background-color: #198754; color: white; font-size: 12px; padding: 2px 8px; border-radius: 10px;'>Verified</span>
+                </h5>
+              </div>
+              <div style='padding: 15px;'>
+                <div style='margin-bottom: 15px;'>
+                  <div style='color: #6c757d; font-size: 13px;'>Company Name</div>
+                  <div style='font-weight: 600;'>{customer_name}</div>
+                </div>
+                <div style='margin-bottom: 15px;'>
+                  <div style='color: #6c757d; font-size: 13px;'>Email</div>
+                  <div><a href='mailto:{customer_email}' style='color: #0d6efd; text-decoration: none;'>{customer_email}</a></div>
+                </div>
+                <div style='margin-bottom: 15px;'>
+                  <div style='color: #6c757d; font-size: 13px;'>Date</div>
+                  <div>{today}</div>
+                </div>
+              </div>
+            </div>
           </div>
           
           <div style='margin: 20px 0;'>

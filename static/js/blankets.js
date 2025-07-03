@@ -105,35 +105,42 @@ window.onload = () => {
       };
     });
 
-  // Load discounts when the page loads
+  // Load discounts from discount.json
   function loadDiscounts() {
-    fetch("/discounts")
+    fetch("/static/data/discount.json")
       .then(res => res.json())
       .then(data => {
         const select = document.getElementById("discountSelect");
         select.innerHTML = '<option value="">-- Select Discount --</option>';
-        data.discounts.forEach(item => {
+        
+        // Sort discounts in descending order
+        const sortedDiscounts = [...data.discounts].sort((a, b) => parseFloat(b) - parseFloat(a));
+        
+        sortedDiscounts.forEach(discount => {
           const option = document.createElement("option");
-          option.value = item.percentage;
-          option.text = `${item.name} (${item.percentage}%)`;
+          const discountValue = parseFloat(discount);
+          option.value = discountValue;
+          option.text = `${discountValue.toFixed(2)}%`;
           select.appendChild(option);
+        });
+        
+        // Add event listener for discount changes
+        select.addEventListener('change', () => {
+          currentDiscount = parseFloat(select.value) || 0;
+          calculatePrice();
         });
       })
       .catch(error => {
         console.error('Error loading discounts:', error);
         // Fallback to default discounts if loading fails
-        const defaultDiscounts = [
-          { name: "Bulk Order", percentage: 5 },
-          { name: "Wholesale", percentage: 10 },
-          { name: "Dealer", percentage: 15 },
-          { name: "Special Offer", percentage: 20 }
-        ];
+        const defaultDiscounts = ["5.00", "10.00", "15.00", "20.00"];
         const select = document.getElementById("discountSelect");
         select.innerHTML = '<option value="">-- Select Discount --</option>';
-        defaultDiscounts.forEach(item => {
+        defaultDiscounts.forEach(discount => {
           const option = document.createElement("option");
-          option.value = item.percentage;
-          option.text = `${item.name} (${item.percentage}%)`;
+          const discountValue = parseFloat(discount);
+          option.value = discountValue;
+          option.text = `${discountValue.toFixed(2)}%`;
           select.appendChild(option);
         });
       });
@@ -240,7 +247,6 @@ window.onload = () => {
   document.getElementById('thicknessSelect').addEventListener('change', calculatePrice);
   document.getElementById('barSelect').addEventListener('change', calculatePrice);
   document.getElementById('quantityInput').addEventListener('input', calculatePrice);
-  document.getElementById('discountSelect').addEventListener('change', calculatePrice);
   document.getElementById('gstSelect').addEventListener('change', calculatePrice);
 
   // Add click handler for calculate button
@@ -387,6 +393,10 @@ function calculatePrice() {
     // Calculate price with barring
     priceWithBar = basePrice + (currentBarRate * areaSqM);
     
+    // Get quantity and calculate total before any discounts
+    const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
+    const totalBeforeDiscount = priceWithBar * quantity;
+    
     // Update UI
     document.getElementById('basePrice').textContent = `Base Price: ₹${basePrice.toFixed(2)}`;
     
@@ -395,42 +405,50 @@ function calculatePrice() {
     currentDiscount = parseFloat(discountSelect.value) || 0;
     
     // Calculate final price with discount and GST
-    let finalPrice = priceWithBar;
+    let finalUnitPrice = priceWithBar;
     let discountAmount = 0;
     
     if (currentDiscount > 0) {
       discountAmount = (priceWithBar * currentDiscount) / 100;
-      finalPrice = priceWithBar - discountAmount;
+      finalUnitPrice = priceWithBar - discountAmount;
       
       // Update discount display
       const discountValue = document.getElementById('discountedValue');
       if (discountValue) {
-        discountValue.textContent = `Discount (${currentDiscount}%): -₹${discountAmount.toFixed(2)}`;
+        const totalDiscount = discountAmount * quantity;
+        discountValue.textContent = `Discount (${currentDiscount}%): -₹${totalDiscount.toFixed(2)}`;
         discountValue.style.display = 'block';
       }
       
-      document.getElementById('netUnitPrice').textContent = `Price after Discount: ₹${finalPrice.toFixed(2)}`;
+      document.getElementById('netUnitPrice').textContent = `Price after Discount: ₹${finalUnitPrice.toFixed(2)}/unit`;
     } else {
       // Hide discount display if no discount
       const discountValue = document.getElementById('discountedValue');
       if (discountValue) {
         discountValue.style.display = 'none';
       }
-      document.getElementById('netUnitPrice').textContent = `Net Price: ₹${finalPrice.toFixed(2)}`;
+      document.getElementById('netUnitPrice').textContent = `Net Price: ₹${finalUnitPrice.toFixed(2)}/unit`;
     }
+    
+    // Calculate total price with quantity
+    const totalBeforeGST = finalUnitPrice * quantity;
     
     // Apply GST
     const gstRate = parseFloat(document.getElementById('gstSelect').value) || 0;
-    const gstAmount = (finalPrice * gstRate) / 100;
-    const totalPrice = finalPrice + gstAmount;
+    const gstAmount = (totalBeforeGST * gstRate) / 100;
+    const totalPrice = totalBeforeGST + gstAmount;
     
     // Update price summary
     const finalPriceElement = document.getElementById('finalPrice');
     if (finalPriceElement) {
       let summaryHTML = `
         <div class="d-flex justify-content-between">
-          <span>Base Price:</span>
+          <span>Unit Price:</span>
           <span>₹${basePrice.toFixed(2)}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Quantity:</span>
+          <span>${quantity}</span>
         </div>
         <div class="d-flex justify-content-between">
           <span>Barring:</span>

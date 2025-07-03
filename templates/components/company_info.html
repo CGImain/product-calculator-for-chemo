@@ -160,10 +160,6 @@ function updateCompanyInfoDisplay() {
                 window.companyJustChanged = false;
             }
         } else {
-            // No company data, show default state
-            if (nameDisplay) nameDisplay.textContent = 'No Company Selected';
-            if (emailDisplay) emailDisplay.textContent = '';
-            if (companyInfoContainer) companyInfoContainer.style.display = 'none';
         }
     } catch (error) {
         console.error('Error updating company info display:', error);
@@ -423,10 +419,6 @@ function updateCompanyInfoDisplay(company) {
             if (typeof sessionStorage !== 'undefined') {
                 sessionStorage.setItem('selectedCompany', JSON.stringify(company));
             }
-        } else {
-            if (nameDisplay) nameDisplay.textContent = 'No Company Selected';
-            if (emailDisplay) emailDisplay.textContent = '';
-            if (companyInfoContainer) companyInfoContainer.style.display = 'none';
         }
     } catch (error) {
         console.error('Error updating company info display:', error);

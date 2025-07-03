@@ -2967,6 +2967,10 @@ def blankets():
     # Get company_id from query parameters
     company_id = request.args.get('company_id')
     
+    # Debug log current session
+    app.logger.debug(f"Session data: {dict(session)}")
+    app.logger.debug(f"Current user: {current_user}")
+    
     # Initialize company info
     company_name = ''
     company_email = ''

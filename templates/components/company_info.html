@@ -51,44 +51,54 @@
 let companies = [];
 let selectedCompany = null;
 
-// Initialize with server-side data if available
-const serverCompany = {
-    name: '{{ session.company_name|default("")|tojson|safe }}',
-    email: '{{ session.company_email|default("")|tojson|safe }}',
-    id: '{{ session.company_id|default("")|tojson|safe }}'
-};
+// Get server-side data from hidden elements
+function getServerCompanyData() {
+    try {
+        const nameEl = document.getElementById('serverCompanyName');
+        const emailEl = document.getElementById('serverCompanyEmail');
+        const idEl = document.getElementById('serverCompanyId');
+        
+        const name = nameEl ? nameEl.textContent.trim() : '';
+        const email = emailEl ? emailEl.textContent.trim() : '';
+        const id = idEl ? idEl.textContent.trim() : '';
+        
+        if (name || id) {
+            return { name, email, id };
+        }
+    } catch (e) {
+        console.error('Error getting server company data:', e);
+    }
+    return null;
+}
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // First, try to get company data from server-side
+    const serverCompany = getServerCompanyData();
+    
     if (serverCompany && (serverCompany.name || serverCompany.id)) {
         // Update storage with server-side data
         if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem('selectedCompany', JSON.stringify({
-                name: serverCompany.name,
-                email: serverCompany.email,
-                id: serverCompany.id
-            }));
+            sessionStorage.setItem('selectedCompany', JSON.stringify(serverCompany));
         }
+        // Update the display immediately
+        updateCompanyInfoDisplay(serverCompany);
+    } else {
+        // If no server data, try to load from storage
+        updateCompanyInfoDisplay();
     }
     
-    // Then update the display
-    updateCompanyInfoDisplay();
-    
     // Also update after a short delay to catch any async updates
-    setTimeout(updateCompanyInfoDisplay, 100);
+    setTimeout(updateCompanyInfoDisplay, 300);
 });
 
 // Function to safely get company data from storage
 function getCompanyData() {
     try {
         // First check if we have server-side data
-        if (serverCompany && (serverCompany.name || serverCompany.id)) {
-            return {
-                name: serverCompany.name,
-                email: serverCompany.email,
-                id: serverCompany.id
-            };
+        const serverData = getServerCompanyData();
+        if (serverData && (serverData.name || serverData.id)) {
+            return serverData;
         }
         // Get from server-rendered elements first
         const companyName = document.getElementById('companyNameDisplay')?.textContent.trim();
@@ -130,9 +140,9 @@ function getCompanyData() {
 }
 
 // Function to update company info display
-function updateCompanyInfoDisplay() {
+function updateCompanyInfoDisplay(companyData = null) {
     try {
-        const company = getCompanyData();
+        const company = companyData || getCompanyData();
         console.log('Updating company info with:', company);
         
         // Get all relevant DOM elements
@@ -148,17 +158,18 @@ function updateCompanyInfoDisplay() {
         // Check if we have valid company data
         const hasValidCompany = company && (company.name || company.id);
         
-        // Update the display based on whether we have company data
         if (hasValidCompany) {
             // Update the company name display
-            if (nameDisplay && company.name) {
-                nameDisplay.textContent = company.name;
+            if (nameDisplay) {
+                nameDisplay.textContent = company.name || 'Company #' + company.id;
             }
             
             // Update the company email display if it exists
-            if (emailDisplay && companyInfoContainer && company.email) {
-                emailDisplay.textContent = company.email;
-                companyInfoContainer.style.display = 'flex';
+            if (emailDisplay && companyInfoContainer) {
+                if (company.email) {
+                    emailDisplay.textContent = company.email;
+                    companyInfoContainer.style.display = 'flex';
+                }
             }
             
             // Update the selected company

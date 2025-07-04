@@ -386,57 +386,53 @@ function calculatePrice() {
       areaElement.innerText = `Area per unit: ${areaSqM.toFixed(4)} m² (${areaSqYard.toFixed(4)} yd²)`;
     }
     
-    // Calculate base price using ratePerSqMt (rate per square meter)
+    // Calculate base price (area × rate per sq.m)
     const ratePerSqMt = parseFloat(selectedBlanket.ratePerSqMt || selectedBlanket.base_rate || 0);
     basePrice = areaSqM * ratePerSqMt;
     
-    // Calculate price with barring - multiply bar rate by area in square meters
-    priceWithBar = basePrice + (currentBarRate * areaSqM);
+    // Calculate net price per piece (base price + barring)
+    const netPricePerPiece = basePrice + currentBarRate;
     
-    // Get quantity and calculate total before any discounts
+    // Get quantity
     const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
-    const totalBeforeDiscount = priceWithBar * quantity;
     
-    // Update UI
+    // Calculate base total (net price × quantity)
+    const baseTotal = netPricePerPiece * quantity;
+    
+    // Update UI - Show base price and net price/pc
     document.getElementById('basePrice').textContent = `Base Price: ₹${basePrice.toFixed(2)}`;
+    document.getElementById('netUnitPrice').textContent = `Net Price/PC: ₹${netPricePerPiece.toFixed(2)}`;
     
     // Get discount percentage from select
     const discountSelect = document.getElementById('discountSelect');
     currentDiscount = parseFloat(discountSelect.value) || 0;
     
-    // Calculate final price with discount and GST
-    let finalUnitPrice = priceWithBar;
+    // Calculate discount amount and discounted total
     let discountAmount = 0;
+    let discountedTotal = baseTotal;
     
     if (currentDiscount > 0) {
-      discountAmount = (priceWithBar * currentDiscount) / 100;
-      finalUnitPrice = priceWithBar - discountAmount;
+      discountAmount = (baseTotal * currentDiscount) / 100;
+      discountedTotal = baseTotal - discountAmount;
       
       // Update discount display
       const discountValue = document.getElementById('discountedValue');
       if (discountValue) {
-        const totalDiscount = discountAmount * quantity;
-        discountValue.textContent = `Discount (${currentDiscount}%): -₹${totalDiscount.toFixed(2)}`;
+        discountValue.textContent = `Discount (${currentDiscount}%): -₹${discountAmount.toFixed(2)}`;
         discountValue.style.display = 'block';
       }
-      
-      document.getElementById('netUnitPrice').textContent = `Price after Discount: ₹${finalUnitPrice.toFixed(2)}/unit`;
     } else {
       // Hide discount display if no discount
       const discountValue = document.getElementById('discountedValue');
       if (discountValue) {
         discountValue.style.display = 'none';
       }
-      document.getElementById('netUnitPrice').textContent = `Net Price: ₹${finalUnitPrice.toFixed(2)}/unit`;
     }
     
-    // Calculate total price with quantity
-    const totalBeforeGST = finalUnitPrice * quantity;
-    
-    // Apply GST
+    // Apply GST on the discounted total
     const gstRate = parseFloat(document.getElementById('gstSelect').value) || 0;
-    const gstAmount = (totalBeforeGST * gstRate) / 100;
-    const totalPrice = totalBeforeGST + gstAmount;
+    const gstAmount = (discountedTotal * gstRate) / 100;
+    const totalPrice = discountedTotal + gstAmount;
     
     // Update price summary
     const finalPriceElement = document.getElementById('finalPrice');
@@ -451,8 +447,8 @@ function calculatePrice() {
           <span>${quantity}</span>
         </div>
         <div class="d-flex justify-content-between">
-          <span>Barring:</span>
-          <span>₹${(currentBarRate * areaSqM).toFixed(2)}</span>
+          <span>Barring (Flat Rate):</span>
+          <span>₹${currentBarRate.toFixed(2)}</span>
         </div>`;
       
       if (currentDiscount > 0) {

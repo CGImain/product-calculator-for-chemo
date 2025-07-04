@@ -441,7 +441,7 @@ function calculatePrice() {
       const netPrice = pricePerUnit * quantity;
       
       let summaryHTML = `
-        <h5 class="fw-bold mb-3">PRICE SUMMARY</h5>
+        <h5 class="fw-bold mb-3">Price Summary</h5>
         <div class="d-flex justify-content-between mb-2">
           <span>Unit Price:</span>
           <span>₹${basePrice.toFixed(2)}</span>

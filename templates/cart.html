@@ -14,12 +14,12 @@
 
     /* Container styling */
     .cart-container {
-        max-width: 1400px;
+        width: 90%;
+        max-width: 1600px;
         margin: 0 auto;
-        padding: 30px 40px;
+        padding: 30px 0;
         background-color: rgba(255, 255, 255, 0.95);
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         min-height: calc(100vh - 80px);
     }
 
@@ -34,7 +34,7 @@
     /* Cart item container */
     .cart-item {
         width: 100%;
-        padding: 0 10px;
+        padding: 0 15px;
         margin-bottom: 25px;
     }
     
@@ -248,11 +248,11 @@
             </button>
         </div>
 
-        <div id="cartItems" class="cart-items row row-cols-1 row-cols-lg-2 g-4 mx-0" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
+        <div id="cartItems" class="cart-items row row-cols-1 g-4 mx-auto" style="width: 100%; max-width: 1400px;" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
             {% if cart.products %}
                 {% for item in cart.products %}
                 {% if item %}
-                <div class="col">
+                <div class="col-12 col-lg-10 mx-auto">
                     <div class="cart-item h-100" data-type="{{ item.type|default('') }}" data-index="{{ loop.index0 }}" 
                          {% if item.type == 'blanket' %}
                              data-base-price="{{ item.base_price|default(0) }}" 

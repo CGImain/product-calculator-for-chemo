@@ -528,21 +528,6 @@ function calculateMPackPrices(container) {
         heading.textContent = 'MPack';
         leftContainer.appendChild(heading);
 
-        // Add machine, thickness, and size details
-        const details = [
-            { label: 'Machine', value: container.dataset.machine },
-            { label: 'Thickness', value: container.dataset.thickness },
-            { label: 'Size', value: container.dataset.size }
-        ];
-
-        details.forEach(({label, value}) => {
-            if (!value) return; // Skip if value is empty
-            const detailRow = document.createElement('div');
-            detailRow.className = 'price-detail';
-            detailRow.innerHTML = `<strong>${label}:</strong> <span>${value}</span>`;
-            leftContainer.appendChild(detailRow);
-        });
-
         // Add a divider
         const divider = document.createElement('div');
         divider.className = 'border-top my-2';

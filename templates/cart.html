@@ -14,12 +14,12 @@
 
     /* Container styling */
     .cart-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
-        padding: 20px;
-        background-color: rgba(255, 255, 255, 0.9);
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 30px 40px;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         min-height: calc(100vh - 80px);
     }
 
@@ -34,14 +34,21 @@
     /* Cart item container */
     .cart-item {
         width: 100%;
+        padding: 0 10px;
+        margin-bottom: 25px;
     }
-        
+    
     .cart-item .card {
-        border: 1px solid #eee;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         transition: all 0.3s ease;
         height: 100%;
+        overflow: hidden;
+    }
+    
+    .cart-item .card-body {
+        padding: 1.5rem;
     }
 
     /* Ensure all cart items have the same structure */
@@ -117,8 +124,10 @@
     }
 
     .product-title {
+        font-size: 1.2rem;
         font-weight: 600;
-        margin-bottom: 5px;
+        margin-bottom: 15px;
+        color: #2c3e50;
     }
 
     .product-details {
@@ -170,11 +179,11 @@
     }
     
     .price-details {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        margin-top: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid #e9ecef;
     }
     
     .price-grid {
@@ -239,7 +248,7 @@
             </button>
         </div>
 
-        <div id="cartItems" class="cart-items row row-cols-1 row-cols-md-2 g-4" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
+        <div id="cartItems" class="cart-items row row-cols-1 row-cols-lg-2 g-4 mx-0" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
             {% if cart.products %}
                 {% for item in cart.products %}
                 {% if item %}
@@ -350,50 +359,7 @@
                                     </div>
                                 </div>
 
-                                    <div class="price-details mt-3 p-3 bg-light rounded w-100" 
-                                         data-type="{{ item.type }}" 
-                                         data-unit-price="{{ item.unit_price|default(0) }}" 
-                                         data-quantity="{{ item.quantity|default(1) }}" 
-                                         data-discount-percent="{{ item.discount_percent|default(0) }}" 
-                                         data-gst-percent="{{ item.gst_percent|default(18) }}">
-                                        <div class="price-grid">
-                                            <div class="price-row">
-                                                <span class="price-label">Unit Price:</span>
-                                                <span class="price-value">₹{{ "%.2f"|format(item.unit_price|default(0)) }}</span>
-                                            </div>
-                                            <div class="price-row">
-                                                <span class="price-label">Quantity:</span>
-                                                <span class="price-value">
-                                                    <span class="quantity-display">{{ item.quantity }}</span>
-                                                </span>
-                                            </div>
-                                            <div class="price-row">
-                                                <span class="price-label">Subtotal:</span>
-                                                <span class="price-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1))) }}</span>
-                                            </div>
-                                            {% if item.discount_percent and item.discount_percent > 0 %}
-                                            <div class="price-row">
-                                                <span class="price-label">Discount ({{ item.discount_percent|default(0) }}%):</span>
-                                                <span class="price-value">-₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}</span>
-                                            </div>
-                                            {% endif %}
-                                            <div class="price-row">
-                                                <span class="price-label">GST ({{ item.gst_percent|default(18) }}%):</span>
-                                                <span class="price-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (item.gst_percent|default(18)) / 100) }}</span>
-                                            </div>
-                                            <div class="price-row fw-bold border-top mt-2 pt-2">
-                                                <span>Total:</span>
-                                                <span>₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (1 + (item.gst_percent|default(18)) / 100)) }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3 pt-3 border-top text-end">
-                                        <form class="remove-item-form d-inline" data-index="{{ loop.index0 }}">
-                                            <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                                                <i class="fas fa-trash"></i> Remove
-                                            </button>
-                                        </form>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>

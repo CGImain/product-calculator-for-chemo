@@ -244,37 +244,66 @@
                 {% for item in cart.products %}
                 {% if item %}
                 <div class="col">
-                    <div class="cart-item h-100" data-type="{{ item.type|default('') }}" data-index="{{ loop.index0 }}" {% if item.type == 'blanket' %}data-base-price="{{ item.base_price|default(0) }}" data-bar-price="{{ item.bar_price|default(0) }}" data-quantity="{{ item.quantity|default(1) }}" data-discount-percent="{{ item.discount_percent|default(0) }}" data-gst-percent="{{ item.gst_percent|default(18) }}"{% elif item.type == 'mpack' %}data-unit-price="{{ item.unit_price|default(0) }}" data-quantity="{{ item.quantity|default(1) }}" data-discount-percent="{{ item.discount_percent|default(0) }}" data-gst-percent="{{ item.gst_percent|default(18) }}" data-machine="{{ item.machine|default('') }}" data-thickness="{{ item.thickness|default('') }}" data-size="{{ item.size|default('') }}"{% endif %}>
+                    <div class="cart-item h-100" data-type="{{ item.type|default('') }}" data-index="{{ loop.index0 }}" 
+                         {% if item.type == 'blanket' %}
+                             data-base-price="{{ item.base_price|default(0) }}" 
+                             data-bar-price="{{ item.bar_price|default(0) }}" 
+                             data-quantity="{{ item.quantity|default(1) }}" 
+                             data-discount-percent="{{ item.discount_percent|default(0) }}" 
+                             data-gst-percent="{{ item.gst_percent|default(18) }}"
+                         {% elif item.type == 'mpack' %}
+                             data-unit-price="{{ item.unit_price|default(0) }}" 
+                             data-quantity="{{ item.quantity|default(1) }}" 
+                             data-discount-percent="{{ item.discount_percent|default(0) }}" 
+                             data-gst-percent="{{ item.gst_percent|default(18) }}"
+                         {% endif %}>
                     <div class="card h-100">
                         <div class="card-body">
                             <div class="item-details w-100">
-                                {% if item.type == 'blanket' %}
-                                <!-- Blanket Product -->
-                                <div class="blanket-product w-100"
-                                     data-area="{{ item.calculations.areaSqM|default(0) if item.calculations else 0 }}"
-                                     data-rate="{{ item.calculations.ratePerSqMt|default(0) if item.calculations else 0 }}"
-                                     data-base-price="{{ item.base_price|default(0) }}"
-                                     data-bar-price="{{ item.bar_price|default(0) }}"
-                                     data-quantity="{{ item.quantity|default(1) }}"
-                                     data-discount-percent="{{ item.discount_percent|default(0) }}"
-                                     data-gst-percent="{{ item.gst_percent|default(18) }}">
-                                    <div class="d-flex flex-column">
-                                        <h5 class="product-title">{{ item.name }}</h5>
+                                <div class="product-item w-100">
+                                    <div class="d-flex flex-column w-100">
+                                        <h5 class="product-title">
+                                            {% if item.type == 'blanket' %}
+                                                {{ item.name }}
+                                            {% else %}
+                                                {{ item.name|default('MPack') }}
+                                            {% endif %}
+                                        </h5>
                                         <div class="product-details mb-3">
-                                            {% if item.machine %}<p class="mb-1"><strong>Machine:</strong> {{ item.machine }}</p>{% endif %}
-                                            {% if item.thickness %}<p class="mb-1"><strong>Thickness:</strong> {{ item.thickness }}mm</p>{% endif %}
+                                            {% if item.machine %}
+                                                <p class="mb-1"><strong>Machine:</strong> {{ item.machine }}</p>
+                                            {% endif %}
+                                            
+                                            {% if item.thickness %}
+                                                <p class="mb-1">
+                                                    <strong>Thickness:</strong> 
+                                                    {% if item.type == 'blanket' %}
+                                                        {{ item.thickness }}mm
+                                                    {% else %}
+                                                        {% set thickness = item.thickness|string %}
+                                                        {{ thickness }}{% if not (thickness.endswith('mm') or thickness.endswith('in') or thickness.endswith('cm') or thickness.endswith('micron')) %}{% if thickness|float >= 1 %}mm{% else %}micron{% endif %}{% endif %}
+                                                    {% endif %}
+                                                </p>
+                                            {% endif %}
+                                            
                                             {% if item.size %}
                                                 <p class="mb-1"><strong>Size:</strong> {{ item.size }}</p>
                                             {% elif item.length and item.width %}
                                                 <p class="mb-1"><strong>Dimensions:</strong> {{ item.length }}m x {{ item.width }}m</p>
                                                 <p class="mb-1"><strong>Area:</strong> {{ "%.2f"|format((item.length|float * item.width|float)) }} m²</p>
                                             {% endif %}
+                                            
                                             {% if item.bar_type %}
                                                 <p class="mb-1"><strong>Barring:</strong> {{ item.bar_type }}</p>
                                             {% endif %}
                                         </div>
                                     </div>
-                                    <div class="price-details mt-3 p-3 bg-light rounded w-100">
+                                    <div class="price-details mt-3 p-3 bg-light rounded w-100" 
+                                         data-type="{{ item.type }}" 
+                                         data-unit-price="{{ item.unit_price|default(0) }}" 
+                                         data-quantity="{{ item.quantity|default(1) }}" 
+                                         data-discount-percent="{{ item.discount_percent|default(0) }}" 
+                                         data-gst-percent="{{ item.gst_percent|default(18) }}">
                                         <div class="price-grid">
                                             <div class="price-row">
                                                 <span class="price-label">Unit Price:</span>
@@ -320,27 +349,13 @@
                                         </form>
                                     </div>
                                 </div>
-                                {% elif item.type == 'mpack' %}
-                                <!-- MPack Product -->
-                                <div class="mpack-product w-100">
-                                    <div class="d-flex flex-column w-100">
-                                        <h5 class="product-title">{{ item.name|default('MPack') }}</h5>
-                                        <div class="product-details mb-3">
-                                            {% if item.machine %}
-                                                <p class="mb-1"><strong>Machine:</strong> {{ item.machine }}</p>
-                                            {% endif %}
-                                            
-                                            {% if item.thickness %}
-                                                {% set thickness = item.thickness|string %}
-                                                <p class="mb-1"><strong>Thickness:</strong> {{ thickness }}{% if not (thickness.endswith('mm') or thickness.endswith('in') or thickness.endswith('cm') or thickness.endswith('micron')) %}{% if thickness|float >= 1 %}mm{% else %}micron{% endif %}{% endif %}</p>
-                                            {% endif %}
-                                            
-                                            {% if item.size %}
-                                                <p class="mb-1"><strong>Size:</strong> {{ item.size }}</p>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="price-details mt-3 p-3 bg-light rounded w-100">
+
+                                    <div class="price-details mt-3 p-3 bg-light rounded w-100" 
+                                         data-type="{{ item.type }}" 
+                                         data-unit-price="{{ item.unit_price|default(0) }}" 
+                                         data-quantity="{{ item.quantity|default(1) }}" 
+                                         data-discount-percent="{{ item.discount_percent|default(0) }}" 
+                                         data-gst-percent="{{ item.gst_percent|default(18) }}">
                                         <div class="price-grid">
                                             <div class="price-row">
                                                 <span class="price-label">Unit Price:</span>

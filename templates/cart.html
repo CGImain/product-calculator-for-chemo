@@ -29,6 +29,61 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 30px;
+        padding: 15px 25px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .cart-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .cart-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .cart-actions .btn {
+        padding: 8px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .cart-actions .btn-outline-secondary {
+        border: 1px solid #6c757d;
+        color: #6c757d;
+    }
+    
+    .cart-actions .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .cart-actions .btn-outline-danger {
+        border: 1px solid #dc3545;
+        color: #dc3545;
+    }
+    
+    .cart-actions .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .cart-actions .btn-primary {
+        background-color: #0d6efd;
+        color: white;
+        border: 1px solid #0d6efd;
+    }
+    
+    .cart-actions .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
     }
 
     /* Cart item container */
@@ -222,23 +277,18 @@
 {% block content %}
     <div class="cart-container">
         <div class="cart-header">
-            <div class="w-100">
-                <h2 class="mb-3">Your Cart</h2>
-                <a href="#" id="continueShoppingBtn" class="btn btn-outline-secondary me-2">
-                    <i class="fas fa-arrow-left me-1"></i> Continue Shopping
+            <h2>Your Cart</h2>
+            <div class="cart-actions">
+                <a href="#" id="continueShoppingBtn" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
                 </a>
-                <script>
-                    document.getElementById('continueShoppingBtn').addEventListener('click', function(e) {
-                        e.preventDefault();
-                        window.location.href = '{{ url_for("product_selection") }}';
-                    });
-                </script>
-                <button type="button" class="btn btn-outline-danger" id="clearCartBtnTop"><i class="fas fa-trash me-1"></i> Clear Cart</button>
-
-                <!-- Send Quotation Button (top) -->
-                <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary ms-2" id="sendQuotationBtnTop">
-                    <i class="fas fa-paper-plane me-1"></i> Send Quotation
-                </a>            </div>
+                <button id="clearCartBtn" class="btn btn-outline-danger me-2">
+                    <i class="fas fa-trash me-2"></i>Clear Cart
+                </button>
+                <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary" id="sendQuotationBtn">
+                    <i class="fas fa-paper-plane me-2"></i>Send Quotation
+                </a>
+            </div>
         </div>
 
         <!-- Button to remove second MPack entry -->

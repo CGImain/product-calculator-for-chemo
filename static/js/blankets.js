@@ -390,8 +390,8 @@ function calculatePrice() {
     const ratePerSqMt = parseFloat(selectedBlanket.ratePerSqMt || selectedBlanket.base_rate || 0);
     basePrice = areaSqM * ratePerSqMt;
     
-    // Calculate price with barring
-    priceWithBar = basePrice + (currentBarRate * areaSqM * areaSqM);
+    // Calculate price with barring - multiply bar rate by area in square meters
+    priceWithBar = basePrice + (currentBarRate * areaSqM);
     
     // Get quantity and calculate total before any discounts
     const quantity = parseInt(document.getElementById('quantityInput').value) || 1;

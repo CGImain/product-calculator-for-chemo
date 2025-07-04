@@ -394,29 +394,26 @@
                                             </button>
                                         </form>
                                     </div>
-                                    </div>
                                 </div>
-                                {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-                {% endif %}
-                {% endfor %}
-            {% else %}
-                <div id="emptyCart" class="text-center py-5">
-                    <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
-                    <h4>Your cart is empty</h4>
-                    <p class="text-muted">Browse our products and add some items to your cart</p>
-                    <a href="{{ url_for('product_selection') }}" class="btn btn-outline-secondary">Continue Shopping</a>
-                </div>
-            {% endif %}
-            
-            {% if cart.products and cart.products|length > 0 %}
-            <div class="cart-summary mt-4" id="cartSummary">
-                <!-- Cart summary will be dynamically updated -->
-            </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div id="emptyCart" class="text-center py-5">
+                                <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                                <h4>Your cart is empty</h4>
+                                <p class="text-muted">Browse our products and add some items to your cart</p>
+                                <a href="{{ url_for('product_selection') }}" class="btn btn-outline-secondary">Continue Shopping</a>
+                            </div>
+                        {% endif %}
+                        
+                        {% if cart.products and cart.products|length > 0 %}
+                        <div class="cart-summary mt-4" id="cartSummary">
+                            <!-- Cart summary will be dynamically updated -->
+                        </div>
             
             <!-- Cart Footer -->
             <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">

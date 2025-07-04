@@ -391,7 +391,7 @@ function calculatePrice() {
     basePrice = areaSqM * ratePerSqMt;
     
     // Calculate price with barring
-    priceWithBar = basePrice + (currentBarRate * areaSqM);
+    priceWithBar = basePrice + (currentBarRate * areaSqM * areaSqM);
     
     // Get quantity and calculate total before any discounts
     const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
@@ -603,8 +603,8 @@ function addBlanketToCart() {
   const discountAmount = currentDiscount > 0 ? (basePrice * currentDiscount / 100) : 0;
   const discountedBasePrice = basePrice - discountAmount;
   
-  // Add bar price after discount
-  const priceWithBar = discountedBasePrice + barPrice;
+  // Add bar price after discount - multiply bar rate by area in square meters
+  const priceWithBar = discountedBasePrice + (barPrice * areaSqM);
   const discountedPrice = priceWithBar;
   
   // Calculate GST on the discounted price

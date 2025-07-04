@@ -410,20 +410,19 @@ function calculatePrice() {
     // Calculate discount amount and discounted total
     let discountAmount = 0;
     let discountedTotal = baseTotal;
+    const discountValue = document.getElementById('discountedValue');
     
     if (currentDiscount > 0) {
       discountAmount = (baseTotal * currentDiscount) / 100;
       discountedTotal = baseTotal - discountAmount;
       
       // Update discount display
-      const discountValue = document.getElementById('discountedValue');
       if (discountValue) {
         discountValue.textContent = `Discount (${currentDiscount}%): -₹${discountAmount.toFixed(2)}`;
         discountValue.style.display = 'block';
       }
     } else {
       // Hide discount display if no discount
-      const discountValue = document.getElementById('discountedValue');
       if (discountValue) {
         discountValue.style.display = 'none';
       }
@@ -437,40 +436,53 @@ function calculatePrice() {
     // Update price summary
     const finalPriceElement = document.getElementById('finalPrice');
     if (finalPriceElement) {
+      const selectedBar = document.getElementById('barSelect').options[document.getElementById('barSelect').selectedIndex]?.text || 'None';
+      const pricePerUnit = basePrice + currentBarRate;
+      const netPrice = pricePerUnit * quantity;
+      
       let summaryHTML = `
-        <div class="d-flex justify-content-between">
+        <h5 class="fw-bold mb-3">PRICE SUMMARY</h5>
+        <div class="d-flex justify-content-between mb-2">
           <span>Unit Price:</span>
           <span>₹${basePrice.toFixed(2)}</span>
         </div>
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between mb-2">
+          <span>Barring (${selectedBar}):</span>
+          <span>₹${currentBarRate.toFixed(2)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Price per Unit:</span>
+          <span>₹${pricePerUnit.toFixed(2)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
           <span>Quantity:</span>
           <span>${quantity}</span>
         </div>
-        <div class="d-flex justify-content-between">
-          <span>Barring (Flat Rate):</span>
-          <span>₹${currentBarRate.toFixed(2)}</span>
+        <div class="d-flex justify-content-between mb-2 fw-bold">
+          <span>Net Price:</span>
+          <span>₹${netPrice.toFixed(2)}</span>
         </div>`;
       
       if (currentDiscount > 0) {
         summaryHTML += `
-        <div class="d-flex justify-content-between text-danger">
+        <div class="d-flex justify-content-between text-danger mb-2">
           <span>Discount (${currentDiscount}%):</span>
           <span>-₹${discountAmount.toFixed(2)}</span>
         </div>
-        <div class="d-flex justify-content-between">
-          <span>Subtotal:</span>
-          <span>₹${finalPrice.toFixed(2)}</span>
+        <div class="d-flex justify-content-between mb-2 fw-bold">
+          <span>Discounted Price:</span>
+          <span>₹${discountedTotal.toFixed(2)}</span>
         </div>`;
       }
       
       summaryHTML += `
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between mb-2">
           <span>GST (${gstRate}%):</span>
           <span>₹${gstAmount.toFixed(2)}</span>
         </div>
         <hr>
-        <div class="d-flex justify-content-between fw-bold">
-          <span>Total:</span>
+        <div class="d-flex justify-content-between fw-bold fs-5">
+          <span>Sum Total:</span>
           <span>₹${totalPrice.toFixed(2)}</span>
         </div>`;
       
@@ -550,6 +562,32 @@ function applyGST() {
     `;
   }
 }
+
+// Initialize discount select when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Add event listener for discount select
+  const discountSelect = document.getElementById('discountSelect');
+  if (discountSelect) {
+    discountSelect.addEventListener('change', function() {
+      currentDiscount = parseFloat(this.value) || 0;
+      calculatePrice();
+    });
+    
+    // Load discount options
+    fetch('/static/data/discount.json')
+      .then(res => res.json())
+      .then(data => {
+        discountSelect.innerHTML = '<option value="">-- Select Discount --</option>';
+        data.discounts.forEach(discountStr => {
+          const percent = parseFloat(discountStr);
+          const opt = document.createElement('option');
+          opt.value = percent;
+          opt.textContent = discountStr;
+          discountSelect.appendChild(opt);
+        });
+      });
+  }
+});
 
 function addBlanketToCart() {
   // Get input elements

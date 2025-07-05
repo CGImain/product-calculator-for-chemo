@@ -2151,7 +2151,7 @@ def send_quotation():
         <div style='font-family: Arial, sans-serif; color: #333; max-width: 1200px; margin: 0 auto; line-height: 1.6; background-color: #e0caa9; padding: 20px;'>
           <div style='background-color: white; border-radius: 0.5rem; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); padding: 2rem; margin-bottom: 1.5rem;'>
             <div style='text-align: center; margin-bottom: 2rem;'>
-              <img src='https://i.ibb.co/b5WxFgzr/images-q-tbn-ANd9-Gc-Txldc5-GK6zo-KDCrs-Xgx-Te-ss-H7i-Ambvm-Nw-s.jpg' alt='CGI Logo' style='max-width: 200px; margin-bottom: 1rem;'>
+              <a href="https://imgbb.com/"><img src="https://i.ibb.co/1GVLnJcc/image-2025-07-04-163516213.png" alt="CGI Logo" style="max-width: 200px; margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto;"></a>
               <h2 style='margin: 0 0 0.5rem 0; color: #2c3e50;'>QUOTATION</h2>
               <p style='color: #6c757d; margin: 0; font-size: 0.9rem;'>{today}</p>
             </div>

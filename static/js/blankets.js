@@ -108,10 +108,7 @@ window.onload = () => {
     
     let filteredBlankets = [];
     
-    if (category === "All" || category === "All Categories") {
-      console.log('Showing all blankets');
-      filteredBlankets = [...blanketData];
-    } else if (categories[category]) {
+    if (categories[category]) {
       console.log('Filtering by category:', category, 'IDs:', categories[category]);
       
       // Get the list of blanket IDs for this category

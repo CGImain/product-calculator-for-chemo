@@ -2931,15 +2931,9 @@ def send_quotation():
                 </tr>
             """
         
-        # Close the table and add footer
-        rows_html += f"""
+        # Close the table
+        rows_html += """
             </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan='9' style='padding: 12px; text-align: right; border: 1px solid #ddd; background-color: #f5f5f5;'><strong>Total:</strong></td>
-                    <td style='padding: 12px; text-align: right; border: 1px solid #ddd; background-color: #f5f5f5;'><strong>₹{subtotal:,.2f}</strong></td>
-                </tr>
-            </tfoot>
         </table>
         <p>For more information, please contact: <a href='mailto:info@chemo.in'>info@chemo.in</a></p>
         <p>This quotation is not a contract or invoice. It is our best estimate.</p>

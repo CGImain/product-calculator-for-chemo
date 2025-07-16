@@ -35,7 +35,21 @@ window.onload = () => {
     })
     .then(data => {
       const categorySelect = document.getElementById("categorySelect");
-      categorySelect.innerHTML = '<option value="All">All Categories</option>';
+      categorySelect.innerHTML = '';
+      
+      // Add default option
+      const defaultOption = document.createElement("option");
+      defaultOption.value = "";
+      defaultOption.text = "--select blanket type--";
+      defaultOption.selected = true;
+      defaultOption.disabled = true;
+      categorySelect.appendChild(defaultOption);
+      
+      // Add "All Blankets" option
+      const allOption = document.createElement("option");
+      allOption.value = "All";
+      allOption.text = "All Blankets";
+      categorySelect.appendChild(allOption);
       
       // Add each category to the dropdown
       Object.keys(data.categories).forEach(category => {
@@ -50,7 +64,14 @@ window.onload = () => {
       // When category changes, filter the blankets
       categorySelect.addEventListener("change", () => {
         const selectedCategory = categorySelect.value;
-        filterBlanketsByCategory(selectedCategory, data.categories);
+        if (selectedCategory === "") {
+          // If default option is selected, clear the blanket select
+          const blanketSelect = document.getElementById("blanketSelect");
+          blanketSelect.innerHTML = '<option value="">-- Select a blanket type first --</option>';
+          blanketSelect.disabled = true;
+        } else {
+          filterBlanketsByCategory(selectedCategory, data.categories);
+        }
       });
     })
     .catch(error => {
@@ -68,13 +89,48 @@ window.onload = () => {
     })
     .then(data => {
       blanketData = data.products || [];
-      // Initial load - show all blankets
-      populateBlanketSelect(blanketData);
+      // Don't populate the blanket select yet, wait for category selection
+      const blanketSelect = document.getElementById("blanketSelect");
+      blanketSelect.innerHTML = '<option value="">-- Select a blanket type first --</option>';
+      blanketSelect.disabled = true;
     })
     .catch(error => {
       console.error('Error loading blanket data:', error);
       alert('Error loading blanket data. Please refresh the page to try again.');
     });
+    
+  // Function to filter blankets by category
+  function filterBlanketsByCategory(category, categories) {
+    const blanketSelect = document.getElementById("blanketSelect");
+    blanketSelect.innerHTML = '<option value="">-- Select Blanket --</option>';
+    blanketSelect.disabled = false;
+    
+    if (category === "All") {
+      // Show all blankets
+      blanketData.forEach(blanket => {
+        const option = document.createElement("option");
+        option.value = blanket.id;
+        option.text = blanket.name;
+        option.setAttribute('data-category', blanket.category || '');
+        blanketSelect.appendChild(option);
+      });
+    } else if (category && categories[category]) {
+      // Show only blankets in the selected category
+      categories[category].forEach(blanketId => {
+        const blanket = blanketData.find(b => b.id === blanketId);
+        if (blanket) {
+          const option = document.createElement("option");
+          option.value = blanket.id;
+          option.text = blanket.name;
+          option.setAttribute('data-category', blanket.category || '');
+          blanketSelect.appendChild(option);
+        }
+      });
+    }
+    
+    // Reset other fields when blanket selection changes
+    blanketSelect.onchange = displayRates;
+  }
 
   // Load thickness data
   function loadThicknessData() {

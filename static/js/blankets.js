@@ -35,21 +35,10 @@ window.onload = () => {
     })
     .then(data => {
       const categorySelect = document.getElementById("categorySelect");
-      categorySelect.innerHTML = '';
-      
-      // Add default option
-      const defaultOption = document.createElement("option");
-      defaultOption.value = "";
-      defaultOption.text = "--select blanket type--";
-      defaultOption.selected = true;
-      defaultOption.disabled = true;
-      categorySelect.appendChild(defaultOption);
-      
-      // Add "All Blankets" option
-      const allOption = document.createElement("option");
-      allOption.value = "All";
-      allOption.text = "All Blankets";
-      categorySelect.appendChild(allOption);
+      categorySelect.innerHTML = `
+        <option value="" selected disabled>--select blanket categories--</option>
+        <option value="All">All Categories</option>
+      `;
       
       // Add each category to the dropdown
       Object.keys(data.categories).forEach(category => {
@@ -64,15 +53,11 @@ window.onload = () => {
       // When category changes, filter the blankets
       categorySelect.addEventListener("change", () => {
         const selectedCategory = categorySelect.value;
-        if (selectedCategory === "") {
-          // If default option is selected, clear the blanket select
-          const blanketSelect = document.getElementById("blanketSelect");
-          blanketSelect.innerHTML = '<option value="">-- Select a blanket type first --</option>';
-          blanketSelect.disabled = true;
-        } else {
-          filterBlanketsByCategory(selectedCategory, data.categories);
-        }
+        filterBlanketsByCategory(selectedCategory, data.categories);
       });
+      
+      // Show the category section after loading
+      document.getElementById("categorySection").style.display = 'block';
     })
     .catch(error => {
       console.error('Error loading blanket categories:', error);
@@ -101,41 +86,37 @@ window.onload = () => {
     
   // Function to filter blankets by category
   function filterBlanketsByCategory(category, categories) {
-    const blanketSelect = document.getElementById("blanketSelect");
-    const blanketSection = document.getElementById("blanketSection");
+    if (!blanketData || !blanketData.length) return;
     
-    blanketSelect.innerHTML = '<option value="">-- Select Blanket --</option>';
-    blanketSelect.disabled = false;
-    blanketSection.style.display = 'block';
+    let filteredBlankets = [];
     
     if (category === "All") {
-      // Show all blankets
-      blanketData.forEach(blanket => {
-        const option = document.createElement("option");
-        option.value = blanket.id;
-        option.text = blanket.name || `Blanket ${blanket.id}`;
-        option.setAttribute('data-category', blanket.category || '');
-        blanketSelect.appendChild(option);
-      });
-    } else if (category && categories[category]) {
+      // Show all blankets if "All Categories" is selected
+      filteredBlankets = [...blanketData];
+    } else if (categories[category]) {
       // Show only blankets in the selected category
-      categories[category].forEach(blanketId => {
-        // Convert both IDs to strings for consistent comparison
-        const blanket = blanketData.find(b => String(b.id) === String(blanketId));
-        if (blanket) {
-          const option = document.createElement("option");
-          option.value = blanket.id;
-          option.text = blanket.name || `Blanket ${blanket.id}`;
-          option.setAttribute('data-category', blanket.category || '');
-          blanketSelect.appendChild(option);
-        }
-      });
+      const categoryBlanketIds = categories[category];
+      filteredBlankets = blanketData.filter(blanket => 
+        categoryBlanketIds.includes(blanket.id)
+      );
     }
     
-    // Show the blanket section when category is selected
-    blanketSection.style.display = 'block';
+    // Populate the blanket select with filtered blankets
+    const blanketSelect = document.getElementById("blanketSelect");
+    blanketSelect.innerHTML = '<option value="">-- Select Blanket --</option>';
     
-    // Reset other fields when blanket selection changes
+    filteredBlankets.forEach(blanket => {
+      const option = document.createElement("option");
+      option.value = blanket.id;
+      option.text = blanket.name || `Blanket ${blanket.id}`;
+      blanketSelect.appendChild(option);
+    });
+    
+    // Show the blanket section
+    document.getElementById("blanketSection").style.display = 'block';
+    blanketSelect.disabled = false;
+    
+    // Update the display when a blanket is selected
     blanketSelect.onchange = displayRates;
   }
 

@@ -159,10 +159,8 @@
         <th>Thickness</th>
         <th>Dimensions</th>
         <th>Barring Type</th>
-        <th>Price</th>
         <th>Qty</th>
-        <th>Disc. %</th>
-        <th>Total</th>
+        <th>Price</th>
       </tr>
     </thead>
     <tbody>
@@ -197,19 +195,12 @@
             {% endif %}
           </td>
           <td>{{ item.get('bar_type', '------') if prod_type == 'blanket' else '------' }}</td>
-          <td>₹{{ '%.2f'|format(item.get('unit_price', item.get('base_price', 0))|float) }}</td>
           <td>{{ item.get('quantity', 1) }}</td>
-          <td>{{ item.get('discount_percent', 0) }}</td>
-          <td>₹{{ '%.2f'|format(item.calculations.final_total|default(item.total_price|default(0))) }}</td>
+          <td>₹{{ '%.2f'|format(item.get('unit_price', item.get('base_price', 0))|float) }}</td>
         </tr>
       {% endfor %}
     </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="9" class="text-end fw-bold">Total:</td>
-            <td class="fw-bold">₹{{ '%.2f'|format(calculations.total) }}</td>
-        </tr>
-    </tfoot>
+
 </table>
   
   <!-- Optional Notes Section -->

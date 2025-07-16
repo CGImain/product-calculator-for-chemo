@@ -35,10 +35,7 @@ window.onload = () => {
     })
     .then(data => {
       const categorySelect = document.getElementById("categorySelect");
-      categorySelect.innerHTML = `
-        <option value="" selected disabled>--select blanket categories--</option>
-        <option value="All">All Categories</option>
-      `;
+      categorySelect.innerHTML = '<option value="All">All Categories</option>';
       
       // Add each category to the dropdown
       Object.keys(data.categories).forEach(category => {
@@ -53,14 +50,8 @@ window.onload = () => {
       // When category changes, filter the blankets
       categorySelect.addEventListener("change", () => {
         const selectedCategory = categorySelect.value;
-        console.log('Category changed to:', selectedCategory);
-        console.log('Available categories data:', data.categories);
-        console.log('Current blanket data:', blanketData);
         filterBlanketsByCategory(selectedCategory, data.categories);
       });
-      
-      // Show the category section after loading
-      document.getElementById("categorySection").style.display = 'block';
     })
     .catch(error => {
       console.error('Error loading blanket categories:', error);
@@ -68,7 +59,6 @@ window.onload = () => {
     });
 
   // Load blankets data
-  console.log('Fetching blanket data...');
   fetch("/blanket_data")
     .then(res => {
       if (!res.ok) {
@@ -77,94 +67,14 @@ window.onload = () => {
       return res.json();
     })
     .then(data => {
-      console.log('Received blanket data:', data);
       blanketData = data.products || [];
-      console.log('Processed blanket data:', blanketData);
-      
-      // Don't populate the blanket select yet, wait for category selection
-      const blanketSelect = document.getElementById("blanketSelect");
-      if (blanketSelect) {
-        blanketSelect.innerHTML = '<option value="">-- Select a blanket type first --</option>';
-        blanketSelect.disabled = true;
-        console.log('Initialized blanket select with default state');
-      } else {
-        console.error('Blanket select element not found in DOM');
-      }
+      // Initial load - show all blankets
+      populateBlanketSelect(blanketData);
     })
     .catch(error => {
       console.error('Error loading blanket data:', error);
-      alert('Error loading blanket data. Please check console for details and refresh the page to try again.');
+      alert('Error loading blanket data. Please refresh the page to try again.');
     });
-    
-  // Function to filter blankets by category
-  function filterBlanketsByCategory(category, categories) {
-    console.log('Filtering blankets for category:', category);
-    console.log('Available categories:', Object.keys(categories));
-    
-    if (!blanketData || !blanketData.length) {
-      console.error('No blanket data available');
-      return;
-    }
-    
-    let filteredBlankets = [];
-    
-    if (categories[category]) {
-      console.log('Filtering by category:', category, 'IDs:', categories[category]);
-      
-      // Get the list of blanket IDs for this category
-      const categoryBlanketIds = categories[category].map(id => Number(id));
-      console.log('Looking for blanket IDs:', categoryBlanketIds);
-      
-      // Filter blankets that have an ID in the category's list
-      filteredBlankets = blanketData.filter(blanket => {
-        const blanketId = Number(blanket.id);
-        const isInCategory = categoryBlanketIds.includes(blanketId);
-        console.log(`Blanket ID: ${blanketId} (${typeof blanket.id}), In Category: ${isInCategory}`, blanket);
-        return isInCategory;
-      });
-    } else {
-      console.warn('Category not found in categories:', category);
-    }
-    
-    console.log('Filtered blankets:', filteredBlankets);
-    
-    const blanketSelect = document.getElementById("blanketSelect");
-    if (!blanketSelect) {
-      console.error('Blanket select element not found');
-      return;
-    }
-    
-    // Clear and disable the select while updating
-    blanketSelect.innerHTML = '<option value="">-- Select Blanket --</option>';
-    blanketSelect.disabled = true;
-    
-    if (filteredBlankets.length === 0) {
-      console.warn('No blankets found for the selected category');
-      return;
-    }
-    
-    // Add filtered blankets to the select
-    filteredBlankets.forEach(blanket => {
-      const option = new Option(blanket.name || `Blanket ${blanket.id}`, blanket.id);
-      blanketSelect.add(option);
-    });
-    
-    // Enable the select and set up change handler
-    blanketSelect.disabled = false;
-    blanketSelect.onchange = function() {
-      console.log('Blanket selected:', this.value);
-      displayRates();
-      calculatePrice();
-    };
-    
-    // Show the blanket section
-    const blanketSection = document.getElementById("blanketSection");
-    if (blanketSection) {
-      blanketSection.style.display = 'block';
-    }
-    
-    console.log('Blanket selection updated');
-  }
 
   // Load thickness data
   function loadThicknessData() {

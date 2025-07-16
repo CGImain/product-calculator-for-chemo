@@ -2841,6 +2841,7 @@ def send_quotation():
                     <th style='padding: 10px; text-align: left;'>Thickness</th>
                     <th style='padding: 10px; text-align: left;'>Size</th>
                     <th style='padding: 10px; text-align: left;'>Barri...</th>
+                    <th style='padding: 10px; text-align: right;'>Price</th>
                     <th style='padding: 10px; text-align: right;'>Qty</th>
                     <th style='padding: 10px; text-align: right;'>Disc. %</th>
                     <th style='padding: 10px; text-align: right;'>Amount (₹)</th>
@@ -2927,8 +2928,9 @@ def send_quotation():
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{dimensions}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('bar_type', '----') if prod_type == 'blanket' else '----'}</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>₹{p.get('unit_price', p.get('base_price', 0)):,.2f}</td>
                     <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{qty}</td>
-                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{p.get('discount_percent', 0)}%</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{p.get('discount_percent', 0)}</td>
                     <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>₹{total_val:,.2f}</td>
                 </tr>
             """

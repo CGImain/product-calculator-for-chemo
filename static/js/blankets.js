@@ -102,31 +102,38 @@ window.onload = () => {
   // Function to filter blankets by category
   function filterBlanketsByCategory(category, categories) {
     const blanketSelect = document.getElementById("blanketSelect");
+    const blanketSection = document.getElementById("blanketSection");
+    
     blanketSelect.innerHTML = '<option value="">-- Select Blanket --</option>';
     blanketSelect.disabled = false;
+    blanketSection.style.display = 'block';
     
     if (category === "All") {
       // Show all blankets
       blanketData.forEach(blanket => {
         const option = document.createElement("option");
         option.value = blanket.id;
-        option.text = blanket.name;
+        option.text = blanket.name || `Blanket ${blanket.id}`;
         option.setAttribute('data-category', blanket.category || '');
         blanketSelect.appendChild(option);
       });
     } else if (category && categories[category]) {
       // Show only blankets in the selected category
       categories[category].forEach(blanketId => {
-        const blanket = blanketData.find(b => b.id === blanketId);
+        // Convert both IDs to strings for consistent comparison
+        const blanket = blanketData.find(b => String(b.id) === String(blanketId));
         if (blanket) {
           const option = document.createElement("option");
           option.value = blanket.id;
-          option.text = blanket.name;
+          option.text = blanket.name || `Blanket ${blanket.id}`;
           option.setAttribute('data-category', blanket.category || '');
           blanketSelect.appendChild(option);
         }
       });
     }
+    
+    // Show the blanket section when category is selected
+    blanketSection.style.display = 'block';
     
     // Reset other fields when blanket selection changes
     blanketSelect.onchange = displayRates;

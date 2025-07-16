@@ -35,7 +35,10 @@ window.onload = () => {
     })
     .then(data => {
       const categorySelect = document.getElementById("categorySelect");
-      categorySelect.innerHTML = '<option value="All">All Categories</option>';
+      categorySelect.innerHTML = `
+        <option value="" selected disabled>-- Select Category --</option>
+        <option value="All">All Categories</option>
+      `;
       
       // Add each category to the dropdown
       Object.keys(data.categories).forEach(category => {

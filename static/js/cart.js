@@ -1408,6 +1408,12 @@ function updateItemDisplay(item, data) {
             }
         }
         
+        // Update pre-GST total
+        const preGstTotalElement = item.querySelector('.pre-gst-total .pre-gst-amount');
+        if (preGstTotalElement) {
+            preGstTotalElement.textContent = `₹${taxableAmount.toFixed(2)}`;
+        }
+        
         // Update total
         const totalElement = item.querySelector('.total-value');
         if (totalElement) {
@@ -1478,6 +1484,12 @@ function updateItemDisplay(item, data) {
             if (gstPercentElement) {
                 gstPercentElement.textContent = `${gstPercent}%`;
             }
+        }
+        
+        // Update pre-GST total
+        const preGstTotalElement = item.querySelector('.pre-gst-total .pre-gst-amount');
+        if (preGstTotalElement) {
+            preGstTotalElement.textContent = `₹${taxableAmount.toFixed(2)}`;
         }
         
         // Update total

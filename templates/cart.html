@@ -465,10 +465,14 @@
                                                  <span class="price-value discount-amount">-₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}</span>
                                             </div>
                                             {% endif %}
-                                            <div class="price-row gst-row">
-                                                 <span class="price-label">GST (<span class="gst-percent">{{ item.gst_percent|default(18) }}</span>%):</span>
-                                                 <span class="price-value gst-amount">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (item.gst_percent|default(18)) / 100) }}</span>
-                                            </div>
+                                             <div class="price-row pre-gst-total">
+                                                  <span class="price-label fw-medium">Total (Pre-GST):</span>
+                                                  <span class="price-value pre-gst-amount fw-medium">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100)) }}</span>
+                                             </div>
+                                             <div class="price-row gst-row">
+                                                  <span class="price-label">GST (<span class="gst-percent">{{ item.gst_percent|default(18) }}</span>%):</span>
+                                                  <span class="price-value gst-amount">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (item.gst_percent|default(18)) / 100) }}</span>
+                                             </div>
                                             <div class="price-row fw-bold border-top mt-2 pt-2">
                                                 <span>Total:</span>
                                                 <span class="total-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (1 + (item.gst_percent|default(18)) / 100)) }}</span>

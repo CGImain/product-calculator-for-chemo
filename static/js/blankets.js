@@ -99,6 +99,7 @@ window.onload = () => {
   // Function to filter blankets by category
   function filterBlanketsByCategory(category, categories) {
     console.log('Filtering blankets for category:', category);
+    console.log('Available categories:', Object.keys(categories));
     
     if (!blanketData || !blanketData.length) {
       console.error('No blanket data available');
@@ -107,18 +108,25 @@ window.onload = () => {
     
     let filteredBlankets = [];
     
-    if (category === "All") {
+    if (category === "All" || category === "All Categories") {
       console.log('Showing all blankets');
       filteredBlankets = [...blanketData];
     } else if (categories[category]) {
       console.log('Filtering by category:', category, 'IDs:', categories[category]);
-      // Convert category IDs to numbers for comparison
+      
+      // Get the list of blanket IDs for this category
       const categoryBlanketIds = categories[category].map(id => Number(id));
+      console.log('Looking for blanket IDs:', categoryBlanketIds);
+      
+      // Filter blankets that have an ID in the category's list
       filteredBlankets = blanketData.filter(blanket => {
-        const match = categoryBlanketIds.includes(Number(blanket.id));
-        console.log('Checking blanket:', blanket.id, 'Type:', typeof blanket.id, 'Match:', match);
-        return match;
+        const blanketId = Number(blanket.id);
+        const isInCategory = categoryBlanketIds.includes(blanketId);
+        console.log(`Blanket ID: ${blanketId} (${typeof blanket.id}), In Category: ${isInCategory}`, blanket);
+        return isInCategory;
       });
+    } else {
+      console.warn('Category not found in categories:', category);
     }
     
     console.log('Filtered blankets:', filteredBlankets);

@@ -1,0 +1,492 @@
+:root {
+  --primary-color: #4a6fa5;
+  --primary-hover: #3a5a8c;
+  --text-color: #333;
+  --text-light: #666;
+  --border-color: #ddd;
+  --error-color: #e74c3c;
+  --success-color: #2ecc71;
+  --background: #f5f7fa;
+  --card-bg: #ffffff;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+  background: linear-gradient(to right, #fff8e1, #e0caa9);
+  color: var(--text-color);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 32px;
+  width: 100%;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo h1 {
+  color: var(--primary-color);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.logo p {
+  color: var(--text-light);
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.step {
+  animation: fadeIn 0.3s ease;
+  display: none;
+}
+
+.step.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+  width: 100%;
+}
+
+.password-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-group input[type="password"],
+.password-input-group input[type="text"] {
+  width: 100%;
+  padding-right: 40px; /* Space for the toggle button */
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.toggle-password:hover {
+  color: var(--primary);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.toggle-password:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.toggle-password i {
+  font-size: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 15px;
+  transition: var(--transition);
+  background-color: #fff;
+  color: var(--text-color);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.btn .btn-text {
+  position: relative;
+  z-index: 1;
+}
+
+.btn .btn-loader {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--primary-color);
+}
+
+.btn.loading .btn-text {
+  visibility: hidden;
+}
+
+.btn.loading .btn-loader {
+  display: flex;
+}
+
+.message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border-left: 4px solid #c62828;
+}
+
+.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-left: 4px solid #2e7d32;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.success svg {
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.success-message {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Login suggestion */
+.login-suggestion {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 4px;
+  transition: var(--transition);
+}
+
+.login-suggestion:hover {
+  text-decoration: underline;
+}
+
+.login-link {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.login-link a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* OTP input styling */
+.otp-input {
+  letter-spacing: 0.2em;
+  font-size: 24px !important;
+  text-align: center;
+  font-weight: 600;
+  padding: 12px 5px !important;
+  text-indent: 0;
+  text-transform: uppercase;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3);
+}
+
+/* Resend OTP link */
+.resend-otp {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.resend-otp a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.resend-otp a:hover {
+  text-decoration: underline;
+}
+
+.resend-otp a.disabled {
+  color: var(--text-light);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* Success step */
+.success-step {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.success-step svg {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 20px;
+  color: var(--success-color);
+}
+
+.success-step h2 {
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+
+.success-step p {
+  color: var(--text-light);
+  margin-bottom: 30px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .card {
+    padding: 24px 20px;
+  }
+  
+  .logo h1 {
+    font-size: 24px;
+  }
+  
+  .otp-input {
+    font-size: 20px !important;
+    padding: 10px 5px !important;
+  }
+  
+  .btn {
+    padding: 12px;
+  }
+  
+  .success-step {
+    padding: 10px 0;
+  }
+  
+  .success-step svg {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .success-step h2 {
+    font-size: 20px;
+  }
+}
+
+/* Resend OTP link */
+.resend-otp {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.resend-otp a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 14px;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.resend-otp a:hover {
+  text-decoration: underline;
+}
+
+.resend-otp a.disabled {
+  color: var(--text-light);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* Password strength indicator */
+.password-strength {
+  height: 6px;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+  margin: 8px 0 12px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.strength-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.4s ease, background-color 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.strength-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    -45deg, 
+    rgba(255, 255, 255, 0.2) 25%, 
+    transparent 25%, 
+    transparent 50%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    rgba(255, 255, 255, 0.2) 75%, 
+    transparent 75%, 
+    transparent
+  );
+  background-size: 20px 20px;
+  animation: move 1s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.strength-bar.weak {
+  background-color: #ff4444;
+}
+
+.strength-bar.moderate {
+  background-color: #ffbb33;
+}
+
+.strength-bar.strong {
+  background-color: #00C851;
+}
+
+.strength-bar.weak::after,
+.strength-bar.moderate::after,
+.strength-bar.strong::after {
+  opacity: 0.5;
+}
+
+.strength-message {
+  font-size: 12px;
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-light);
+}
+
+.strength-text {
+  font-weight: 500;
+}
+
+.strength-text.weak {
+  color: #ff4444;
+}
+
+.strength-text.moderate {
+  color: #ffbb33;
+}
+
+.strength-text.strong {
+  color: #00C851;
+}
+
+@keyframes move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}

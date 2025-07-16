@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Blanket Selection - Product Calculator{% endblock %}
+
+{% block content %}
+  <!-- Cart icon top right -->
+  <div style="text-align: right; margin-bottom: 20px; position: relative;">
+    <a href="{{ url_for('cart') }}" style="position: relative; display: inline-block;">
+      <img
+        src="{{ url_for('static', filename='images/cart-icon.png') }}"
+        alt="Cart"
+        style="width: 40px; height: 40px; cursor: pointer;"
+      />
+      <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">0</span>
+    </a>
+  </div>
+
+  <h2>Blanket Selection</h2>
+
+  <div class="mb-3">
+    <div class="d-flex align-items-end gap-2">
+      <div class="flex-grow-1">
+        <label for="machineSelect" class="form-label">Select Machine/Model:</label>
+        <select id="machineSelect" class="form-select">
+          <option value="">-- Select Machine --</option>
+        </select>
+      </div>
+      <div>
+        <a href="{{ url_for('add_machine', next=url_for('blankets')) }}" class="btn btn-outline-primary">
+          <i class="fas fa-plus"></i> New Machine
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3" id="categorySection" style="display:none;">
+    <label for="categorySelect" class="form-label">Select Blanket Category:</label>
+    <select id="categorySelect" class="form-select">
+      <option value="All">All Categories</option>
+    </select>
+  </div>
+
+  <div id="blanketSection" style="display:none;">
+    <div class="mb-3">
+      <label for="blanketSelect" class="form-label">Select Blanket Type:</label>
+      <select id="blanketSelect" class="form-select">
+        <option value="">-- Select Blanket --</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="unitSelect" class="form-label">Select Unit:</label>
+      <select id="unitSelect" class="form-select">
+        <option value="mm">Millimeters</option>
+        <option value="m">Meters</option>
+        <option value="in">Inches</option>
+      </select>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col">
+        <label for="rateSqMeter">Rate per Sq.Meter:</label>
+        <p id="rateSqMeter">-</p>
+      </div>
+      <div class="col">
+        <label for="rateSqYard">Rate per Sq.Yard:</label>
+        <p id="rateSqYard">-</p>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col">
+        <label for="lengthInput" class="form-label">Length (across):</label>
+        <input type="number" id="lengthInput" class="form-control" />
+      </div>
+      <div class="col">
+        <label for="widthInput" class="form-label">Width (around):</label>
+        <input type="number" id="widthInput" class="form-control" />
+      </div>
+      <div class="col">
+        <label for="thicknessSelect" class="form-label">Select Thickness:</label>
+        <select id="thicknessSelect" class="form-select">
+          <option value="">-- Select Thickness --</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Price Calculation</h5>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p id="calculatedArea" class="mb-1"></p>
+            <p id="basePrice" class="mb-1"></p>
+            <p id="netUnitPrice" class="mb-1"></p>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-2">
+              <label for="barSelect" class="form-label">Barring Type:</label>
+              <select id="barSelect" class="form-select form-select-sm">
+                <option value="">-- Select --</option>
+              </select>
+              <p id="barRate" class="small text-muted mb-1"></p>
+              <p id="netUnitPrice" class="fw-bold mb-2"></p>
+            </div>
+            <div class="mb-2">
+              <label for="quantityInput" class="form-label">Quantity:</label>
+              <input type="number" id="quantityInput" class="form-control form-control-sm" min="1" value="1" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Discount Section -->
+        <div class="mb-3" id="discountSection">
+          <div class="mb-2">
+            <label for="discountSelect" class="form-label">Select Discount:</label>
+            <select id="discountSelect" class="form-select form-select-sm mb-1">
+              <option value="">-- Select Discount --</option>
+            </select>
+            <p id="discountedValue" class="small text-muted mb-0"></p>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <label for="gstSelect" class="form-label">GST Rate:</label>
+          <select id="gstSelect" class="form-select form-select-sm">
+            <option value="18">18%</option>
+          </select>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body p-3">
+            <h5 class="fw-bold mb-3">Price Summary</h5>
+            <div id="finalPrice">
+              <!-- Price breakdown will be inserted here by JavaScript -->
+              <p class="text-muted mb-0">Enter dimensions and select options to see pricing</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ ADD TO CART BUTTON -->
+    <button class="btn btn-primary" onclick="addBlanketToCart()">Add to Cart</button>
+    <div id="cart-message" class="mt-2"></div>
+
+    <div id="cart-message" class="mt-2"></div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/blankets.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+  <script>
+    // Initialize cart count when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updateCartCount();
+    });
+  </script>
+{% endblock %}

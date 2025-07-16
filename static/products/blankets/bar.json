@@ -1,0 +1,36 @@
+{
+  "bars": [
+    {
+      "bar": "AL BAR",
+      "barRate": 420
+    },
+    {
+      "bar": "STEEL BAR",
+      "barRate": 900
+    },
+    {
+      "bar": "ALUB- Heavy",
+      "barRate": 810
+    },
+    {
+      "bar": "STLB- Heavy",
+      "barRate": 1140
+    },
+    {
+      "bar": "AL Bar - Capusle Punch",
+      "barRate": 1200
+    },
+    {
+      "bar": "No Bar",
+      "barRate": 0
+    },
+    {
+      "bar": "STL Strip",
+      "barRate": null
+    },
+    {
+      "bar": "Combo Bar",
+      "barRate": null
+    }
+  ]
+}

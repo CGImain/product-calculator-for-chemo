@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Product Calculator{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Make navbar stick to the top */
+        body {
+            padding-top: 70px; /* Add padding to body to prevent content from being hidden behind the fixed navbar */
+        }
+        
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030; /* Ensure navbar stays above other content */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Add subtle shadow */
+        }
+        
+        /* Ensure dropdown menus appear above other content */
+        .dropdown-menu {
+            z-index: 2000 !important;
+        }
+        
+        /* Company Info Styles */
+        .company-info-card {
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .company-info-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .company-info-body {
+            padding: 1.25rem;
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .search-results {
+            position: absolute;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
+        .search-results.show {
+            display: block;
+        }
+        
+        .search-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .search-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .search-item:last-child {
+            border-bottom: none;
+        }
+        
+        .company-details {
+            margin: 0;
+            line-height: 1.6;
+        }
+        
+        .company-details strong {
+            min-width: 80px;
+            display: inline-block;
+        }
+        .company-info-bar {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 0.5rem 0.75rem;
+            min-width: 80px;
+            display: inline-block;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Hidden elements for server-side company data -->
+    <div id="serverCompanyName" style="display: none;">{{ session.company_name if session.company_name else '' }}</div>
+    <div id="serverCompanyEmail" style="display: none;">{{ session.company_email if session.company_email else '' }}</div>
+    <div id="serverCompanyId" style="display: none;">{{ session.company_id if session.company_id else '' }}</div>
+
+    <style>
+        /* Custom navbar styles */
+        .navbar {
+            background-color: #0d6efd !important; /* Primary blue */
+        }
+        .navbar-brand {
+            color: #000000 !important; /* Black text for Product Calculator */
+            font-weight: bold;
+        }
+        .nav-link {
+            color: #ffffff !important; /* White text by default */
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            margin: 0 0.2rem;
+            font-weight: 400;
+        }
+        .nav-link:hover {
+            color: #ffa500 !important; /* Orange on hover */
+            background-color: transparent !important;
+        }
+        .nav-link.active {
+            color: #808080 !important; /* Grey when selected */
+            font-weight: 500;
+            background-color: transparent !important;
+            position: relative;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background-color: #808080; /* Grey underline */
+        }
+        .nav-link.active:hover {
+            color: #808080 !important; /* Keep grey on hover when active */
+        }
+    </style>
+    
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <img src="https://i.ibb.co/1GVLnJcc/image-2025-07-04-163516213.png" alt="Logo" height="40" class="d-inline-block align-text-top me-2">
+                Product Calculator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['index', 'add_company', 'add_machine'] %}disabled{% endif %}"
+   href="#"
+   id="homeLink"
+   {% if request.endpoint in ['index', 'add_company', 'add_machine'] %}aria-disabled="true"{% endif %}>
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+                    {% if request.endpoint != 'index' %}
+                    <script>
+                        // Home button click handler - only set up if not on index page
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const homeBtn = document.getElementById('homeLink');
+                            if (homeBtn) {
+                                homeBtn.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    // Show the product type modal
+                                    try {
+                                        const modal = createProductTypeModal();
+                                        if (modal) {
+                                            // Create a new Bootstrap modal instance and show it
+                                            const bsModal = new bootstrap.Modal(document.getElementById('productTypeModal'));
+                                            bsModal.show();
+                                        } else {
+                                            throw new Error('Modal not created');
+                                        }
+                                    } catch (error) {
+                                        console.error('Error showing product type modal:', error);
+                                        // Fallback in case modal fails to initialize
+                                        const companyId = sessionStorage.getItem('companyId') || 
+                                                       new URLSearchParams(window.location.search).get('company_id');
+                                        window.location.href = companyId ? 
+                                            `/product-selection?company_id=${companyId}` : 
+                                            '/product-selection';
+                                    }
+                                });
+                            }
+                        });
+                    </script>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" id="mpacksLink" href="{{ url_for('mpacks') }}" data-route="{{ url_for('mpacks') }}">
+                            <i class="bi bi-box-seam"></i> M-Packs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="blanketsLink" href="{{ url_for('blankets') }}" data-route="{{ url_for('blankets') }}">
+                            <i class="bi bi-brightness-high"></i> Blankets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="cartLink" href="{{ url_for('cart') }}" data-route="{{ url_for('cart') }}">
+                            <i class="bi bi-cart"></i> Cart <span id="cartCount" class="badge bg-danger">0</span>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown" id="userDropdownContainer">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="true" data-bs-offset="10,20">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span class="d-none d-md-inline">{{ current_user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('api_profile_update') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                            <li><hr class="dropdown-divider m-0"></li>
+                            <li>
+                                <form id="logout-form" class="d-inline">
+                                    <button type="button" class="dropdown-item text-danger" id="logoutButton">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                                    </button>
+                                </form>
+                                </script>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages Container (Fixed at top) -->
+    <div id="flash-messages" style="position: fixed; top: 20px; left: 0; right: 0; z-index: 1100; display: flex; justify-content: center; pointer-events: none;">
+        <div style="width: 100%; max-width: 420px; padding: 0 15px;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="message" 
+                             style="background: white; 
+                                    color: #e74c3c; 
+                                    padding: 12px 20px; 
+                                    border-radius: 6px; 
+                                    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+                                    text-align: center; 
+                                    margin-bottom: 10px; 
+                                    display: block; 
+                                    font-size: 14px;
+                                    transition: opacity 0.3s ease-in-out;
+                                    pointer-events: auto;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <div class="container" style="padding-top: 80px;">
+        <!-- Company Information Section (shown on product pages and cart) -->
+        {% if request.endpoint in ['mpacks', 'blankets', 'cart'] %}
+            {% include 'components/company_info.html' %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Product Type Selection Modal -->
+    <div class="modal fade" id="productTypeModal" tabindex="-1" aria-labelledby="productTypeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productTypeModalLabel">Select Product Type</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="mb-3">
+                        <a href="{{ url_for('mpacks') }}" class="btn btn-primary btn-lg d-block mb-3">M-Packs</a>
+                        <a href="{{ url_for('blankets') }}" class="btn btn-success btn-lg d-block">Blankets</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize company data before any components load -->
+    <script>
+    // Function to create and return the product type modal
+    function createProductTypeModal() {
+        // Return the modal element if it exists
+        return document.getElementById('productTypeModal');
+    }
+
+    // Initialize company data in sessionStorage if it doesn't exist
+    document.addEventListener('DOMContentLoaded', function() {
+        // Only initialize if not already set
+        if (!sessionStorage.getItem('companyName')) {
+            const companyData = {
+                name: '{{ session.get("company_name", "") | safe }}',
+                email: '{{ session.get("company_email", "") | safe }}'
+            };
+            
+            if (companyData.name) {
+                sessionStorage.setItem('companyName', companyData.name);
+                sessionStorage.setItem('companyEmail', companyData.email);
+                
+                // Also update localStorage for persistence
+                localStorage.setItem('selectedCompany', JSON.stringify({
+                    name: companyData.name,
+                    email: companyData.email
+                }));
+            }
+        }
+    });
+    </script>
+    
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/company_info.js') }}"></script>
+    
+    <script>
+    // Check if company is selected on page load and set up navigation
+    document.addEventListener('DOMContentLoaded', function() {
+        setupNavigation();
+        updateCartCount();
+        updateActiveNavItem();
+        
+        // Update active nav item when navigating back/forward
+        window.addEventListener('popstate', updateActiveNavItem);
+        
+        // Update cart count when page becomes visible again (e.g., after returning from another tab)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                updateCartCount();
+            }
+        });
+        
+        // Also update cart count when the page regains focus
+        window.addEventListener('focus', updateCartCount);
+    });
+    
+    // Function to update the active navigation item based on current URL
+    function updateActiveNavItem() {
+        // Remove active class from all nav items
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        // Get current path and clean it up
+        let currentPath = window.location.pathname.toLowerCase();
+        // Remove trailing slash for consistency
+        currentPath = currentPath.endsWith('/') && currentPath !== '/' ? currentPath.slice(0, -1) : currentPath;
+        
+        // Special case for home page
+        if (currentPath === '' || currentPath === '/') {
+            const homeLink = document.querySelector('#homeLink');
+            if (homeLink) homeLink.classList.add('active');
+            return;
+        }
+        
+        // Map of route patterns to navigation item IDs
+        const routeMap = {
+            'mpacks': 'mpacksLink',
+            'blankets': 'blanketsLink'
+        };
+        
+        // Check if current path matches any route pattern
+        for (const [route, linkId] of Object.entries(routeMap)) {
+            if (currentPath.includes(route)) {
+                const navLink = document.getElementById(linkId);
+                if (navLink) {
+                    navLink.classList.add('active');
+                    return; // Exit after finding first match
+                }
+            }
+        }
+        
+        // Fallback for other routes
+        const navLinks = document.querySelectorAll('.nav-link');
+        for (const link of navLinks) {
+            if (link.id === 'homeLink') continue;
+            
+            let linkPath = new URL(link.href, window.location.origin).pathname.toLowerCase();
+            linkPath = linkPath.endsWith('/') && linkPath !== '/' ? linkPath.slice(0, -1) : linkPath;
+            
+            if (currentPath === linkPath) {
+                link.classList.add('active');
+                break; // Only highlight one item
+            }
+        }
+    }
+    
+    // Function to set up navigation event listeners
+    function setupNavigation() {
+        // Handle navigation links
+        document.querySelectorAll('a[data-route]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const route = this.getAttribute('data-route');
+                
+                // Special handling for home link
+                if (this.id === 'homeLink' || route === '/' || route === '/index') {
+                    // Check if company selection is currently active
+                    const companySearchBox = document.getElementById('companySearchBox');
+                    // If company search box is visible, prevent navigation
+                    if (companySearchBox && companySearchBox.style.display !== 'none' && companySearchBox.style.display !== '') {
+                        console.log('Company selection active, preventing navigation');
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    // Otherwise, navigate to home
+                    window.location.href = '/';
+                    return;
+                }
+                
+                checkCompanyAndNavigate(route);
+            });
+        });
+        
+        // Handle direct URL access on page load
+        window.addEventListener('load', function() {
+            const currentPath = window.location.pathname;
+            const publicPaths = ['/', '/index', '/login', '/register', '/api/'];
+            
+            // Only check company for non-public paths
+            if (!publicPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
+                checkCompanyAndNavigate(currentPath);
+            }
+        });
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function() {
+            const currentPath = window.location.pathname;
+            const publicPaths = ['/', '/index', '/login', '/register', '/api/'];
+            
+            if (!publicPaths.some(path => currentPath === path || currentPath.startsWith(path))) {
+                checkCompanyAndNavigate(currentPath);
+            }
+        });
+    }
+    
+    // Function to check if company is selected before navigation
+    async function checkCompanyAndNavigate(route) {
+        // Skip company check for home page and public paths
+        const isHomePage = route === '/' || route === '/index' || route === '';
+        const publicPaths = ['/login', '/register', '/api/'];
+        const isPublicPath = publicPaths.some(path => 
+            route.startsWith(path) || 
+            window.location.pathname === path
+        );
+
+        // Always allow navigation to home page without company check
+        if (isHomePage) {
+            window.location.href = '/';
+            return;
+        }
+
+        // Allow other public paths
+        if (isPublicPath) {
+            window.location.href = route;
+            return;
+        }
+
+        // Function to get company from storage
+        const getStoredCompany = () => {
+            // Check if we have company data in Flask session (from server-side rendering)
+            const companyData = {
+                id: '{{ session.get("company_id", "") }}',
+                name: '{{ session.get("company_name", "") | tojson | safe }}'.replace(/^"|"$/g, ''),
+                email: '{{ session.get("company_email", "") | tojson | safe }}'.replace(/^"|"$/g, '')
+            };
+            
+            if (companyData.id && companyData.name) {
+                // Save to session storage for client-side access
+                const companyStr = JSON.stringify(companyData);
+                sessionStorage.setItem('selectedCompany', companyStr);
+                sessionStorage.setItem('companyId', companyData.id);
+                sessionStorage.setItem('companyName', companyData.name);
+                if (companyData.email) {
+                    sessionStorage.setItem('companyEmail', companyData.email);
+                }
+                return companyData;
+            }
+
+            // Check session storage next
+            const sessionCompany = sessionStorage.getItem('selectedCompany');
+            if (sessionCompany) {
+                try {
+                    return JSON.parse(sessionCompany);
+                } catch (e) {
+                    console.error('Error parsing session company:', e);
+                }
+            }
+            
+            // Check local storage as fallback
+            const localCompany = localStorage.getItem('selectedCompany');
+            if (localCompany) {
+                try {
+                    const company = JSON.parse(localCompany);
+                    // Update session storage for next time
+                    const companyStr = JSON.stringify(company);
+                    sessionStorage.setItem('selectedCompany', companyStr);
+                    sessionStorage.setItem('companyId', company.id);
+                    sessionStorage.setItem('companyName', company.name);
+                    if (company.email) {
+                        sessionStorage.setItem('companyEmail', company.email);
+                    }
+                    return company;
+                } catch (e) {
+                    console.error('Error parsing local company:', e);
+                }
+            }
+            return null;
+        };
+
+        // Check if we have a company in storage or session
+        let company = getStoredCompany();
+
+        // If still no company, check the DOM for hidden inputs
+        if (!company || !company.id) {
+            const companyIdInput = document.getElementById('companyId');
+            const companyNameInput = document.getElementById('companyName');
+            const companyEmailInput = document.getElementById('companyEmail');
+            
+            if (companyIdInput && companyNameInput && 
+                (companyIdInput.value || companyNameInput.value)) {
+                company = {
+                    id: companyIdInput.value || '',
+                    name: companyNameInput.value || '',
+                    email: (companyEmailInput && companyEmailInput.value) || ''
+                };
+                
+                // Save to storage for next time
+                if (company.id || company.name) {
+                    const companyStr = JSON.stringify(company);
+                    sessionStorage.setItem('selectedCompany', companyStr);
+                    if (company.id) sessionStorage.setItem('companyId', company.id);
+                    if (company.name) sessionStorage.setItem('companyName', company.name);
+                    if (company.email) sessionStorage.setItem('companyEmail', company.email);
+                    
+                    // Also save to local storage for persistence across sessions
+                    localStorage.setItem('selectedCompany', companyStr);
+                }
+            }
+        }
+
+        // If we have a company, update the state and navigate
+        if (company) {
+            // Update ChemoApp state if it exists
+            if (window.ChemoApp) {
+                if (!window.ChemoApp.state) window.ChemoApp.state = {};
+                window.ChemoApp.state.selectedCompany = company;
+            }
+            
+            // Update the URL with company ID if not already present
+            if (route.includes('?')) {
+                if (!route.includes('company_id=')) {
+                    route += `&company_id=${company.id}`;
+                }
+            } else {
+                route += `?company_id=${company.id}`;
+            }
+            
+            window.location.href = route;
+            return;
+        }
+
+        // If we get here, no company was found
+        console.log('No company found, showing company selection');
+        
+        // Store the current URL for redirection after company selection
+        sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+        
+        // Show the company selection UI if it exists
+        const companySearchWrapper = document.getElementById('companySearchWrapper');
+        const customerInfoContent = document.getElementById('customerInfoContent');
+        
+        if (companySearchWrapper && customerInfoContent) {
+            // Show the company search box
+            customerInfoContent.style.display = 'none';
+            companySearchWrapper.style.display = 'block';
+            
+            // Focus on the search input if it exists
+            const companySearchInput = document.getElementById('companySearchInput');
+            if (companySearchInput) {
+                companySearchInput.focus();
+            }
+            
+            // Show a message to the user
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-info alert-dismissible fade show mb-3';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Select a Company</strong>
+                <p>Please select a company to continue.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insert the alert at the top of the company search section
+            companySearchWrapper.insertBefore(alertDiv, companySearchWrapper.firstChild);
+            
+            // Scroll to the company selection area
+            companySearchWrapper.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // Fallback to the old behavior if the UI elements don't exist
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <strong>Company Selection Required</strong>
+                <p>Please select a company before accessing this page.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            window.scrollTo(0, 0);
+            
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+        }
+    }
+    
+    // Function to update cart count
+    async function updateCartCount() {
+        try {
+            const response = await fetch('/get_cart_count');
+            if (response.ok) {
+                const data = await response.json();
+                const cartCount = document.getElementById('cartCount');
+                if (cartCount) {
+                    // Check both possible response formats
+                    const count = data.count !== undefined ? data.count : 
+                              (data.products ? data.products.length : 0);
+                    cartCount.textContent = count;
+                    
+                    // Update the badge visibility
+                    const cartBadge = document.querySelector('.cart-badge');
+                    if (cartBadge) {
+                        cartBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error updating cart count:', error);
+        }
+    }
+    
+    // Make functions available globally
+    window.updateCartCount = updateCartCount;
+    
+    // Function to update company display
+    function updateCompanyDisplay(name, email) {
+        // If name and email are provided, update the storage
+        if (name !== undefined && email !== undefined) {
+            sessionStorage.setItem('companyName', name);
+            if (email) {
+                sessionStorage.setItem('companyEmail', email);
+            }
+            // Also update the navigation display
+            const companyDisplay = document.getElementById('companyNameDisplay');
+            if (companyDisplay) {
+                companyDisplay.textContent = name || '';
+            }
+            return;
+        }
+        
+        // Otherwise, get company info from session storage or local storage
+        let companyName = sessionStorage.getItem('companyName');
+        let companyEmail = sessionStorage.getItem('companyEmail');
+        
+        // If not in session storage, try local storage
+        if (!companyName) {
+            const storedCompany = localStorage.getItem('selectedCompany');
+            if (storedCompany) {
+                try {
+                    const company = JSON.parse(storedCompany);
+                    companyName = company.name;
+                    companyEmail = company.email;
+                    // Update session storage
+                    sessionStorage.setItem('companyName', companyName);
+                    if (companyEmail) {
+                        sessionStorage.setItem('companyEmail', companyEmail);
+                    }
+                } catch (e) {
+                    console.error('Error parsing stored company:', e);
+                }
+            }
+        }
+        
+        // Update the display in the navigation
+        const companyDisplay = document.getElementById('companyNameDisplay');
+        if (companyDisplay) {
+            companyDisplay.textContent = companyName || '';
+        }
+    }
+    
+    // Update the title attribute for tooltip
+    function updateCompanyTooltip() {
+        const companyDisplay = document.getElementById('companyNameDisplay');
+        if (companyDisplay) {
+            const companyName = companyDisplay.textContent.trim();
+            companyDisplay.title = `Selected Company: ${companyName || 'None'}`;
+            companyDisplay.setAttribute('data-bs-toggle', 'tooltip');
+            companyDisplay.setAttribute('data-bs-placement', 'bottom');
+            // Initialize Bootstrap tooltip
+            new bootstrap.Tooltip(companyDisplay);
+        }
+    }
+    
+    // Initialize dropdowns function
+    function initializeDropdowns() {
+        const dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+        dropdownElementList.forEach(function (dropdownToggleEl) {
+            // Only initialize if not already initialized
+            if (!dropdownToggleEl._dropdown) {
+                dropdownToggleEl._dropdown = new bootstrap.Dropdown(dropdownToggleEl, {
+                    boundary: 'clippingParents',
+                    reference: 'toggle',
+                    display: 'dynamic',
+                    popperConfig: function (defaultBsPopperConfig) {
+                        return {
+                            ...defaultBsPopperConfig,
+                            strategy: 'fixed'
+                        };
+                    }
+                });
+            }
+        });
+    }
+    
+    // Update company display on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCompanyDisplay();
+        updateCompanyTooltip();
+        
+        // Initialize all Bootstrap dropdowns
+        initializeDropdowns();
+        
+        // Explicit handler for user profile dropdown (ensures it works on all pages)
+        const userDropdownToggle = document.getElementById('userDropdown');
+        if (userDropdownToggle) {
+            userDropdownToggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const dd = bootstrap.Dropdown.getOrCreateInstance(userDropdownToggle);
+                dd.toggle();
+            });
+        }
+        
+        // Re-initialize dropdowns after AJAX content loads
+        document.addEventListener('ajaxComplete', function() {
+            initializeDropdowns();
+        });
+        
+        // Set up navigation
+        setupNavigation();
+        
+        // Update active nav item based on current URL
+        updateActiveNavItem();
+        
+        // Update cart count
+        updateCartCount();
+        
+        // Handle logout with confirmation
+        const logoutButton = document.getElementById('logoutButton');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async function(e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to sign out?')) {
+                    try {
+                        const response = await fetch('{{ url_for("api_logout") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (response.ok) {
+                            window.location.href = '{{ url_for("login") }}';
+                        } else {
+                            console.error('Logout failed');
+                            window.location.reload();
+                        }
+                    } catch (error) {
+                        console.error('Error during logout:', error);
+                        window.location.href = '{{ url_for("login") }}';
+                    }
+                }
+            });
+        }
+        
+        // Auto-dismiss flash messages after 2 seconds
+        const messages = document.querySelectorAll('#flash-messages .message');
+        messages.forEach(message => {
+            // Set initial opacity to 1 to ensure smooth fade-in
+            message.style.opacity = '1';
+            
+            // Start fade out after 2 seconds
+            setTimeout(() => {
+                message.style.opacity = '0';
+                // Remove from DOM after fade out
+                setTimeout(() => {
+                    message.remove();
+                }, 300);
+            }, 2000);
+        });
+    });
+    
+    // Listen for storage events to update when company changes in other tabs
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'companyName' || e.key === 'companyEmail') {
+            updateCompanyDisplay();
+            updateCompanyTooltip();
+        }
+    });
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

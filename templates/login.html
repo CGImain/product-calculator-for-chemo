@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Product Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for eye icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">
+  <style>
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn:hover {
+      background-color: #3a7bc8;
+    }
+    
+    .btn:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    
+    .btn .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+      color: #e74c3c;
+      margin: 1rem 0;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    
+    .forgot-password {
+      text-align: right;
+      margin: 0.5rem 0 1.5rem;
+    }
+    
+    .forgot-password a {
+      color: #4a90e2;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    
+    .signup-link {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #666;
+    }
+    
+    .signup-link a {
+      color: #4a90e2;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    /* Password visibility toggle */
+    .password-input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-input-group .form-control {
+      padding-right: 40px; /* Add space for the eye icon */
+    }
+    .password-input-group .toggle-password {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      font-size: 1rem;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">
+        <a href="https://imgbb.com/"><img src="https://i.ibb.co/1GVLnJcc/image-2025-07-04-163516213.png" alt="image-2025-07-04-163516213" border="0"></a>
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Sign in to continue to Product Calculator</p>
+      </div>
+      
+      <div id="message" class="message" style="display: none;"></div>
+      
+      <form id="loginForm" class="login-form" method="POST">
+      <div class="form-group">
+        <label for="login">Email or Username</label>
+        <input 
+          type="text" 
+          id="login" 
+          name="identifier"
+          class="form-control" 
+          placeholder="Enter your email or username" 
+          required
+          autocomplete="username"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-input-group">
+          <input 
+            type="password" 
+            id="password" 
+            name="password"
+            class="form-control" 
+            placeholder="Enter your password" 
+            required
+            autocomplete="current-password"
+          >
+          <button type="button" class="toggle-password" data-toggle="password" aria-label="Toggle password visibility">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="forgot-password">
+        <a href="/forgot-password">Forgot password?</a>
+      </div>
+      
+      <button type="submit" id="loginBtn" class="btn">
+        <span class="btn-text">Sign In</span>
+        <div class="btn-loader" style="display: none;">
+          <div class="spinner"></div>
+        </div>
+      </button>
+      
+      <div id="error" class="error-message"></div>
+      
+      <div class="signup-link">
+        Don't have an account? <a href="/signup">Sign up</a>
+      </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+</body>
+</html>

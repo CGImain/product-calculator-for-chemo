@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Your Cart - Product Calculator{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Quantity controls */
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        min-width: 100px;
+    }
+    
+    .quantity-controls .btn {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 0.75rem;
+        line-height: 1;
+    }
+    
+    .quantity-controls .form-control {
+        width: 40px;
+        height: 28px;
+        text-align: center;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.25rem;
+        -moz-appearance: textfield;
+        -webkit-appearance: textfield;
+        appearance: textfield;
+        margin: 0 2px;
+    }
+    
+    .quantity-controls .form-control::-webkit-outer-spin-button,
+    .quantity-controls .form-control::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    
+    .input-group .btn {
+        z-index: 1;
+    }
+    
+    .update-quantity-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: all 0.2s ease;
+        border-radius: 4px;
+        margin-left: 8px;
+    }
+    
+    .update-quantity-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .update-quantity-btn i {
+        font-size: 0.9rem;
+    }
+    /* Reset body margin */
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    /* Container styling */
+    .cart-container {
+        width: 90%;
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 30px 0;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        min-height: calc(100vh - 80px);
+    }
+
+    /* Header styling */
+    .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 15px 25px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .cart-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .cart-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .cart-actions .btn {
+        padding: 8px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .cart-actions .btn-outline-secondary {
+        border: 1px solid #6c757d;
+        color: #6c757d;
+    }
+    
+    .cart-actions .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .cart-actions .btn-outline-danger {
+        border: 1px solid #dc3545;
+        color: #dc3545;
+    }
+    
+    .cart-actions .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .cart-actions .btn-primary {
+        background-color: #0d6efd;
+        color: white;
+        border: 1px solid #0d6efd;
+    }
+    
+    .cart-actions .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+
+    /* Cart item container */
+    .cart-item {
+        width: 100%;
+        padding: 0 15px;
+        margin-bottom: 25px;
+    }
+    
+    .cart-item .card {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    .cart-item .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Ensure all cart items have the same structure */
+    .cart-item > .item-details,
+    .mpack-product {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* Remove button styles */
+    .remove-btn {
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        padding: 5px;
+        font-size: 1.25rem;
+    }
+
+    .remove-btn:hover {
+        color: #a02d36;
+    }
+
+    .remove-btn:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    /* Price Grid Layout */
+    .price-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.25rem 0;
+    }
+
+    .price-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .price-value {
+        font-weight: 500;
+        text-align: right;
+    }
+
+    /* Responsive design */
+    @media (max-width: 767.98px) {
+        .cart-item {
+            padding: 15px;
+        }
+        
+        .product-image {
+            width: 60px;
+            height: 60px;
+        }
+    }
+
+    /* Product details */
+    .product-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 15px;
+    }
+
+    .product-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #2c3e50;
+    }
+
+    .product-details {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* Quantity controls */
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+    }
+
+    .quantity-controls .btn {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .quantity-controls .form-control {
+        height: 28px;
+        text-align: center;
+        padding: 0.25rem;
+    }
+
+    /* Cart items grid */
+    .cart-items {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        align-items: start;
+    }
+
+    @media (max-width: 768px) {
+        .cart-items {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .details-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .price-details {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .price-grid {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .cart-summary {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+    .empty-cart {
+        text-align: center;
+        padding: 50px 20px;
+    }
+    .empty-cart h3 {
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+    .price-breakdown {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+    .price-breakdown div {
+        margin-bottom: 5px;
+    }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="cart-container">
+        <div class="cart-header">
+            <h2>Your Cart</h2>
+            <div class="cart-actions">
+                <button id="continueShoppingBtn" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                </button>
+                <button id="clearCartBtn" class="btn btn-outline-danger me-2">
+                    <i class="fas fa-trash me-2"></i>Clear Cart
+                </button>
+                <button type="button" class="btn btn-primary {% if session.get('selected_company') or session.get('company_name') %}d-none{% endif %}" id="selectCompanyBtn">
+                    <i class="fas fa-building me-2"></i>Select Company First
+                </button>
+                <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary {% if not session.get('selected_company') and not session.get('company_name') %}d-none{% endif %}" id="sendQuotationBtn">
+                    <i class="fas fa-paper-plane me-2"></i>Send Quotation
+                </a>
+                
+                <script>
+                    document.getElementById('selectCompanyBtn').addEventListener('click', function() {
+                        window.location.href = '{{ url_for("company_selection") }}';
+                    });
+                </script>
+            </div>
+        </div>
+
+        <div id="cartItems" class="cart-items row row-cols-1 g-4 mx-auto" style="width: 100%; max-width: 1400px;" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
+            {% if cart.products %}
+                {% for item in cart.products %}
+                {% if item %}
+                <div class="col-12 col-lg-10 mx-auto">
+                    <div class="cart-item mb-4" 
+                         data-type="{{ item.type }}" 
+                         data-index="{{ loop.index0 }}" 
+                         {% if item.type == 'blanket' %}
+                             data-base-price="{{ item.base_price|default(0) }}" 
+                             data-bar-price="{{ item.bar_price|default(0) }}" 
+                             data-quantity="{{ item.quantity|default(1) }}" 
+                             data-discount-percent="{{ item.discount_percent|default(0) }}" 
+                             data-gst-percent="{{ item.gst_percent|default(18) }}"
+                         {% elif item.type == 'mpack' %}
+                             data-unit-price="{{ item.unit_price|default(0) }}" 
+                             data-quantity="{{ item.quantity|default(1) }}" 
+                             data-discount-percent="{{ item.discount_percent|default(0) }}" 
+                             data-gst-percent="{{ item.gst_percent|default(12) }}"
+                         {% endif %}>
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="item-details w-100">
+                                <div class="product-item w-100">
+                                    <div class="d-flex flex-column w-100">
+                                        <h5 class="product-title">
+                                            {% if item.type == 'blanket' %}
+                                                {{ item.name }}
+                                            {% else %}
+                                                {{ item.name|default('MPack') }}
+                                            {% endif %}
+                                        </h5>
+                                        <div class="product-details mb-3">
+                                            {% if item.machine %}
+                                                <p class="mb-1"><strong>Machine:</strong> {{ item.machine }}</p>
+                                            {% endif %}
+                                            
+                                            {% if item.thickness %}
+                                                <p class="mb-1">
+                                                    <strong>Thickness:</strong> 
+                                                    {% if item.type == 'blanket' %}
+                                                        {{ item.thickness }}mm
+                                                    {% else %}
+                                                        {% set thickness = item.thickness|string %}
+                                                        {{ thickness }}{% if not (thickness.endswith('mm') or thickness.endswith('in') or thickness.endswith('cm') or thickness.endswith('micron')) %}{% if thickness|float >= 1 %}mm{% else %}micron{% endif %}{% endif %}
+                                                    {% endif %}
+                                                </p>
+                                            {% endif %}
+                                            
+                                            {% if item.size %}
+                                                <p class="mb-1"><strong>Size:</strong> {{ item.size }}</p>
+                                            {% elif item.length and item.width %}
+                                                <p class="mb-1"><strong>Dimensions:</strong> {{ item.length }}m x {{ item.width }}m</p>
+                                                <p class="mb-1"><strong>Area:</strong> {{ "%.2f"|format((item.length|float * item.width|float)) }} mm²</p>
+                                            {% endif %}
+                                            
+                                            {% if item.bar_type %}
+                                                <p class="mb-1"><strong>Barring:</strong> {{ item.bar_type }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="price-details mt-3 p-3 bg-light rounded w-100">
+                                        <div class="price-grid">
+                                            <div class="price-row">
+                                                <span class="price-label">Unit Price:</span>
+                                                <span class="price-value unit-price">₹{{ "%.2f"|format(item.unit_price|default(0)) }}</span>
+                                            </div>
+                                            {% if item.bar_price and item.bar_price > 0 %}
+                                            <div class="price-row">
+                                                <span class="price-label">Barring:</span>
+                                                <span class="price-value">+₹{{ "%.2f"|format(item.bar_price|default(0)) }}</span>
+                                            </div>
+                                            {% endif %}
+                                            <div class="price-row align-items-center">
+                                                <span class="price-label">Quantity:</span>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="input-group" style="width: 120px;">
+                                                        <button class="btn btn-outline-secondary quantity-decrease" type="button" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem;">
+                                                            <i class="fas fa-minus"></i>
+                                                        </button>
+                                                        <input type="number" 
+                                                               class="form-control text-center quantity-input" 
+                                                               value="{{ item.quantity }}" 
+                                                               min="1" 
+                                                               data-index="{{ loop.index0 }}" 
+                                                               style="border-left: 0; border-right: 0; padding: 0.25rem;">
+                                                        <button class="btn btn-outline-secondary quantity-increase" type="button" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem;">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label">Subtotal:</span>
+                                                <span class="price-value subtotal-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1))) }}</span>
+                                            </div>
+                                            {% if item.discount_percent and item.discount_percent > 0 %}
+                                            <div class="price-row discount-row" {% if not (item.discount_percent and item.discount_percent > 0) %}style="display:none;"{% endif %}>
+                                                 <span class="price-label">Discount (<span class="discount-percent">{{ item.discount_percent|default(0) }}</span>%):</span>
+                                                 <span class="price-value discount-amount">-₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}</span>
+                                            </div>
+                                            {% endif %}
+                                            <div class="price-row gst-row">
+                                                 <span class="price-label">GST (<span class="gst-percent">{{ item.gst_percent|default(18) }}</span>%):</span>
+                                                 <span class="price-value gst-amount">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (item.gst_percent|default(18)) / 100) }}</span>
+                                            </div>
+                                            <div class="price-row fw-bold border-top mt-2 pt-2">
+                                                <span>Total:</span>
+                                                <span class="total-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (1 + (item.gst_percent|default(18)) / 100)) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-top text-end">
+                                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div id="emptyCart" class="text-center py-5">
+                                <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                                <h4>Your cart is empty</h4>
+                                <p class="text-muted">Browse our products and add some items to your cart</p>
+                                <button type="button" class="btn btn-primary" id="emptyCartContinueShopping">
+                                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                                </button>
+                            </div>
+                        {% endif %}
+                        
+                        {% if cart.products and cart.products|length > 0 %}
+                        <div class="cart-summary mt-4" id="cartSummary">
+                            <!-- Cart summary will be dynamically updated -->
+                        </div>
+            
+            <!-- Cart Footer -->
+            <div class="cart-footer d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+                <a href="#" id="continueShoppingBtnBottom" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Continue Shopping
+                </a>
+
+                <a href="{{ url_for('quotation_preview') }}" class="btn btn-primary" id="sendQuotationBtn">
+                    <i class="fas fa-paper-plane me-1"></i> Send Quotation
+                </a>
+
+                <button type="button" class="btn btn-outline-danger" id="clearCartBtnFooter">
+                    <i class="fas fa-trash me-1"></i> Clear Cart
+                </button>
+            </div>
+
+
+            </div>            {% endif %}
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+
+{% endblock %}

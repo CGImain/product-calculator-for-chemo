@@ -1,0 +1,16 @@
+{
+  "categories": {
+    "All": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32],
+    "Conventional Printing": [2,3,7,8,10,19,25,26],
+    "Packaging Printing": [3,8,10,19,25,26],
+    "UV Printing": [9,11,23],
+    "Combi Printing": [10,22],
+    "Cold Set Printing": [27,28,29,22],
+    "Heat Set Printing": [28,22],
+    "Business Forms": [16,17,18],
+    "Aquous Coating Full Coat": [12,30,31,21],
+    "Aqueous Coating Spot Coat": [12,30,31,21],
+    "UV Coating Full Coat": [30,31,32,21],
+    "UV Coating Spot Coat": [30,31,32,21]
+  }
+}

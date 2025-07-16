@@ -1,0 +1,116 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Ensure update button is always visible and properly styled */
+.update-quantity-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0.25rem 0.5rem;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.update-quantity-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.update-quantity-btn:not(:disabled):hover {
+  transform: scale(1.05);
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+body {
+  background: linear-gradient(135deg, #fff8e1 0%, #e0caa9 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 2rem 0;
+  min-height: 100vh;
+}
+
+select,
+.form-select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+/* Company search results */
+#companySearchResults {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
+  background: white;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.search-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-item:hover {
+  background-color: #f8f9fa;
+}
+
+.select-company-btn {
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.select-company-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Company info display */
+#companyInfoContainer {
+  transition: all 0.3s ease;
+}
+
+/* Loading spinner */
+.spinner-border {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+/* Better responsiveness on small screens */
+@media (max-width: 600px) {
+  body {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  select,
+  .form-select {
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Image Sunrise Eco BL",
+      "base_rate": 2870
+    },
+    {
+      "id": "2",
+      "name": "Image Print Master GR",
+      "base_rate": 3950
+    },
+    {
+      "id": "3",
+      "name": "Image Print Master BL",
+      "base_rate": 3950
+    },
+    {
+      "id": "4",
+      "name": "Image Web Master GR",
+      "base_rate": 3950
+    },
+    {
+      "id": "5",
+      "name": "Image Underlay Black - Indian",
+      "base_rate": 1015
+    },
+    {
+      "id": "6",
+      "name": "Image Under Black - Imported",
+      "base_rate": 2870
+    },
+    {
+      "id": "7",
+      "name": "MTech Active SF",
+      "base_rate": 4963
+    },
+    {
+      "id": "8",
+      "name": "MTech Active PRIME",
+      "base_rate": 5600
+    },
+    {
+      "id": "9",
+      "name": "MTech Active UV",
+      "base_rate": 6100
+    },
+    {
+      "id": "10",
+      "name": "MTech Magnum SF",
+      "base_rate": 5900
+    },
+    {
+      "id": "11",
+      "name": "MTech Magnum UV",
+      "base_rate": 6600
+    },
+    {
+      "id": "12",
+      "name": "MTech EZ Peel",
+      "base_rate": 5057
+    },
+    {
+      "id": "13",
+      "name": "MTech Underlay - 0.6",
+      "base_rate": 2870
+    },
+    {
+      "id": "14",
+      "name": "MTech Underlay - 0.8",
+      "base_rate": 2870
+    },
+    {
+      "id": "15",
+      "name": "MTech Underlay - 1.0",
+      "base_rate": 2870
+    },
+    {
+      "id": "16",
+      "name": "MTech Kleber BF - 0.95",
+      "base_rate": 9750
+    }
+  ]
+}

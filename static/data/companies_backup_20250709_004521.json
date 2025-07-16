@@ -1,0 +1,3027 @@
+[
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89569f"},
+    "Company Name": "test",
+    "EmailID": "athulnair3096@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a0"},
+    "Company Name": "GRAPHICS HOUSE - Bhandup",
+    "EmailID": "graphicshouse123@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a1"},
+    "Company Name": "SURDHAN PRINT",
+    "EmailID": "surdhanprint@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a2"},
+    "Company Name": "MINAL SURGICALS AND COMPANY",
+    "EmailID": "manishchauhan466@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a3"},
+    "Company Name": "VEEKAY PRINT SERVICES",
+    "EmailID": "veekayprint@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a4"},
+    "Company Name": "DEV INTERNATIONAL",
+    "EmailID": "devinternational.ss@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a5"},
+    "Company Name": "KANAN GRAPHICS PVT LTD",
+    "EmailID": "chetan2708@yahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a6"},
+    "Company Name": "NAIPUNYA GRAVURES",
+    "EmailID": "naipunyagravures@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a7"},
+    "Company Name": "RAJ IMPEX",
+    "EmailID": "rajimpex156@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a8"},
+    "Company Name": "TARUN BHARAT DAILY PVT. LTD. - BELGAUM",
+    "EmailID": "purchase.mgr@tarunbharat.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a9"},
+    "Company Name": "VINAYAK SALES & IND",
+    "EmailID": "vsiindia@hotmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956aa"},
+    "Company Name": "DAILY SANCHAR SOLAPUR",
+    "EmailID": "sancharchavan@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ab"},
+    "Company Name": "SYSTEMATIC DESIGNERS AND PRINTERS PVT LIMITED",
+    "EmailID": "sudhirsinghalslg@yahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ac"},
+    "Company Name": "PRITHVI DIGITECH PRIVATE LIMITED - MOHALI",
+    "EmailID": "raju@prithvidigitech.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ad"},
+    "Company Name": "AND SYSTEMS - NAVI MUMBAI",
+    "EmailID": "andsystems@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ae"},
+    "Company Name": "COACT IMPRINTS PRIVATE LIMITED",
+    "EmailID": "sunil@coact.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956af"},
+    "Company Name": "NEEJ PRINT PACK",
+    "EmailID": "neejprintpack@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b0"},
+    "Company Name": "JAGRAN PRAKASHAN LTD. - KANPUR",
+    "EmailID": "atul@knp.jagran.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b1"},
+    "Company Name": "TUSHAR DHOTE PRINTPRENERU",
+    "EmailID": "tushar@tushardhote.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b2"},
+    "Company Name": "VILAS OFFSET PRINTERS",
+    "EmailID": "vilasoffset@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b3"},
+    "Company Name": "THE PARK PRINTING",
+    "EmailID": "theparkoffsetprinting@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b4"},
+    "Company Name": "VENKATESWARA PAPER AGENCIES - BANGALORE",
+    "EmailID": "bajajvenu@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b5"},
+    "Company Name": "MANIPAL MEDIA NETWORK LIMITED - BANGALORE",
+    "EmailID": "navaneeth.bhat@manipalmedia.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a2"},
+    "Company Name": "MINAL SURGICALS AND COMPANY",
+    "EmailID": "manishchauhan466@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a3"},
+    "Company Name": "VEEKAY  PRINT SERVICES",
+    "EmailID": "veekayprint@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a4"},
+    "Company Name": "AAJ KA ANAND PAPERS LTD",
+    "EmailID": "ananddec11@tahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a5"},
+    "Company Name": "AAPLA SANJ SAHYADRI TIMES",
+    "EmailID": "sahyadritimesaura@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a6"},
+    "Company Name": "AGGARWAL GRAPHICS",
+    "EmailID": "aggarwalgraphics@yahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a7"},
+    "Company Name": "AISHWARYA GRAPHICS",
+    "EmailID": "ashgraf@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a8"},
+    "Company Name": "AKS GRAPHICS",
+    "EmailID": "aksgraphics@ymail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a9"},
+    "Company Name": "ALMATS BRANDING SOLUTIONS PRIVATE LIMITED",
+    "EmailID": "mohammed.b@almatsbranding.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956aa"},
+    "Company Name": "ALPAP BARRING TECHNOLOGY",
+    "EmailID": "melvilled@alpap.net",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ab"},
+    "Company Name": "ALPHA INDIA CORPORATION",
+    "EmailID": "alphaindiacorp@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ac"},
+    "Company Name": "AMAN DIE MAKERS PRIVATE LIMITED",
+    "EmailID": "accounts@amandiemakers.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ad"},
+    "Company Name": "AMAR ENTERPRISE",
+    "EmailID": "amar_ent@bsnl.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ae"},
+    "Company Name": "AMBIKA MACHINARIES",
+    "EmailID": "amb.machineries@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956af"},
+    "Company Name": "AMBIKA ENTERPRISE",
+    "EmailID": "account@graptone.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b0"},
+    "Company Name": "AMCOR FLEXIBLES INDIA PRIVATE LIMITED",
+    "EmailID": "antony.tony@amcor.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b1"},
+    "Company Name": "ANAND MUDRANALAYA - GIRGAON",
+    "EmailID": "anand.mudranalaya@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b2"},
+    "Company Name": "ANITA ENTERPRISES",
+    "EmailID": "atharvapanvalkar@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b3"},
+    "Company Name": "ANNAI DIE CUTTING TOOLS",
+    "EmailID": "subhashrams47@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b4"},
+    "Company Name": "ARCHANA MARKETING AGENCY",
+    "EmailID": "msanthosh@soundaryagroup.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b5"},
+    "Company Name": "ARIHANT IMPEX",
+    "EmailID": "kl932@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b6"},
+    "Company Name": "ART IN ART",
+    "EmailID": "artinart@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b7"},
+    "Company Name": "ARTIZE DIE MAKERS",
+    "EmailID": "info@artize.net.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b8"},
+    "Company Name": "ARUN DARSHAN GRAPHIC",
+    "EmailID": "mddbhuta@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b9"},
+    "Company Name": "ASR ENTERPRISE",
+    "EmailID": "arultdn@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a8"},
+    "Company Name": "AKS GRAPHICS",
+    "EmailID": "aksgraphics@ymail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956a9"},
+    "Company Name": "ALMATS BRANDING SOLUTIONS PRIVATE LIMITED",
+    "EmailID": "mohammed.b@almatsbranding.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956aa"},
+    "Company Name": "ALPAP BARRING TECHNOLOGY",
+    "EmailID": "melvilled@alpap.net",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ab"},
+    "Company Name": "ALPHA INDIA CORPORATION",
+    "EmailID": "alphaindiacorp@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ac"},
+    "Company Name": "AMAN DIE MAKERS PRIVATE LIMITED",
+    "EmailID": "accounts@amandiemakers.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ad"},
+    "Company Name": "AMAR ENTERPRISE",
+    "EmailID": "amar_ent@bsnl.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ae"},
+    "Company Name": "AMBIKA MACHINARIES",
+    "EmailID": "amb.machineries@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956af"},
+    "Company Name": "AMBIKA ENTERPRISE",
+    "EmailID": "account@graptone.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b0"},
+    "Company Name": "AMCOR FLEXIBLES INDIA PRIVATE LIMITED",
+    "EmailID": "antony.tony@amcor.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b1"},
+    "Company Name": "ANAND MUDRANALAYA - GIRGAON",
+    "EmailID": "anand.mudranalaya@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b2"},
+    "Company Name": "ANITA ENTERPRISES",
+    "EmailID": "atharvapanvalkar@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b3"},
+    "Company Name": "ANNAI DIE CUTTING TOOLS",
+    "EmailID": "subhashrams47@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b4"},
+    "Company Name": "ARCHANA MARKETING AGENCY",
+    "EmailID": "msanthosh@soundaryagroup.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b5"},
+    "Company Name": "ARIHANT IMPEX",
+    "EmailID": "kl932@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b6"},
+    "Company Name": "ART IN ART",
+    "EmailID": "artinart@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b7"},
+    "Company Name": "ARTIZE DIE MAKERS",
+    "EmailID": "info@artize.net.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b8"},
+    "Company Name": "ARUN DARSHAN GRAPHIC",
+    "EmailID": "mddbhuta@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956b9"},
+    "Company Name": "ASR ENTERPRISE",
+    "EmailID": "arultdn@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ba"},
+    "Company Name": "A V GRAPHICS",
+    "EmailID": "avgraphics18@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956bb"},
+    "Company Name": "BANGALORE GRAPHIC PRODUCT",
+    "EmailID": "blrgraphic@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956bc"},
+    "Company Name": "BELA GRAPHICS",
+    "EmailID": "kalpgraphics@outlook.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956bd"},
+    "Company Name": "BENNETT COLEMAN & CO LTD",
+    "EmailID": "abhishek.bhandiwadi@timesgroup.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956be"},
+    "Company Name": "BHARATIYA RESERVE BANK NOTE MUDRAN PRIVATE LIMITED",
+    "EmailID": "mysorepress@brbnmpl.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956bf"},
+    "Company Name": "BHAVYA GRAPHICS",
+    "EmailID": "bhavyagraphics20@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c0"},
+    "Company Name": "BOMBAY DIE MAKER",
+    "EmailID": "bombaydiemaker@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c1"},
+    "Company Name": "CALCUTTA  ART  STUDIO (PVT) LTD.",
+    "EmailID": "sayantan.caspl@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c2"},
+    "Company Name": "CHANDAN AGENCIES",
+    "EmailID": "info@chandanagencies.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c3"},
+    "Company Name": "CHEMO GRAPHIC INTERNATIONAL",
+    "EmailID": "vivek@chemo.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c4"},
+    "Company Name": "CLASSIC STRIPES PRIVATE LIMITED",
+    "EmailID": "jai.krishanan@classicstripes.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c5"},
+    "Company Name": "COLOUR CRAFT",
+    "EmailID": "colourtrade@vsnl.net",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c6"},
+    "Company Name": "COLOURTECH",
+    "EmailID": "colortech@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c7"},
+    "Company Name": "CONCEPT COMMUNICATIONS",
+    "EmailID": "conceptcomms@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c8"},
+    "Company Name": "CONCEPT GRAPHICS",
+    "EmailID": "conceptgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956c9"},
+    "Company Name": "CONCEPT PACKAGING",
+    "EmailID": "conceptpackaging@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ca"},
+    "Company Name": "CONTINENTAL PRINTING INKS",
+    "EmailID": "cpi@continentalinks.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956cb"},
+    "Company Name": "CORPORATE COMMUNICATION",
+    "EmailID": "corpcomm@vsnl.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956cc"},
+    "Company Name": "CREATIVE GRAPHICS",
+    "EmailID": "creativegraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956cd"},
+    "Company Name": "CREATIVE LABEL",
+    "EmailID": "creativelabel@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ce"},
+    "Company Name": "CROMPTON GREAVES CONSUMER ELECTRICALS LIMITED",
+    "EmailID": "cgconsumer@cgls.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956cf"},
+    "Company Name": "CROSS GRAPHICS",
+    "EmailID": "crossgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d0"},
+    "Company Name": "CROWN PRINTING INKS",
+    "EmailID": "crowninks@vsnl.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d1"},
+    "Company Name": "D K DIE MAKERS",
+    "EmailID": "dkdiemaker@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d2"},
+    "Company Name": "D P ENTERPRISES",
+    "EmailID": "dpenterprises@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d3"},
+    "Company Name": "DAILY NEWS & ANALYSIS (DNA)",
+    "EmailID": "dna@dnaindia.net",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d4"},
+    "Company Name": "DALMIA BHARAT SUGAR & INDUSTRIES LIMITED",
+    "EmailID": "corpcomm@dalmiacement.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d5"},
+    "Company Name": "DANVIC LABELS INDIA PRIVATE LIMITED",
+    "EmailID": "danvic@danviclabels.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d6"},
+    "Company Name": "DEEPAK FLEXIBLE PACKAGING",
+    "EmailID": "deepakflex@vsnl.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d7"},
+    "Company Name": "DELHI PRESS PATRA PRAKASHAN PVT LTD",
+    "EmailID": "delhipress@delhipress.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d8"},
+    "Company Name": "DESIGN PACKAGING",
+    "EmailID": "designpackaging@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956d9"},
+    "Company Name": "DESIGNER GRAPHICS",
+    "EmailID": "designergraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956da"},
+    "Company Name": "DEVI DIE CUTTING",
+    "EmailID": "devidiecutting@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956db"},
+    "Company Name": "DHANALAKSHMI FLEXOGRAPHICS",
+    "EmailID": "dhanaflexo@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956dc"},
+    "Company Name": "DHANESH GRAPHICS",
+    "EmailID": "dhaneshgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956dd"},
+    "Company Name": "DHANLAXMI OFFSET PRESS",
+    "EmailID": "dhanlaxmioffset@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956de"},
+    "Company Name": "DIGI COLOR LABS",
+    "EmailID": "digicolorlabs@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956df"},
+    "Company Name": "DIGI GRAPHICS",
+    "EmailID": "digigraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e0"},
+    "Company Name": "DIGI LABELS",
+    "EmailID": "digilabels@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e1"},
+    "Company Name": "DIGI PRINTS",
+    "EmailID": "digiprints@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e2"},
+    "Company Name": "DIGI TECH",
+    "EmailID": "digitech@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e3"},
+    "Company Name": "DIGI VISION",
+    "EmailID": "digivision@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e4"},
+    "Company Name": "DIGIGRAPHICS",
+    "EmailID": "digigraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e5"},
+    "Company Name": "DIGIPAK",
+    "EmailID": "digipak@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e6"},
+    "Company Name": "DIGITAL ARTS",
+    "EmailID": "digitalarts@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e7"},
+    "Company Name": "DIGITAL GRAPHICS",
+    "EmailID": "digitalgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e8"},
+    "Company Name": "DIGITAL IMAGING",
+    "EmailID": "digitalimaging@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956e9"},
+    "Company Name": "DIGITAL LABELS",
+    "EmailID": "digitallabels@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ea"},
+    "Company Name": "DIGITAL PRESS",
+    "EmailID": "digitalpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956eb"},
+    "Company Name": "DIGITAL PRINTING",
+    "EmailID": "digitalprinting@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ec"},
+    "Company Name": "DIGITAL SOLUTIONS",
+    "EmailID": "digitalsolutions@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ed"},
+    "Company Name": "DIGITAL TECH",
+    "EmailID": "digitaltech@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ee"},
+    "Company Name": "DIGITAL VISION",
+    "EmailID": "digitalvision@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ef"},
+    "Company Name": "DIGITECH",
+    "EmailID": "digitech@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f0"},
+    "Company Name": "DILIP GRAPHICS",
+    "EmailID": "dilipgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f1"},
+    "Company Name": "DILIP PRINTERS",
+    "EmailID": "dilipprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f2"},
+    "Company Name": "DILIP PRINTS",
+    "EmailID": "dilipprints@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f3"},
+    "Company Name": "DILIP SCREENS",
+    "EmailID": "dilipscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f4"},
+    "Company Name": "DILIP TRADERS",
+    "EmailID": "diliptraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f5"},
+    "Company Name": "DILIP VINYLS",
+    "EmailID": "dilipvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f6"},
+    "Company Name": "DILIP ZAVERI",
+    "EmailID": "dilipzaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f7"},
+    "Company Name": "DILPREET PRINTERS",
+    "EmailID": "dilpreetprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f8"},
+    "Company Name": "DILSHAD PRINTERS",
+    "EmailID": "dilshadprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956f9"},
+    "Company Name": "DILWALI PRINTERS",
+    "EmailID": "diwaliprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956fa"},
+    "Company Name": "DIMPLE PRINTERS",
+    "EmailID": "dimplaprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956fb"},
+    "Company Name": "DINESH PRESS",
+    "EmailID": "dineshpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956fc"},
+    "Company Name": "DIVINE PRINTERS",
+    "EmailID": "divineprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956fd"},
+    "Company Name": "DIVYA PRINTERS",
+    "EmailID": "divyaprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956fe"},
+    "Company Name": "DIVYAJYOTI PRINTERS",
+    "EmailID": "divyajyotiprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8956ff"},
+    "Company Name": "DIVYANSHU PRINTERS",
+    "EmailID": "divyanshuprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895700"},
+    "Company Name": "DIVYESH PRINTERS",
+    "EmailID": "divyeshprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895701"},
+    "Company Name": "DIXIT GRAPHICS",
+    "EmailID": "dixitgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895702"},
+    "Company Name": "DIXIT PRESS",
+    "EmailID": "dixitpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895703"},
+    "Company Name": "DIXIT PRINTERS",
+    "EmailID": "dixitprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895704"},
+    "Company Name": "DIXIT SCREENS",
+    "EmailID": "dixitscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895705"},
+    "Company Name": "DIXON PRESS",
+    "EmailID": "dixonpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895706"},
+    "Company Name": "DJ GRAPHICS",
+    "EmailID": "djgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895707"},
+    "Company Name": "DK GRAPHICS",
+    "EmailID": "dkgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895708"},
+    "Company Name": "DK PRINTING PRESS",
+    "EmailID": "dkprintingpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895709"},
+    "Company Name": "DM PRINTING PRESS",
+    "EmailID": "dmprintingpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89570a"},
+    "Company Name": "DOLPHIN PRESS",
+    "EmailID": "dolphinpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89570b"},
+    "Company Name": "DOLPHIN PRINTERS",
+    "EmailID": "dolphinprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89570c"},
+    "Company Name": "DREAM GRAPHICS",
+    "EmailID": "dreamgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89570d"},
+    "Company Name": "DREAM PRINTERS",
+    "EmailID": "dreamprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89570e"},
+    "Company Name": "DURGA OFFSET",
+    "EmailID": "durgaoffset@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89570f"},
+    "Company Name": "DURGA PRESS",
+    "EmailID": "durgapress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895710"},
+    "Company Name": "DURGA PRINTERS",
+    "EmailID": "durgaprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895711"},
+    "Company Name": "DUTT PRESS",
+    "EmailID": "duttpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895712"},
+    "Company Name": "DUTT PRINTERS",
+    "EmailID": "duttprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895713"},
+    "Company Name": "DWARKA PRASAD & SONS",
+    "EmailID": "dwarkaprasad@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895714"},
+    "Company Name": "DYNAMIC GRAPHICS",
+    "EmailID": "dynamicgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895715"},
+    "Company Name": "DYNAMIC PRINTERS",
+    "EmailID": "dynamicprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895716"},
+    "Company Name": "DYNASTY PRINTERS",
+    "EmailID": "dynastyprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895717"},
+    "Company Name": "EAGLE GRAPHICS",
+    "EmailID": "eaglegraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895718"},
+    "Company Name": "EAGLE PRESS",
+    "EmailID": "eaglepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895719"},
+    "Company Name": "EAGLE PRINTERS",
+    "EmailID": "eagleprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89571a"},
+    "Company Name": "EAGLE SCREENS",
+    "EmailID": "eaglescreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89571b"},
+    "Company Name": "EAST END PRINTERS",
+    "EmailID": "eastendprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89571c"},
+    "Company Name": "EASTERN PRESS",
+    "EmailID": "easternpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89571d"},
+    "Company Name": "EASTERN PRINTERS",
+    "EmailID": "easternprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89571e"},
+    "Company Name": "EASY PRESS",
+    "EmailID": "easypress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89571f"},
+    "Company Name": "EASY PRINT",
+    "EmailID": "easyprint@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895720"},
+    "Company Name": "EASY PRINTERS",
+    "EmailID": "easyprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895721"},
+    "Company Name": "EASY PRINTING PRESS",
+    "EmailID": "easyprintingpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895722"},
+    "Company Name": "EASY WAY PRESS",
+    "EmailID": "easywaypress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895723"},
+    "Company Name": "EASY WAY PRINTERS",
+    "EmailID": "easywayprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895724"},
+    "Company Name": "EASY WAY SCREENS",
+    "EmailID": "easywayscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895725"},
+    "Company Name": "EASY WAY TRADERS",
+    "EmailID": "easywaytraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895726"},
+    "Company Name": "EASY WAY VINYLS",
+    "EmailID": "easywayvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895727"},
+    "Company Name": "EASY WAY ZAVERI",
+    "EmailID": "easywayzaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895728"},
+    "Company Name": "ECLAT GRAPHICS",
+    "EmailID": "eclatgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895729"},
+    "Company Name": "ECLAT PRESS",
+    "EmailID": "eclatpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89572a"},
+    "Company Name": "ECLAT PRINTERS",
+    "EmailID": "eclatprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89572b"},
+    "Company Name": "ECLIPSE GRAPHICS",
+    "EmailID": "eclipsegraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89572c"},
+    "Company Name": "ECLIPSE PRESS",
+    "EmailID": "eclipsepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89572d"},
+    "Company Name": "ECLIPSE PRINTERS",
+    "EmailID": "eclipseprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89572e"},
+    "Company Name": "ECONO PRINT",
+    "EmailID": "econoprint@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89572f"},
+    "Company Name": "ECONO PRINTERS",
+    "EmailID": "econoprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895730"},
+    "Company Name": "ECONO SCREENS",
+    "EmailID": "econoscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895731"},
+    "Company Name": "ECONO TRADERS",
+    "EmailID": "econotraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895732"},
+    "Company Name": "ECONO VINYLS",
+    "EmailID": "econovinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895733"},
+    "Company Name": "ECONO ZAVERI",
+    "EmailID": "econozaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895734"},
+    "Company Name": "ECONOMY PRESS",
+    "EmailID": "economypress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895735"},
+    "Company Name": "ECONOMY PRINTERS",
+    "EmailID": "economyprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895736"},
+    "Company Name": "EDGE GRAPHICS",
+    "EmailID": "edgegraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895737"},
+    "Company Name": "EDGE PRESS",
+    "EmailID": "edgepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895738"},
+    "Company Name": "EDGE PRINTERS",
+    "EmailID": "edgeprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895739"},
+    "Company Name": "EDITORIAL SERVICES",
+    "EmailID": "editorialservices@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89573a"},
+    "Company Name": "EFFECTIVE PRESS",
+    "EmailID": "effectivepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89573b"},
+    "Company Name": "EFFECTIVE PRINTERS",
+    "EmailID": "effectiveprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89573c"},
+    "Company Name": "EFFICIENT PRESS",
+    "EmailID": "efficientpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89573d"},
+    "Company Name": "EFFICIENT PRINTERS",
+    "EmailID": "efficientprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89573e"},
+    "Company Name": "ELEGANT GRAPHICS",
+    "EmailID": "elegantgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89573f"},
+    "Company Name": "ELEGANT PRESS",
+    "EmailID": "elegantpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895740"},
+    "Company Name": "ELEGANT PRINTERS",
+    "EmailID": "elegantprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895741"},
+    "Company Name": "ELEGANT SCREENS",
+    "EmailID": "elegantscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895742"},
+    "Company Name": "ELEGANT TRADERS",
+    "EmailID": "eleganttraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895743"},
+    "Company Name": "ELEGANT VINYLS",
+    "EmailID": "elegantvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895744"},
+    "Company Name": "ELEGANT ZAVERI",
+    "EmailID": "elegantzaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895745"},
+    "Company Name": "ELEGANTE GRAPHICS",
+    "EmailID": "elegantegraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895746"},
+    "Company Name": "ELEGANTE PRESS",
+    "EmailID": "elegantepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895747"},
+    "Company Name": "ELEGANTE PRINTERS",
+    "EmailID": "eleganteprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895748"},
+    "Company Name": "ELEGANTE SCREENS",
+    "EmailID": "elegantescreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895749"},
+    "Company Name": "ELEGANTE TRADERS",
+    "EmailID": "elegantetraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89574a"},
+    "Company Name": "ELEGANTE VINYLS",
+    "EmailID": "elegantevinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89574b"},
+    "Company Name": "ELEGANTE ZAVERI",
+    "EmailID": "elegantezaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89574c"},
+    "Company Name": "ELITE GRAPHICS",
+    "EmailID": "elitegraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89574d"},
+    "Company Name": "ELITE PRESS",
+    "EmailID": "elitepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89574e"},
+    "Company Name": "ELITE PRINTERS",
+    "EmailID": "eliteprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89574f"},
+    "Company Name": "ELITE SCREENS",
+    "EmailID": "elitescreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895750"},
+    "Company Name": "ELITE TRADERS",
+    "EmailID": "elitetraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895751"},
+    "Company Name": "ELITE VINYLS",
+    "EmailID": "elitevinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895752"},
+    "Company Name": "ELITE ZAVERI",
+    "EmailID": "elitezaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895753"},
+    "Company Name": "ELIXIR PRESS",
+    "EmailID": "elixirpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895754"},
+    "Company Name": "ELIXIR PRINTERS",
+    "EmailID": "elixirprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895755"},
+    "Company Name": "ELIXIR SCREENS",
+    "EmailID": "elixirscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895756"},
+    "Company Name": "ELIXIR TRADERS",
+    "EmailID": "elixirtraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895757"},
+    "Company Name": "ELIXIR VINYLS",
+    "EmailID": "elixirvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895758"},
+    "Company Name": "ELIXIR ZAVERI",
+    "EmailID": "elixirzaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895759"},
+    "Company Name": "ELOQUENT GRAPHICS",
+    "EmailID": "eloquentgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89575a"},
+    "Company Name": "ELOQUENT PRESS",
+    "EmailID": "eloquentpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89575b"},
+    "Company Name": "ELOQUENT PRINTERS",
+    "EmailID": "eloquentprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89575c"},
+    "Company Name": "ELOQUENT SCREENS",
+    "EmailID": "eloquentscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89575d"},
+    "Company Name": "ELOQUENT TRADERS",
+    "EmailID": "eloquenttraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89575e"},
+    "Company Name": "ELOQUENT VINYLS",
+    "EmailID": "eloquentvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89575f"},
+    "Company Name": "ELOQUENT ZAVERI",
+    "EmailID": "eloquentzaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895760"},
+    "Company Name": "EMBASSY PRESS",
+    "EmailID": "embassypress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895761"},
+    "Company Name": "EMBASSY PRINTERS",
+    "EmailID": "embassyprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895762"},
+    "Company Name": "EMINENT GRAPHICS",
+    "EmailID": "eminentgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895763"},
+    "Company Name": "EMINENT PRESS",
+    "EmailID": "eminentpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895764"},
+    "Company Name": "EMINENT PRINTERS",
+    "EmailID": "eminentprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895765"},
+    "Company Name": "EMINENT SCREENS",
+    "EmailID": "eminentscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895766"},
+    "Company Name": "EMINENT TRADERS",
+    "EmailID": "eminenttraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895767"},
+    "Company Name": "EMINENT VINYLS",
+    "EmailID": "eminentvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895768"},
+    "Company Name": "EMINENT ZAVERI",
+    "EmailID": "eminentzaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895769"},
+    "Company Name": "EMPIRE GRAPHICS",
+    "EmailID": "empiregraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89576a"},
+    "Company Name": "EMPIRE PRESS",
+    "EmailID": "empirepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89576b"},
+    "Company Name": "EMPIRE PRINTERS",
+    "EmailID": "empireprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89576c"},
+    "Company Name": "EMPIRE SCREENS",
+    "EmailID": "empirescreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89576d"},
+    "Company Name": "EMPIRE TRADERS",
+    "EmailID": "empiretraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89576e"},
+    "Company Name": "EMPIRE VINYLS",
+    "EmailID": "empirevinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89576f"},
+    "Company Name": "EMPIRE ZAVERI",
+    "EmailID": "empirezaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895770"},
+    "Company Name": "ENDEAVOUR PRESS",
+    "EmailID": "endeavourpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895771"},
+    "Company Name": "ENDEAVOUR PRINTERS",
+    "EmailID": "endeavourprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895772"},
+    "Company Name": "ENDEAVOUR SCREENS",
+    "EmailID": "endeavourscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895773"},
+    "Company Name": "ENDEAVOUR TRADERS",
+    "EmailID": "endeavourtraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895774"},
+    "Company Name": "ENDEAVOUR VINYLS",
+    "EmailID": "endeavourvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895775"},
+    "Company Name": "ENDEAVOUR ZAVERI",
+    "EmailID": "endeavourzaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895776"},
+    "Company Name": "ENDEAVOURS GRAPHICS",
+    "EmailID": "endeavoursgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895777"},
+    "Company Name": "ENDEAVOURS PRESS",
+    "EmailID": "endeavourspress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895778"},
+    "Company Name": "ENDEAVOURS PRINTERS",
+    "EmailID": "endeavoursprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895779"},
+    "Company Name": "ENDEAVOURS SCREENS",
+    "EmailID": "endeavoursscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89577a"},
+    "Company Name": "ENDEAVOURS TRADERS",
+    "EmailID": "endeavourstraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89577b"},
+    "Company Name": "ENDEAVOURS VINYLS",
+    "EmailID": "endeavoursvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89577c"},
+    "Company Name": "ENDEAVOURS ZAVERI",
+    "EmailID": "endeavourszaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89577d"},
+    "Company Name": "ENDEAVOURS PLUS",
+    "EmailID": "endeavoursplus@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89577e"},
+    "Company Name": "ENDEAVOURS PLUS GRAPHICS",
+    "EmailID": "endeavoursplusgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89577f"},
+    "Company Name": "ENDEAVOURS PLUS PRESS",
+    "EmailID": "endeavourspluspress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895780"},
+    "Company Name": "ENDEAVOURS PLUS PRINTERS",
+    "EmailID": "endeavoursplusprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895781"},
+    "Company Name": "ENDEAVOURS PLUS SCREENS",
+    "EmailID": "endeavoursplusscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895782"},
+    "Company Name": "ENDEAVOURS PLUS TRADERS",
+    "EmailID": "endeavourstradersplus@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895783"},
+    "Company Name": "ENDEAVOURS PLUS VINYLS",
+    "EmailID": "endeavoursplusvinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895784"},
+    "Company Name": "ENDEAVOURS PLUS ZAVERI",
+    "EmailID": "endeavourspluszaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895785"},
+    "Company Name": "ENDEAVOURS PRO",
+    "EmailID": "endeavourspro@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895786"},
+    "Company Name": "ENDEAVOURS PRO GRAPHICS",
+    "EmailID": "endeavoursprographics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895787"},
+    "Company Name": "ENDEAVOURS PRO PRESS",
+    "EmailID": "endeavourspropress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895788"},
+    "Company Name": "ENDEAVOURS PRO PRINTERS",
+    "EmailID": "endeavoursproprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895789"},
+    "Company Name": "ENDEAVOURS PRO SCREENS",
+    "EmailID": "endeavoursproscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89578a"},
+    "Company Name": "ENDEAVOURS PRO TRADERS",
+    "EmailID": "endeavoursprotraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89578b"},
+    "Company Name": "ENDEAVOURS PRO VINYLS",
+    "EmailID": "endeavoursprovinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89578c"},
+    "Company Name": "ENDEAVOURS PRO ZAVERI",
+    "EmailID": "endeavoursprozaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89578d"},
+    "Company Name": "ENDEAVOURS ULTIMATE",
+    "EmailID": "endeavoursultimate@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89578e"},
+    "Company Name": "ENDEAVOURS ULTIMATE GRAPHICS",
+    "EmailID": "endeavoursultimategraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89578f"},
+    "Company Name": "ENDEAVOURS ULTIMATE PRESS",
+    "EmailID": "endeavoursultimatepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895790"},
+    "Company Name": "ENDEAVOURS ULTIMATE PRINTERS",
+    "EmailID": "endeavoursultimateprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895791"},
+    "Company Name": "ENDEAVOURS ULTIMATE SCREENS",
+    "EmailID": "endeavoursultimatescreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895792"},
+    "Company Name": "ENDEAVOURS ULTIMATE TRADERS",
+    "EmailID": "endeavoursultimatetraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895793"},
+    "Company Name": "ENDEAVOURS ULTIMATE VINYLS",
+    "EmailID": "endeavoursultimatevinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895794"},
+    "Company Name": "ENDEAVOURS ULTIMATE ZAVERI",
+    "EmailID": "endeavoursultimatezaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895795"},
+    "Company Name": "ENDEAVOURS XTREME",
+    "EmailID": "endeavoursxtreme@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895796"},
+    "Company Name": "A V GRAPHICS",
+    "EmailID": "avgraphics18@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895797"},
+    "Company Name": "BANGALORE GRAPHIC PRODUCT",
+    "EmailID": "blrgraphic@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895798"},
+    "Company Name": "BELA GRAPHICS",
+    "EmailID": "kalpgraphics@outlook.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895799"},
+    "Company Name": "BENNETT COLEMAN & CO LTD",
+    "EmailID": "abhishek.bhandiwadi@timesgroup.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579a"},
+    "Company Name": "BHARATIYA RESERVE BANK NOTE MUDRAN PRIVATE LIMITED",
+    "EmailID": "mysorepress@brbnmpl.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579b"},
+    "Company Name": "BHAVYA GRAPHICS",
+    "EmailID": "bhavyagraphics20@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579c"},
+    "Company Name": "BOMBAY DIE MAKER",
+    "EmailID": "bombaydiemaker@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579d"},
+    "Company Name": "CALCUTTA ART STUDIO (PVT) LTD.",
+    "EmailID": "sayantan.caspl@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579e"},
+    "Company Name": "CHANDAN AGENCIES",
+    "EmailID": "info@chandanagencies.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579f"},
+    "Company Name": "CHEMO GRAPHIC INTERNATIONAL",
+    "EmailID": "vivek@chemo.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a0"},
+    "Company Name": "CLASSIC STRIPES PRIVATE LIMITED",
+    "EmailID": "jai.krishanan@classicstripes.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a1"},
+    "Company Name": "COLORPLAST SYSTEMS PRIVATE LIMITED",
+    "EmailID": "commerical@colourplast.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a2"},
+    "Company Name": "COMPACT PRINT TECH PRIVATE LIMITED",
+    "EmailID": "accounts@compactprinttech.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a3"},
+    "Company Name": "CREATIVE GRAPHICS",
+    "EmailID": "creativegraphics1@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a4"},
+    "Company Name": "CREATIVE MARKETING",
+    "EmailID": "arunmundra816@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a5"},
+    "Company Name": "CURRENCY NOTE PRESS",
+    "EmailID": "gmcnp@spmcil.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a6"},
+    "Company Name": "DARPAN CONCLAVE PRIVATE LIMITED",
+    "EmailID": "darpan.conclave@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a7"},
+    "Company Name": "DELHI GRAPHICS PRIVATE LIMITED",
+    "EmailID": "delhigraphics84@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a8"},
+    "Company Name": "DEPTI ARTS",
+    "EmailID": "depti29@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a9"},
+    "Company Name": "DEVGIRI OFFSET - NASIK",
+    "EmailID": "deorechanchal44@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957aa"},
+    "Company Name": "DEV INTERNATIONAL",
+    "EmailID": "devinternational.ss@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ab"},
+    "Company Name": "EAGLE PAPER PRODUCTS",
+    "EmailID": "anandpaleja@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ac"},
+    "Company Name": "EDGE GRAPHICS",
+    "EmailID": "raj_sheta@hotmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ad"},
+    "Company Name": "EURO SALES INDIA",
+    "EmailID": "euro_ashwin@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ae"},
+    "Company Name": "EVER RIGHT TRADING CORPORATION",
+    "EmailID": "everrighttrading@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957af"},
+    "Company Name": "EXQUISITE PACKAGING PRIVATE LIMITED - KOLKATA",
+    "EmailID": "shrmdmdr@yahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b0"},
+    "Company Name": "FAKHRI PRINTING WORKS",
+    "EmailID": "print@fakhriprintingworks.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b1"},
+    "Company Name": "FLORA PRINTS PRIVATE LIMITED",
+    "EmailID": "rajeev@floraprints.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b2"},
+    "Company Name": "FOCUS TRADING",
+    "EmailID": "focustrading@yahoo.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b3"},
+    "Company Name": "FUJIKURA GRAPHICS INDIA PRIVATE LIMITED",
+    "EmailID": "rishi@printsales.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b4"},
+    "Company Name": "GANESH MUDRA",
+    "EmailID": "ganeshmudra2011@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b5"},
+    "Company Name": "G. KEBATIN GRAPHICS MACHINERY",
+    "EmailID": "akshardham_ind@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b6"},
+    "Company Name": "GLITZ PRODUCTS",
+    "EmailID": "glitzproducts1@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b7"},
+    "Company Name": "GLOBAL PRINTING & PACKAGING CO PRIVATE LIMITED",
+    "EmailID": "amarnath@globalprintingandpackaging.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b8"},
+    "Company Name": "GLOBAL SMART SOLUTIONS",
+    "EmailID": "infoglobalsmart2017@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957b9"},
+    "Company Name": "GOA PAPER & BOARD CONVERTERS PVT LTD",
+    "EmailID": "gpabcltd@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ba"},
+    "Company Name": "GOMANTAK PRIVATE LIMITED",
+    "EmailID": "amar_joti@dainikgomantak.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957bb"},
+    "Company Name": "GOUTHAM GRAPHICS",
+    "EmailID": "goutamgraphic@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957bc"},
+    "Company Name": "GRAPHIC ENTERPRISES",
+    "EmailID": "accounts@geindia.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957bd"},
+    "Company Name": "GRAPHIC HOUSE - Delhi",
+    "EmailID": "graphichouseindia@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957be"},
+    "Company Name": "GRAPHIC SALES",
+    "EmailID": "graphicsales240@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957bf"},
+    "Company Name": "GRAPHTONE",
+    "EmailID": "am_raju@graphtone.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c0"},
+    "Company Name": "GREAT DEAL",
+    "EmailID": "greatdealindia@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c1"},
+    "Company Name": "HARSH IMPEX",
+    "EmailID": "bankimp@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c2"},
+    "Company Name": "HENSI PAP INTERNATIONAL",
+    "EmailID": "hensipap@hotmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c3"},
+    "Company Name": "HERALD PUBLICATIONS PVT LTD",
+    "EmailID": "heraldpublications.goa@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c4"},
+    "Company Name": "H & H TRADERS",
+    "EmailID": "traders.handh@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c5"},
+    "Company Name": "HYDERABAD SECURITY OFFSET PRINTERS PRIVATE LIMITED",
+    "EmailID": "purchase@hyseppack.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c6"},
+    "Company Name": "IDEAL PUBLICATIONS TRUST - MADHYAMAM",
+    "EmailID": "purchase@madhyamam.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c7"},
+    "Company Name": "INDO EUROPA TRADING COMPANY",
+    "EmailID": "jitesh@indo-europa.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c8"},
+    "Company Name": "IMPRESSIONS",
+    "EmailID": "printssbp@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957c9"},
+    "Company Name": "INDIA SECURITY PRESS",
+    "EmailID": "purchase.isp@spmcil.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ca"},
+    "Company Name": "JAGATI PUBLICATIONS LIMITED - BALANAGAR",
+    "EmailID": "lumarao@sakshi.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957cb"},
+    "Company Name": "JAGRUTI PRINTING PRESS - Girgoan",
+    "EmailID": "jagruti_press@hotmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957cc"},
+    "Company Name": "JAI GANESH GRAPHIC",
+    "EmailID": "jaiganeshgraphics@yahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957cd"},
+    "Company Name": "JAI KAUSHAL INDUSTRIES PVT LTD",
+    "EmailID": "jaikaushal@vsnl.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ce"},
+    "Company Name": "JAINAM TRADERS",
+    "EmailID": "jigneshtraders@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957cf"},
+    "Company Name": "JET GRAPHIC",
+    "EmailID": "accounts@vivagraphic.net",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d0"},
+    "Company Name": "JIGNESH TRADERS - GHATKOPAR",
+    "EmailID": "jigneshtraders@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d1"},
+    "Company Name": "JINENDRA ENTERPRISE",
+    "EmailID": "jinendraenterprise@yahoo.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d2"},
+    "Company Name": "J. K. STEEL ENTERPRISES",
+    "EmailID": "jksteelenterprises@yahoo.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d3"},
+    "Company Name": "J. K. STEEL PRODUCT",
+    "EmailID": "jksteelproducts@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d4"},
+    "Company Name": "JOY PLAST INDUSTRY",
+    "EmailID": "joyplastindustry@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d5"},
+    "Company Name": "KALPANA TRADERS",
+    "EmailID": "nitinkanada8@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d6"},
+    "Company Name": "KALP GRAPHICS",
+    "EmailID": "kalpgraphics@hotmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d7"},
+    "Company Name": "KAMADHENU SALES CORPORATION",
+    "EmailID": "kamadhenuksc@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d8"},
+    "Company Name": "KANAN GRAPHICS PVT LTD",
+    "EmailID": "chetan2708@yahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957d9"},
+    "Company Name": "KAPUR GRAPHICS PVT LTD",
+    "EmailID": "shashik@kapurgraphics.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957da"},
+    "Company Name": "KATYAL TRADING CORPORATION",
+    "EmailID": "katyaltrading@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957db"},
+    "Company Name": "KENTECH GRAPHICS",
+    "EmailID": "Kktgraphics77@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957dc"},
+    "Company Name": "KHUSHI RAM & SONS",
+    "EmailID": "khushiramsons148@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957dd"},
+    "Company Name": "K JOSHI & CO",
+    "EmailID": "kjoshipress@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957de"},
+    "Company Name": "KRISHNA INTERNATIONAL",
+    "EmailID": "krishnainternational29@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957df"},
+    "Company Name": "KSHIPRA GRAPHICS",
+    "EmailID": "kshipragraphics@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e0"},
+    "Company Name": "KUMAR PRINTERS PRIVATE LIMITED",
+    "EmailID": "sandeep_bhargava@kumarprinters.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e1"},
+    "Company Name": "KUMAR PRINTERS PRIVATE LIMITED INDORE",
+    "EmailID": "purchase@kumarprinters.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e2"},
+    "Company Name": "LAKSHYA GRAPHICS",
+    "EmailID": "chetan.printograph@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e3"},
+    "Company Name": "SAMYUKTA KARNATAKA - HUBBALLI",
+    "EmailID": "skstore1234@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e4"},
+    "Company Name": "MAHABIR TRADING CORPORATION - TRIPLICANE",
+    "EmailID": "mtc2222@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e5"},
+    "Company Name": "MAHALAXMI GRAPHICS",
+    "EmailID": "manishchauhan466@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e6"},
+    "Company Name": "MAHAVIR STORES",
+    "EmailID": "mahavirstores@yahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e7"},
+    "Company Name": "MAHESH ENTERPRISE",
+    "EmailID": "maheshenterprise896@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e8"},
+    "Company Name": "MANIBHADRA GRAPHICS",
+    "EmailID": "vinodrjain79@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957e9"},
+    "Company Name": "MANIPAL MEDIA NETWORK LIMITED",
+    "EmailID": "manorama.kamath@manipalgroup.info",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ea"},
+    "Company Name": "MARUTI TRADERS",
+    "EmailID": "marutitrader@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957eb"},
+    "Company Name": "MARUTI TRADING COMPANY",
+    "EmailID": "ytc142@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ec"},
+    "Company Name": "MASTERLINE TELEBIZ PRIVATE LIMITED",
+    "EmailID": "info@masterline.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ed"},
+    "Company Name": "MAYA BAZAR FINE MARKGETING",
+    "EmailID": "mayabazarprinters@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ee"},
+    "Company Name": "MBD ALCHEMIE PVT LTD",
+    "EmailID": "naresh.kumar@in.mbdalchemie.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ef"},
+    "Company Name": "MBD PRINTOGRAPHICS PRIVATE LIMITED",
+    "EmailID": "naresh.kumar@in.mbdalchemie.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f0"},
+    "Company Name": "M D ENTERPRISES",
+    "EmailID": "mayur2004@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f1"},
+    "Company Name": "MEGA GRAPHICS",
+    "EmailID": "megagraphics.india@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f2"},
+    "Company Name": "MEGHART COLOUR CRAFTERS",
+    "EmailID": "manojebakumar@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f3"},
+    "Company Name": "MEMORY REPRO SYSTEMS PRIVATE LIMITED",
+    "EmailID": "sanjeev@memoryrepro.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f4"},
+    "Company Name": "MERCHANT ENTERPRISES",
+    "EmailID": "traders.handh@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f5"},
+    "Company Name": "MERK PRODUCTS",
+    "EmailID": "info@merkproducts.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f6"},
+    "Company Name": "METROPOLITAN MEDIA COMPANY LIMITED - MYSORE",
+    "EmailID": "sujatha.hiremath@timesgroup.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f7"},
+    "Company Name": "METRO SALES",
+    "EmailID": "royaloffsetparts@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f8"},
+    "Company Name": "M-GULAB SINGH & SONS PVT LTD",
+    "EmailID": "naresh.kumar@in.mbdalchemie.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957f9"},
+    "Company Name": "MICRO CHEM PRODUCTS (INDIA) PVT LTD",
+    "EmailID": "nitinshroff@hotmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957fa"},
+    "Company Name": "M K PRINTPACK PRIVATE LIMITED - HARIDWAR",
+    "EmailID": "stores@mkprintpack.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957fb"},
+    "Company Name": "MN POLYPACK PRIVATE LIMITED",
+    "EmailID": "mnpolypack@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957fc"},
+    "Company Name": "MNS PRINTERS PRIVATE LIMITED",
+    "EmailID": "mns.chennai@mnsprinters.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957fd"},
+    "Company Name": "MODERN PRINTERS OFFSET",
+    "EmailID": "modernprint@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957fe"},
+    "Company Name": "MONOPRINT EQUIPMENTS & SPARES",
+    "EmailID": "monoprint2008@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957ff"},
+    "Company Name": "M R TRADING COMPANY",
+    "EmailID": "Prasenjitbha2010@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895800"},
+    "Company Name": "MRUGAL OFFSET PRINTER",
+    "EmailID": "mrugalprinter@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895801"},
+    "Company Name": "MUDRIKA LABELS PVT LTD.",
+    "EmailID": "purchase@mudrikalabels.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895802"},
+    "Company Name": "MUKTA GRAPHICS",
+    "EmailID": "muktagraphics399@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895803"},
+    "Company Name": "MULTIPLEXUS (INDIA)",
+    "EmailID": "multiplexusindia@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895804"},
+    "Company Name": "MULTI VISION PACKAGING",
+    "EmailID": "multipurchase11@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895805"},
+    "Company Name": "MY PRINT",
+    "EmailID": "account.gap@hotmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895806"},
+    "Company Name": "NAIPUNYA GRAVURES",
+    "EmailID": "naipunyagravures@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895807"},
+    "Company Name": "NAMRATA GRAPHIC",
+    "EmailID": "namratagraphics16@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895808"},
+    "Company Name": "NARSINGH & COMPANY",
+    "EmailID": "khushiramsons148@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895809"},
+    "Company Name": "NATARAJ TRADERS - SIVAKASI",
+    "EmailID": "sabesansvk@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89580a"},
+    "Company Name": "NAVIN TRADING COMPANY",
+    "EmailID": "nimeshbheda72@yahoo.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89580b"},
+    "Company Name": "NAVNEET EDUCATION LIMITED",
+    "EmailID": "rajenvakhariya@navneet.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89580c"},
+    "Company Name": "NEBULA HOME PRODUCTS PRIVATE LTD",
+    "EmailID": "purchase@nebulagoa.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89580d"},
+    "Company Name": "NELSONS BEARING CENTRE",
+    "EmailID": "nelsonsbearing@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89580e"},
+    "Company Name": "NEXTGEN PRINTERS PRIVATE LIMITED - HOWRAH",
+    "EmailID": "purchase@nextgenprint.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89580f"},
+    "Company Name": "N N GRAPHICS - Wagholi",
+    "EmailID": "nngraphics.06@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895810"},
+    "Company Name": "NULITH GRAPHIC PVT LTD",
+    "EmailID": "mail@nugroup.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895811"},
+    "Company Name": "NUMERO GRAPHIC",
+    "EmailID": "numerographics@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895812"},
+    "Company Name": "OJASHVEE EXIM PRIVATE LIMITED",
+    "EmailID": "mahendra666giri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895813"},
+    "Company Name": "ON LOOKER PRESS",
+    "EmailID": "onlookerpress@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895814"},
+    "Company Name": "PACKSOL",
+    "EmailID": "k.prabhiprasad@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895815"},
+    "Company Name": "PADMA EXIM",
+    "EmailID": "mddbhuta@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895816"},
+    "Company Name": "PANCHAJANYA PRINTERS",
+    "EmailID": "panchajanyaprinter@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895817"},
+    "Company Name": "PARAS GRAPHICS - DELHI",
+    "EmailID": "nikhil80757576@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895818"},
+    "Company Name": "PARAS GRAPHICS - AHMEDABAD (HK)",
+    "EmailID": "parasgraphics.hk@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895819"},
+    "Company Name": "PARKSONS CARTAMUNDI PRIVATE LIMITED",
+    "EmailID": "purchase@parksonscartamundi.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89581a"},
+    "Company Name": "PERFECT GRAPHICS - GOREGAON",
+    "EmailID": "perfectgraphicsv@gmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89581b"},
+    "Company Name": "POOJAN PRINT PACK",
+    "EmailID": "poojanprint1@yahoo.co.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895810"},
+    "Company Name": "NORTH EAST PHARMA PACK",
+    "EmailID": "accounts.carton@nepp.in",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895797"},
+    "Company Name": "ENDEAVOURS XTREME PRESS",
+    "EmailID": "endeavoursxtremepress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895798"},
+    "Company Name": "ENDEAVOURS XTREME PRINTERS",
+    "EmailID": "endeavoursxtremeprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab895799"},
+    "Company Name": "ENDEAVOURS XTREME SCREENS",
+    "EmailID": "endeavoursxtremescreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579a"},
+    "Company Name": "ENDEAVOURS XTREME TRADERS",
+    "EmailID": "endeavoursxtremetraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579b"},
+    "Company Name": "ENDEAVOURS XTREME VINYLS",
+    "EmailID": "endeavoursxtremevinyals@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579c"},
+    "Company Name": "ENDEAVOURS XTREME ZAVERI",
+    "EmailID": "endeavoursxtremezaveri@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579d"},
+    "Company Name": "ENDEAVOURS PREMIUM",
+    "EmailID": "endeavourspremium@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579e"},
+    "Company Name": "ENDEAVOURS PREMIUM GRAPHICS",
+    "EmailID": "endeavourspremiumgraphics@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab89579f"},
+    "Company Name": "ENDEAVOURS PREMIUM PRESS",
+    "EmailID": "endeavourspremiumpress@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a0"},
+    "Company Name": "ENDEAVOURS PREMIUM PRINTERS",
+    "EmailID": "endeavourspremiumprinters@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a1"},
+    "Company Name": "ENDEAVOURS PREMIUM SCREENS",
+    "EmailID": "endeavourspremiumscreens@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  },
+  {
+    "_id": {"$oid": "667d3f3e2e9f5c0bab8957a2"},
+    "Company Name": "ENDEAVOURS PREMIUM TRADERS",
+    "EmailID": "endeavourspremiumtraders@rediffmail.com",
+    "created_at": "2025-07-08T18:09:00+05:30",
+    "created_by": "68515df4f0b858c18746bbb4"
+  }
+]

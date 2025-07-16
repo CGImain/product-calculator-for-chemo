@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Quotation Preview - Product Calculator{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quote-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #fff;
+    }
+    .quote-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+    th, td {
+        border: 1px solid #dee2e6;
+        padding: 8px 12px;
+        text-align: left;
+    }
+    thead {
+        background-color: #f8f9fa;
+    }
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0,0,0,.125);
+    }
+    .company-logo {
+        max-width: 150px;
+        margin-bottom: 1rem;
+    }
+    .customer-info-section {
+        padding: 1.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+    <div class="text-center mb-4">
+        <a href="https://imgbb.com/"><img src="https://i.ibb.co/1GVLnJcc/image-2025-07-04-163516213.png" alt="Company Logo" class="company-logo" border="0"></a>
+        <h2 class="mb-0">QUOTATION</h2>
+        <p class="text-muted">{{ now.strftime('%B %d, %Y') }}</p>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <!-- Company Information -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Company Information</h5>
+                    <span class="badge bg-success">Verified</span>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-building me-2 text-primary"></i>
+                            <div>
+                                <div class="text-muted small">Company Name</div>
+                                <div class="fw-semibold">CGI - Chemo Graphics INTERNATIONAL</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex">
+                            <i class="fas fa-map-marker-alt me-2 text-muted mt-1"></i>
+                            <div>
+                                <div class="text-muted small">Address</div>
+                                <div>113, 114 High Tech Industrial Centre,<br>Caves Rd, Jogeshwari East,<br>Mumbai, Maharashtra 400060</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-envelope me-2 text-muted"></i>
+                            <div>
+                                <div class="text-muted small">Email</div>
+                                <div><a href="mailto:INFO@CHEMO.IN">INFO@CHEMO.IN</a></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-3 border-top">
+                        <div class="text-muted small">Prepared by:</div>
+                        <div class="fw-semibold">{{ current_user.username }}</div>
+                        <div><a href="mailto:{{ current_user.email }}">{{ current_user.email }}</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Customer Information</h5>
+                    <span class="badge bg-success">Verified</span>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-building me-2 text-primary"></i>
+                            <div>
+                                <div class="text-muted small">Company Name</div>
+                                <div class="fw-semibold">{{ session.get('company_name', 'Not specified') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-envelope me-2 text-muted"></i>
+                            <div>
+                                <div class="text-muted small">Email</div>
+                                <div>
+                                    {% if session.get('company_email') %}
+                                        <a href="mailto:{{ session.company_email }}">{{ session.company_email }}</a>
+                                    {% else %}
+                                        <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto"></div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Quotation Details</h5>
+        </div>
+        <div class="card-body p-4">
+            <p>Hello,</p>
+            <p>This is <strong>{{ current_user.username }}</strong> from CGI.</p>
+            <p>Here is the proposed quotation for the required products:</p>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Sr No</th>
+        <th>Machine</th>
+        <th>Product Type</th>
+        <th>Blanket Type</th>
+        <th>Thickness</th>
+        <th>Dimensions</th>
+        <th>Barring Type</th>
+        <th>Qty</th>
+        <th>Discount</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in cart.products %}
+        {% set loop_index = loop.index %}
+        {% set prod_type = item.type %}
+        {% set total_val = item.get('total') or (item.get('unit_price', 0) * item.get('quantity', 1)) * (1 - (item.get('discount_percent', 0) / 100)) %}
+        <tr>
+          <td>{{ loop_index }}</td>
+          <td>{{ item.get('machine', '') }}</td>
+          <td>{{ prod_type }}</td>
+          <td>{{ item.get('blanket_type') or item.get('name','----') if prod_type == 'blanket' else '----' }}</td>
+          <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }}{% else %}{{ item.thickness }}{% endif %}{% else %}------{% endif %}</td>
+          <td>
+            {% if item.get('size') %}
+              {{ item.size|replace('.0 mm', ' mm')|replace('.0mm', 'mm') }}
+            {% elif item.get('length') and item.get('width') %}
+              {% if item.type == 'mpack' %}
+                {{ '%sx%s mm'|format(
+                  item.length|string|replace('.0', ''),
+                  item.width|string|replace('.0', '')
+                ) }}
+              {% else %}
+                {{ '%sx%s%s'|format(
+                  item.length|string|replace('.0', ''),
+                  item.width|string|replace('.0', ''),
+                  item.get('unit', '')|replace('mm', ' mm')
+                ) }}
+              {% endif %}
+            {% else %}
+              ------
+            {% endif %}
+          </td>
+          <td>{{ item.get('bar_type', '------') if prod_type == 'blanket' else '------' }}</td>
+          <td>{{ item.get('quantity', 1) }}</td>
+          <td>{{ item.get('discount_percent', 0) }}%</td>
+          <td>₹{{ '%.2f'|format(item.calculations.final_total|default(item.total_price|default(0))) }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="9" class="text-end fw-bold">Total:</td>
+            <td class="fw-bold">₹{{ '%.2f'|format(calculations.total) }}</td>
+        </tr>
+    </tfoot>
+</table>
+  
+  <!-- Optional Notes Section -->
+  <div class="mt-4">
+    <h6 class="mb-3">Additional Notes (Optional)</h6>
+    <div class="mb-3">
+      <textarea class="form-control" id="quotationNotes" rows="3" placeholder="Add any additional notes or special instructions here..."></textarea>
+      <div class="form-text">This information will be included in the quotation.</div>
+    </div>
+  </div>
+  
+  <div class="mt-4 pt-3 border-top">
+    <p>Thank you for your business. We look forward to working with you!</p>
+    <p class="mb-0">Best regards,<br>
+    <strong>{{ current_user.username }}</strong><br>
+    <span class="text-muted">CGI - Chemo Graphics INTERNATIONAL</span></p>
+</div>
+        </div>
+        <div class="card-footer bg-light">
+            <div class="text-center">
+                <button onclick="window.print()" class="btn btn-primary me-2">
+                    <i class="fas fa-print me-1"></i> Print Quotation
+                </button>
+                <button id="sendQuotationBtn" class="btn btn-success">
+                    <i class="fas fa-paper-plane me-1"></i> Send Quotation
+                </button>
+            </div>
+            
+            <div class="alert alert-info mt-3 mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                This quotation is not a contract or invoice. It is our best estimate.
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-4 pt-3 border-top">
+        <div class="col-12 col-md-6">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-100 py-3" style="font-size: 1.1rem;">
+                <i class="fas fa-calculator me-2"></i>Back to Calculator
+            </a>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // No JavaScript needed for company info as it's now server-rendered
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/quotation.js') }}"></script>
+{% endblock %}

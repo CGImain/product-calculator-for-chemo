@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Product Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles/signup.css') }}">
+</head>
+<body>
+  <div class="container">
+    <form id="signupForm" class="card">
+      <!-- Step 1: Email Verification -->
+      <div id="step1" class="step active">
+        <div class="logo">
+          <a href="https://imgbb.com/"><img src="https://i.ibb.co/1GVLnJcc/image-2025-07-04-163516213.png" alt="image-2025-07-04-163516213" border="0"></a>
+          <h1>Create Account</h1>
+          <p>We'll send you a verification code to get started</p>
+        </div>
+        
+        <div id="message" class="message" style="display: none;"></div>
+        
+        <div class="form-group">
+          <label for="email">Work Email (@chemo.in)</label>
+          <input type="email" id="email" name="email" placeholder="your.name@chemo.in" required>
+          <p class="hint">Use your company email address</p>
+        </div>
+        
+        <button type="button" id="requestOtpBtn" class="btn next-btn">
+          <span class="btn-text">Send Verification Code</span>
+          <div class="btn-loader">
+            <div class="spinner"></div>
+          </div>
+        </button>
+        
+        <div class="login-link">
+          Already have an account? <a href="{{ url_for('login') }}">Sign In</a>
+        </div>
+      </div>
+      
+      <!-- Step 2: OTP Verification -->
+      <div id="step2" class="step">
+        <div class="logo">
+          <h1>Verify Email</h1>
+          <p>Enter the 6-digit code sent to <span id="emailDisplay"></span></p>
+        </div>
+        
+        <div id="message" class="message" style="display: none;"></div>
+        
+        <div class="form-group">
+          <label for="otp">Verification Code</label>
+          <input type="text" id="otp" name="otp" class="otp-input" maxlength="6" required>
+        </div>
+        
+        <div class="resend-otp">
+          <a href="#" id="resendOtp" class="disabled">Resend OTP in <span id="countdown">30</span>s</a>
+        </div>
+        
+        <button type="button" id="verifyOtpBtn" class="btn next-btn">
+          <span class="btn-text">Verify & Continue</span>
+          <div class="btn-loader">
+            <div class="spinner"></div>
+          </div>
+        </button>
+        
+        <button type="button" class="btn btn-outline prev-btn">
+          Back to Email
+        </button>
+      </div>
+      
+      <!-- Step 3: Account Setup -->
+      <div id="step3" class="step">
+        <div class="logo">
+          <h1>Complete Your Profile</h1>
+          <p>Create your account credentials</p>
+        </div>
+        
+        <div id="message" class="message" style="display: none;"></div>
+        
+        <div class="form-group">
+          <label for="username">Choose a Username</label>
+          <input type="text" id="username" name="username" required>
+          <p class="hint">This will be your unique identifier</p>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Create Password</label>
+          <div class="password-input-group">
+            <input type="password" id="password" name="password" required>
+            <button type="button" class="toggle-password" data-toggle="password" aria-label="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <div class="password-strength">
+            <div id="strengthBar" class="strength-bar"></div>
+          </div>
+          <div class="strength-message">
+            <span class="hint">At least 8 characters with uppercase, lowercase, and numbers</span>
+            <span id="strengthText" class="strength-text"></span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="password-input-group">
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+            <button type="button" class="toggle-password" data-toggle="confirmPassword" aria-label="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <input type="checkbox" id="terms" name="terms" required>
+          <label for="terms" class="checkbox-label">
+            I agree to the <a href="/terms" target="_blank">Terms of Service</a> and 
+            <a href="/privacy" target="_blank">Privacy Policy</a>
+          </label>
+        </div>
+        
+        <button type="button" id="completeSignupBtn" class="btn">
+          <span class="btn-text">Create Account</span>
+          <div class="btn-loader">
+            <div class="spinner"></div>
+          </div>
+        </button>
+        
+        <button type="button" class="btn btn-outline prev-btn">
+          Back to Verification
+        </button>
+      </div>
+      
+      <!-- Success Step -->
+      <div id="successStep" class="step success-step">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <h2>Account Created Successfully!</h2>
+        <p class="success-message">Your account has been created successfully. Redirecting to login...</p>
+        <a href="{{ url_for('login') }}" class="btn">Sign In Now</a>
+      </div>
+    </form>
+  </div>
+  
+  <script src="{{ url_for('static', filename='js/signup.js') }}"></script>
+</body>
+</html>

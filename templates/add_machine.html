@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Machine{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Add New Machine</h4>
+                </div>
+                <div class="card-body">
+                    <form id="addMachineForm">
+                        <div class="mb-3">
+                            <label for="machineName" class="form-label">Machine Name *</label>
+                            <input type="text" class="form-control" id="machineName" required>
+                            <div class="invalid-feedback">
+                                Please provide a machine name.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <span class="spinner-border spinner-border-sm d-none" id="spinner" role="status" aria-hidden="true"></span>
+                                Add Machine
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Response Message -->
+            <div id="responseMessage" class="mt-3 d-none">
+                <div class="alert" role="alert">
+                    <p id="messageText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addMachineForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    const responseDiv = document.getElementById('responseMessage');
+    const messageText = document.getElementById('messageText');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!form.checkValidity()) {
+            e.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const machineData = {
+            name: document.getElementById('machineName').value.trim(),
+            
+        };
+
+        // Show loading state
+        submitBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        responseDiv.classList.add('d-none');
+
+        try {
+            const response = await fetch('{{ url_for("api_add_machine") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(machineData)
+            });
+
+            const result = await response.json();
+            
+            // Show response message
+            responseDiv.className = 'mt-3';
+            responseDiv.classList.add('alert', result.success ? 'alert-success' : 'alert-danger');
+            messageText.textContent = result.message;
+            responseDiv.classList.remove('d-none');
+
+            const params = new URLSearchParams(window.location.search);
+            const nextUrl = params.get('next') || '{{ url_for("mpacks") }}';
+            if (result.success) {
+                window.location.href = nextUrl;
+                return;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            responseDiv.className = 'mt-3';
+            responseDiv.classList.add('alert', 'alert-danger');
+            messageText.textContent = 'An error occurred while processing your request.';
+            responseDiv.classList.remove('d-none');
+        } finally {
+            // Reset button state
+            submitBtn.disabled = false;
+            spinner.classList.add('d-none');
+            
+            // Scroll to response
+            responseDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %}

@@ -1,0 +1,512 @@
+{# Company info bar with inline company selection #}
+<div id="companyInfoWrapper" class="company-info-wrapper">
+    <!-- Display bar -->
+    <div id="companyInfoBar" class="d-flex align-items-center justify-content-between bg-light border rounded px-3 py-2 mb-3">
+        <div class="d-flex flex-column w-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-building me-2 text-primary"></i>
+                    <span class="fw-semibold" id="companyNameDisplay">
+                        {% if session.company_name %}
+                            {{ session.company_name }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                    <button class="btn btn-sm btn-outline-primary" id="companyChangeBtn">
+                        <i class="fas fa-edit me-1"></i> Change
+                    </button>
+                    <a href="{{ url_for('add_company') }}" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-plus me-1"></i> New Company
+                    </a>
+                </div>
+            </div>
+            {% if session.company_email %}
+            <div id="companyInfoContainer" class="d-flex align-items-center mt-1">
+                <i class="fas fa-envelope me-2 text-muted"></i>
+                <small class="text-muted" id="companyEmailDisplay">
+                    {{ session.company_email }}
+                </small>
+            </div>
+            {% else %}
+            <div id="companyInfoContainer" class="d-flex align-items-center mt-1" style="display: none;">
+                <i class="fas fa-envelope me-2 text-muted"></i>
+                <small class="text-muted" id="companyEmailDisplay"></small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search box -->
+    <div id="companySearchBox" class="mb-3 card shadow-sm" style="display: none;">
+        <div class="card-body">
+            <h6 class="card-title mb-3">Change Company</h6>
+            <div class="position-relative">
+                <div class="input-group mb-2">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="companySearchInput" 
+                           placeholder="Search company by name or email" autocomplete="off">
+                </div>
+                <div id="companySearchResults" class="search-results mt-1 border rounded" style="display: none; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            <div class="mt-3 d-flex justify-content-end">
+                <button class="btn btn-outline-secondary btn-sm me-2" id="companyCancelBtn">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </button>
+                <button class="btn btn-primary btn-sm" id="companyConfirmBtn" disabled>
+                    <i class="bi bi-check-lg me-1"></i> Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container for notifications -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+<script>
+// Global variable to store companies data
+let companies = [];
+let selectedCompany = null;
+
+// Simple function to update company info from session storage
+function updateFromSession() {
+    try {
+        const nameEl = document.getElementById('serverCompanyName');
+        const emailEl = document.getElementById('serverCompanyEmail');
+        
+        if (nameEl && nameEl.textContent.trim()) {
+            const nameDisplay = document.getElementById('companyNameDisplay');
+            if (nameDisplay) nameDisplay.textContent = nameEl.textContent.trim();
+        }
+        
+        const emailContainer = document.getElementById('companyInfoContainer');
+        const emailDisplay = document.getElementById('companyEmailDisplay');
+        
+        if (emailEl && emailEl.textContent.trim()) {
+            if (emailDisplay) emailDisplay.textContent = emailEl.textContent.trim();
+            if (emailContainer) emailContainer.style.display = 'flex';
+        } else if (emailContainer) {
+            emailContainer.style.display = 'none';
+        }
+    } catch (e) {
+        console.error('Error updating from session:', e);
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Update from session data first
+    updateFromSession();
+    
+    // Also update after a short delay to catch any async updates
+    setTimeout(updateFromSession, 300);
+});
+
+// Function to safely get company data from storage
+function getCompanyData() {
+    try {
+        // Get from server-rendered elements
+        const nameEl = document.getElementById('serverCompanyName');
+        const emailEl = document.getElementById('serverCompanyEmail');
+        const idEl = document.getElementById('serverCompanyId');
+        
+        if (nameEl && nameEl.textContent.trim()) {
+            return {
+                name: nameEl.textContent.trim(),
+                email: emailEl ? emailEl.textContent.trim() : '',
+                id: idEl ? idEl.textContent.trim() : ''
+            };
+        }
+        // Get from server-rendered elements first
+        const companyName = document.getElementById('companyNameDisplay')?.textContent.trim();
+        const companyEmail = document.getElementById('companyEmailDisplay')?.textContent.trim();
+        if (typeof sessionStorage !== 'undefined') {
+            const sessionCompany = sessionStorage.getItem('selectedCompany');
+            if (sessionCompany) {
+                return JSON.parse(sessionCompany);
+            }
+        }
+        
+        // Then try localStorage
+        if (typeof localStorage !== 'undefined') {
+            const localCompany = localStorage.getItem('selectedCompany');
+            if (localCompany) {
+                return JSON.parse(localCompany);
+            }
+        }
+        
+        // Finally, try to get from server-side rendered elements
+        const serverName = document.getElementById('serverCompanyName')?.textContent.trim();
+        const serverEmail = document.getElementById('serverCompanyEmail')?.textContent.trim();
+        const serverId = document.getElementById('serverCompanyId')?.textContent.trim();
+        
+        if (serverName || serverEmail || serverId) {
+            return {
+                name: serverName || '',
+                email: serverEmail || '',
+                id: serverId || ''
+            };
+        }
+        
+        // Return empty data if nothing found
+        return { name: '', email: '', id: '' };
+    } catch (error) {
+        console.error('Error getting company data:', error);
+        return { name: '', email: '', id: '' };
+    }
+}
+
+// Function to update company info display
+function updateCompanyInfoDisplay() {
+    try {
+        const nameEl = document.getElementById('serverCompanyName');
+        const emailEl = document.getElementById('serverCompanyEmail');
+        
+        const nameDisplay = document.getElementById('companyNameDisplay');
+        const emailDisplay = document.getElementById('companyEmailDisplay');
+        const companyInfoContainer = document.getElementById('companyInfoContainer');
+        
+        if (nameEl && nameEl.textContent.trim()) {
+            if (nameDisplay) nameDisplay.textContent = nameEl.textContent.trim();
+            
+            // Update the selected company
+            selectedCompany = {
+                name: nameEl.textContent.trim(),
+                email: emailEl ? emailEl.textContent.trim() : '',
+                id: document.getElementById('serverCompanyId')?.textContent.trim() || ''
+            };
+            
+            // Update storage
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('selectedCompany', JSON.stringify(selectedCompany));
+            }
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('selectedCompany', JSON.stringify(selectedCompany));
+            }
+        }
+        
+        if (emailEl && emailEl.textContent.trim()) {
+            if (emailDisplay) emailDisplay.textContent = emailEl.textContent.trim();
+            if (companyInfoContainer) companyInfoContainer.style.display = 'flex';
+        } else if (companyInfoContainer) {
+            companyInfoContainer.style.display = 'none';
+        }
+            
+        // Update customer info sections if they exist
+        if (typeof updateCustomerInfoSections === 'function' && selectedCompany) {
+            updateCustomerInfoSections(selectedCompany);
+        }
+        
+        // Show success message if this was a change
+        if (window.companyJustChanged && selectedCompany) {
+            showToast(`Company updated to ${selectedCompany.name}`, 'success');
+            window.companyJustChanged = false;
+        }
+    } catch (error) {
+        console.error('Error updating company info:', error);
+        showToast('Error updating company information', 'error');
+    }
+}
+
+// Function to update customer info sections with company data
+function updateCustomerInfoSections(company) {
+    const customerInfoSections = document.querySelectorAll('.customer-info-section');
+    customerInfoSections.forEach(section => {
+        const nameEl = section.querySelector('.company-name-display');
+        const emailEl = section.querySelector('.company-email-display');
+        
+        if (nameEl) {
+            nameEl.textContent = company.name || '';
+        }
+        if (emailEl) {
+            emailEl.innerHTML = company.email 
+                ? `<a href="mailto:${company.email}">${company.email}</a>` 
+                : '';
+        }
+    });
+}
+
+async function loadCompaniesData() {
+    try {
+        showToast('Loading companies...', 'info');
+        
+        const response = await fetch('/api/companies', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const responseData = await response.json();
+        
+        // Check if we have a valid response with companies array
+        if (!responseData || !responseData.companies || !Array.isArray(responseData.companies)) {
+            showToast('Error: Invalid companies data format', 'error');
+            return [];
+        }
+        
+        // Process and validate the companies data
+        companiesData = responseData.companies.map((company, index) => ({
+            id: String(company.id || company._id || index + 1),
+            name: company.name || company['Company Name'] || `Company ${index + 1}`,
+            email: company.email || company['EmailID'] || ''
+        }));
+        
+        // If we have companies, try to pre-select one if none is selected
+        if (companiesData.length > 0) {
+            const currentCompany = getCompanyData();
+            if (!currentCompany || !currentCompany.id) {
+                // If selectCompany is defined, use it, otherwise just update the display
+                if (typeof selectCompany === 'function') {
+                    selectCompany(companiesData[0]);
+                } else {
+                    // Update session storage directly
+                    const firstCompany = companiesData[0];
+                    sessionStorage.setItem('companyName', firstCompany.name);
+                    sessionStorage.setItem('companyEmail', firstCompany.email);
+                    sessionStorage.setItem('companyId', firstCompany.id);
+                    updateCompanyInfoDisplay();
+                }
+            } else {
+                updateCompanyInfoDisplay();
+            }
+        } else {
+            showToast('No companies available. Please contact support.', 'warning');
+        }
+    } catch (error) {
+        showToast('Error loading company data', 'error');
+        return [];
+    }
+}
+
+// Function to show search box
+function showSearchBox() {
+    const searchBox = document.getElementById('companySearchBox');
+    const searchInput = document.getElementById('companySearchInput');
+    if (searchBox && searchInput) {
+        searchBox.style.display = 'block';
+        searchInput.focus();
+    }
+}
+
+// Function to hide search box
+function hideSearchBox() {
+    const searchBox = document.getElementById('companySearchBox');
+    const searchResults = document.getElementById('companySearchResults');
+    const searchInput = document.getElementById('companySearchInput');
+    
+    if (searchBox) searchBox.style.display = 'none';
+    if (searchResults) searchResults.style.display = 'none';
+    if (searchInput) searchInput.value = '';
+}
+
+// Function to handle company selection
+function selectCompany(company) {
+    if (!company) return;
+    
+    // Update the selected company
+    selectedCompany = company;
+    
+    // Update the UI
+    const nameDisplay = document.getElementById('companyNameDisplay');
+    const emailDisplay = document.getElementById('companyEmailDisplay');
+    const companyInfoContainer = document.getElementById('companyInfoContainer');
+    const searchBox = document.getElementById('companySearchBox');
+    const searchResults = document.getElementById('companySearchResults');
+    
+    if (nameDisplay) nameDisplay.textContent = company.name;
+    
+    if (company.email && emailDisplay) {
+        emailDisplay.textContent = company.email;
+        if (companyInfoContainer) companyInfoContainer.style.display = 'flex';
+    } else if (companyInfoContainer) {
+        companyInfoContainer.style.display = 'none';
+    }
+    
+    // Save to session storage
+    if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+    }
+    
+    // Save to local storage for persistence
+    if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('selectedCompany', JSON.stringify(company));
+    }
+    
+    // Hide the search box and results
+    if (searchBox) searchBox.style.display = 'none';
+    if (searchResults) searchResults.style.display = 'none';
+    
+    // Clear search input
+    const searchInput = document.getElementById('companySearchInput');
+    if (searchInput) searchInput.value = '';
+    
+    // Close any open dropdowns
+    const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+    dropdowns.forEach(dropdown => {
+        dropdown.classList.remove('show');
+    });
+    
+    // Show success message
+    showToast(`Company updated to ${company.name}`, 'success');
+    
+    // Trigger a custom event that other components can listen to
+    window.dispatchEvent(new CustomEvent('companyChanged', { detail: company }));
+    
+    // Reload the page to update any dependent components
+    window.location.reload();
+}
+
+// Function to render search results
+function renderSearchResults(query = '') {
+    const searchResults = document.getElementById('companySearchResults');
+    if (!searchResults) return;
+    
+    // Clear previous results
+    searchResults.innerHTML = '';
+    
+    if (!query || query.trim() === '') {
+        searchResults.style.display = 'none';
+        return;
+    }
+    
+    // Filter companies based on query
+    const filtered = companiesData.filter(company => 
+        company && (company.name || '').toLowerCase().includes(query.toLowerCase()) ||
+        (company.email || '').toLowerCase().includes(query.toLowerCase())
+    );
+    
+    if (filtered.length === 0) {
+        searchResults.innerHTML = '<div class="p-2 text-muted">No companies found</div>';
+        searchResults.style.display = 'block';
+        return;
+    }
+    
+    // Render the filtered companies
+    filtered.forEach(company => {
+        const div = document.createElement('div');
+        div.className = 'search-result-item p-2 border-bottom';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `
+            <div class="fw-semibold">${company.name || 'Unnamed Company'}</div>
+            ${company.email ? `<div class="small text-muted">${company.email}</div>` : ''}
+        `;
+        
+        div.addEventListener('click', () => {
+            selectCompany(company);
+        });
+        
+        // Add hover effect
+        div.addEventListener('mouseenter', function() {
+            this.classList.add('bg-light');
+        });
+        
+        div.addEventListener('mouseleave', function() {
+            this.classList.remove('bg-light');
+        });
+        
+        searchResults.appendChild(div);
+    });
+    
+    searchResults.style.display = 'block';
+}
+
+// Function to show toast message
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+    toast.role = 'alert';
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Function to update company info display
+function updateCompanyInfoDisplay(company) {
+    try {
+        const nameDisplay = document.getElementById('companyNameDisplay');
+        const emailDisplay = document.getElementById('companyEmailDisplay');
+        const companyInfoContainer = document.getElementById('companyInfoContainer');
+        
+        if (company) {
+            if (nameDisplay) nameDisplay.textContent = company.name || '';
+            if (emailDisplay) emailDisplay.textContent = company.email || '';
+            if (companyInfoContainer) companyInfoContainer.style.display = company.email ? 'flex' : 'none';
+            
+            // Update session storage
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('selectedCompany', JSON.stringify(company));
+            }
+        }
+    } catch (error) {
+        console.error('Error updating company info display:', error);
+    }
+}
+
+// Make the function available globally
+window.updateCompanyInfoDisplay = updateCompanyInfoDisplay;
+window.updateCompanyInfo = updateCompanyInfoDisplay;
+</script>
+
+<style>
+.search-results {
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    z-index: 1000;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.search-results .search-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.search-results .search-item:hover {
+    background-color: #f8f9fa;
+}
+
+.search-results .search-item small {
+    display: block;
+    font-size: 0.875em;
+    color: #6c757d;
+}
+
+/* Toast styles */
+.toast {
+    transition: opacity 0.3s ease-in-out;
+    margin-bottom: 0.5rem;
+}
+
+.toast:not(.show) {
+    opacity: 0;
+}
+</style>

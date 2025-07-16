@@ -1,0 +1,873 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Product Calculator for Chemo{% endblock %}
+
+{% block extra_css %}
+{{ super() }}
+<style>
+    .search-container {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    .search-input:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .search-results {
+        position: absolute;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        z-index: 1050;
+        margin-top: 8px;
+        display: none;
+    }
+    .search-item {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+    .search-item:hover {
+        background-color: #f5f5f5;
+    }
+    .product-nav {
+        margin: 2rem 0;
+        display: none;
+    }
+    .nav-pills .nav-link {
+        color: #0d6efd;
+        font-weight: 500;
+        padding: 0.5rem 1.5rem;
+        margin: 0 0.5rem;
+        border-radius: 20px;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .welcome-message {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+
+    <!-- Welcome Message -->
+    <div class="jumbotron text-center">
+        <h1 class="display-4">Welcome to Product Calculator for Chemo</h1>
+        <p class="lead">Your one-stop solution for chemotherapy product calculations</p>
+        <hr class="my-4">
+        <p>Get started by SELECTING COMPANY AND PRODUCT</p>
+    </div>
+
+    <!-- Company Selection -->
+    <div class="d-flex align-items-center justify-content-center min-vh-50 py-5" id="companySelectionSection">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0"><i class="fas fa-building me-2"></i>Select Your Company</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form id="companyForm" onsubmit="event.preventDefault();" class="py-3">
+                        <input type="hidden" name="company_id" id="companyId">
+                        <input type="hidden" name="company_name" id="companyName">
+                        <input type="hidden" name="company_email" id="companyEmail">
+                        <div class="form-group mb-4">
+                            <label for="companyInput" class="form-label fw-medium">Search for your company</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control form-control-lg" id="companyInput" 
+                                       placeholder="Start typing company name..." autocomplete="off" required>
+                                <div id="searchResults" class="search-results mt-1"></div>
+                            </div>
+                            <div class="form-text">Type at least 2 characters to see matching results</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="button" id="selectCompanyBtn" class="btn btn-primary btn-lg" disabled>
+                                <i class="fas fa-check-circle me-2"></i>Select Company
+                            </button>
+                        </div>
+                        <!-- New Company button -->
+                        <div class="d-grid gap-2 mt-2">
+                            <a href="{{ url_for('add_company') }}" class="btn btn-outline-success btn-lg">
+                                <i class="fas fa-plus me-2"></i> New Company
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Selection (initially hidden) -->
+    <div class="text-center mt-4" id="productSelectionSection" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0">Select Product Category</h3>
+            <button id="changeCompanyBtn" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Change Company
+            </button>
+        </div>
+        <div>
+            <a class="btn btn-primary btn-lg me-3" href="#" id="mpacksBtn" data-route="{{ url_for('mpacks') }}" role="button">View M-Packs</a>
+            <a class="btn btn-outline-primary btn-lg" href="#" id="blanketsBtn" data-route="{{ url_for('blankets') }}" role="button">View Blankets</a>
+        </div>
+    </div>
+
+    <!-- Products Display (initially hidden) -->
+    <div id="productsDisplay" style="display: none;">
+        <!-- M-Packs Section -->
+        <div class="product-section">
+            <h2 class="text-center mb-4">M-Packs</h2>
+            <div class="row">
+                <!-- M-Pack items will be dynamically loaded here -->
+            </div>
+        </div>
+
+        <!-- Blankets Section -->
+        <div class="product-section mt-4">
+            <h2 class="text-center mb-4">Blankets</h2>
+            <div class="row">
+                <!-- Blanket items will be dynamically loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<div id="companies-data" style="display: none;">{{ companies|tojson|safe }}</div>
+<script>
+// Main application module
+const ChemoApp = (function() {
+    // Initialize companies from template
+    const companiesData = JSON.parse(document.getElementById('companies-data').textContent || '[]');
+    
+    // State
+    const state = {
+        companies: Array.isArray(companiesData) ? companiesData : [],
+        selectedCompany: null,
+        products: {
+            mpacks: [],
+            blankets: []
+        },
+        cartCount: 0
+    };
+
+    // DOM Elements
+    const elements = {
+        companyInput: document.getElementById('companyInput'),
+        searchResults: document.getElementById('searchResults'),
+        selectCompanyBtn: document.getElementById('selectCompanyBtn'),
+        companyIdInput: document.getElementById('companyId'),
+        companyNameInput: document.getElementById('companyName'),
+        companyEmailInput: document.getElementById('companyEmail'),
+        productNav: document.getElementById('productNav'),
+        mpacksLink: document.getElementById('mpacksLink'),
+        blanketsLink: document.getElementById('blanketsLink'),
+        cartCount: document.getElementById('cartCount')
+    };
+
+    // Initialize the application
+    function init() {
+        // Clear any existing company data from storage
+        sessionStorage.removeItem('selectedCompany');
+        sessionStorage.removeItem('companyId');
+        sessionStorage.removeItem('companyName');
+        sessionStorage.removeItem('companyEmail');
+        localStorage.removeItem('selectedCompany');
+        
+        // Reset state
+        state.selectedCompany = null;
+        
+        // Set up UI
+        setupEventListeners();
+        setupProductButtons();
+        
+        // Always show company selection on page load
+        showCompanySelection();
+        
+        updateCartCount();
+    }
+    
+    // Show company selection section
+    function showCompanySelection() {
+        const companySection = document.getElementById('companySelectionSection');
+        const productSection = document.getElementById('productSelectionSection');
+        
+        if (companySection) {
+            companySection.style.display = 'block';
+            // Focus the search input
+            const searchInput = companySection.querySelector('input[type="text"]');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+        }
+        if (productSection) productSection.style.display = 'none';
+    }
+    
+    // Set up product button click handlers
+    function setupProductButtons() {
+        const mpacksBtn = document.getElementById('mpacksBtn');
+        const blanketsBtn = document.getElementById('blanketsBtn');
+        
+        if (mpacksBtn) {
+            mpacksBtn.addEventListener('click', handleProductButtonClick);
+        }
+        
+        if (blanketsBtn) {
+            blanketsBtn.addEventListener('click', handleProductButtonClick);
+        }
+    }
+
+    // Set up event listeners
+    function setupEventListeners() {
+        // Add change company button click handler
+        const changeCompanyBtn = document.getElementById('changeCompanyBtn');
+        if (changeCompanyBtn) {
+            changeCompanyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Clear company selection
+                state.selectedCompany = null;
+                sessionStorage.removeItem('selectedCompany');
+                localStorage.removeItem('selectedCompany');
+                
+                // Reset form
+                if (elements.companyInput) elements.companyInput.value = '';
+                if (elements.companyIdInput) elements.companyIdInput.value = '';
+                if (elements.companyNameInput) elements.companyNameInput.value = '';
+                if (elements.companyEmailInput) elements.companyEmailInput.value = '';
+                
+                // Show company selection and hide product selection
+                const companySection = document.getElementById('companySelectionSection');
+                const productSection = document.getElementById('productSelectionSection');
+                
+                if (productSection) {
+                    productSection.style.display = 'none';
+                }
+                
+                if (companySection) {
+                    companySection.style.display = 'block';
+                    // Scroll to company section
+                    companySection.scrollIntoView({ behavior: 'smooth' });
+                }
+                
+                // Focus on company input
+                if (elements.companyInput) {
+                    elements.companyInput.focus();
+                }
+                
+                // Show a message
+                showAlert('Please select a company to continue', 'info');
+            });
+        }
+        
+        if (elements.companyInput) {
+            elements.companyInput.addEventListener('input', handleCompanySearch);
+        }
+        
+        if (elements.selectCompanyBtn) {
+            elements.selectCompanyBtn.addEventListener('click', async (e) => {
+                console.log('Select company button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                try {
+                    const success = await selectCompany();
+                    console.log('selectCompany result:', success);
+                    
+                    // Only update UI if company was successfully selected
+                    if (success) {
+                        // Update the URL to reflect the selected company
+                        const newUrl = new URL(window.location.href);
+                        newUrl.searchParams.set('company_id', state.selectedCompany.id);
+                        window.history.pushState({}, '', newUrl);
+                    }
+                } catch (error) {
+                    console.error('Error in select company handler:', error);
+                }
+            }, true); // Use capture phase to ensure we catch the event early
+        }
+        
+        if (elements.mpacksLink) {
+            elements.mpacksLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (state.selectedCompany) {
+                    window.location.href = `/mpacks?company_id=${state.selectedCompany.id}`;
+                }
+            });
+        }
+        
+        if (elements.blanketsLink) {
+            elements.blanketsLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (state.selectedCompany) {
+                    window.location.href = `/blankets?company_id=${state.selectedCompany.id}`;
+                }
+            });
+        }
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (elements.searchResults && 
+                !elements.searchResults.contains(e.target) && 
+                e.target !== elements.companyInput) {
+                elements.searchResults.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle company search input
+    function handleCompanySearch(e) {
+        const query = e.target.value.toLowerCase();
+        elements.searchResults.innerHTML = '';
+        elements.searchResults.style.display = 'none';
+        
+        if (query.length < 2) return;
+        
+        const results = state.companies.filter(company => 
+            company.name && company.name.toLowerCase().includes(query)
+        );
+        
+        if (results.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.className = 'search-item';
+            noResults.textContent = 'No companies found';
+            elements.searchResults.appendChild(noResults);
+        } else {
+            results.forEach(company => {
+                const item = document.createElement('div');
+                item.className = 'search-item';
+                item.innerHTML = `
+                    <strong>${company.name || 'Unnamed Company'}</strong><br>
+                    <small class="text-muted">${company.email || ''}</small>
+                `;
+                item.addEventListener('click', () => selectCompanyFromResults(company));
+                elements.searchResults.appendChild(item);
+            });
+        }
+        
+        elements.searchResults.style.display = 'block';
+    }
+
+    // Select company from search results
+    function selectCompanyFromResults(company) {
+        state.selectedCompany = company;
+        elements.companyInput.value = company.name || '';
+        elements.companyIdInput.value = company.id || '';
+        elements.companyNameInput.value = company.name || '';
+        elements.companyEmailInput.value = company.email || '';
+        elements.searchResults.style.display = 'none';
+        elements.selectCompanyBtn.disabled = false;
+    }
+
+    // Select company and save to session
+    async function selectCompany() {
+        if (!state.selectedCompany) {
+            showAlert('Please select a company first.', 'danger');
+            return false;
+        }
+        
+        // Show loading state
+        const originalButtonText = elements.selectCompanyBtn ? elements.selectCompanyBtn.innerHTML : '';
+        if (elements.selectCompanyBtn) {
+            elements.selectCompanyBtn.disabled = true;
+            elements.selectCompanyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+        }
+        
+        try {
+            // Store company in both session and local storage for redundancy
+            const companyData = {
+                id: state.selectedCompany.id,
+                name: state.selectedCompany.name,
+                email: state.selectedCompany.email || ''
+            };
+            
+
+            
+            // Only use sessionStorage (cleared when browser/tab is closed)
+            sessionStorage.setItem('selectedCompany', JSON.stringify(companyData));
+            sessionStorage.setItem('companyId', companyData.id);
+            sessionStorage.setItem('companyName', companyData.name);
+            if (companyData.email) {
+                sessionStorage.setItem('companyEmail', companyData.email);
+            }
+            
+            // Update the state
+            state.selectedCompany = companyData;
+            
+            // Update form fields if they exist
+            if (elements.companyInput) elements.companyInput.value = companyData.name || '';
+            if (elements.companyIdInput) elements.companyIdInput.value = companyData.id || '';
+            if (elements.companyNameInput) elements.companyNameInput.value = companyData.name || '';
+            if (elements.companyEmailInput) elements.companyEmailInput.value = companyData.email || '';
+            
+            // Try to update the company on the server
+            try {
+                // First, find the company in the companies list to get its index
+                const company = state.companies.find(c => c.id === state.selectedCompany.id || c.name === state.selectedCompany.name);
+                if (!company) {
+                    throw new Error('Company not found');
+                }
+                
+                // The server expects a 1-based index for the company
+                const companyIndex = state.companies.indexOf(company) + 1;
+                
+                const companyData = {
+                    company_id: companyIndex.toString(),
+                    company_name: company.name,
+                    company_email: company.email || ''
+                };
+
+
+                
+                // Try the update company endpoint
+                let response = await fetch('/api/user/update-company', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'  // Indicate this is an AJAX request
+                    },
+                    body: JSON.stringify(companyData),
+                    credentials: 'same-origin'  // Include cookies for session
+                });
+                
+                // If the endpoint fails, try the alternative endpoint
+                if (!response.ok) {
+
+                    const formData = new FormData();
+                    formData.append('company_id', companyIndex.toString());
+                    formData.append('company_name', company.name);
+                    formData.append('company_email', company.email || '');
+                    
+                    response = await fetch('/select_company', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
+                }
+                
+                // Handle the response
+                const responseData = await response.json().catch(() => ({}));
+                
+                if (!response.ok) {
+                    console.error('Failed to update company on server:', responseData);
+                    // Don't throw error, continue with client-side storage
+                    console.log('Using client-side storage for company selection');
+                } else {
+                    console.log('Company updated on server:', responseData);
+                }
+            } catch (error) {
+                console.error('Error updating company on server:', error);
+                // Continue with client-side storage even if server update fails
+            }
+            
+            // Show product selection with the company name
+            showProductSelection(companyData.name);
+            
+            // Show a success message
+            showAlert(`Welcome, ${companyData.name}! Please select a product category.`, 'success');
+            
+            // Update cart count
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+            return true;
+            
+        } catch (error) {
+            console.error('Error selecting company:', error);
+            showAlert(`Failed to select company: ${error.message || 'Please try again.'}`, 'danger');
+            return false;
+        } finally {
+            // Reset button state
+            if (elements.selectCompanyBtn) {
+                elements.selectCompanyBtn.disabled = false;
+                elements.selectCompanyBtn.innerHTML = originalButtonText || 'Select Company';
+            }
+        }
+    }
+    
+    // Function to check if company is selected before navigation
+    function checkCompanyAndNavigate(route) {
+        // Get company from state or session storage
+        let companyId = '';
+        
+        if (state && state.selectedCompany) {
+            companyId = state.selectedCompany.id;
+        } else {
+            const companyData = sessionStorage.getItem('selectedCompany');
+            if (companyData) {
+                try {
+                    const company = JSON.parse(companyData);
+                    companyId = company.id;
+                } catch (e) {
+                    console.error('Error parsing company data:', e);
+                }
+            }
+        }
+        
+        if (companyId) {
+            // Add company_id as a query parameter if it's not already in the route
+            const separator = route.includes('?') ? '&' : '?';
+            window.location.href = `${route}${separator}company_id=${companyId}`;
+        } else {
+            showAlert('Please select a company before viewing products.', 'warning');
+        }
+    }
+
+    // Function to handle product button clicks
+    function handleProductButtonClick(e) {
+        e.preventDefault();
+        const route = this.getAttribute('data-route');
+        checkCompanyAndNavigate(route);
+    }
+    
+    // Make function available globally
+    window.checkCompanyAndNavigate = checkCompanyAndNavigate;
+
+    // Check if a company is already selected in the current session
+    function checkExistingCompany() {
+        // Only check sessionStorage (cleared when browser/tab is closed)
+        const companyData = sessionStorage.getItem('selectedCompany');
+        
+        if (companyData) {
+            try {
+                const company = JSON.parse(companyData);
+                console.log('Found company in session:', company);
+                
+                // Update the UI to show the company is selected
+                state.selectedCompany = company;
+                
+                // Update form fields
+                if (elements.companyInput) elements.companyInput.value = company.name || '';
+                if (elements.companyIdInput) elements.companyIdInput.value = company.id || '';
+                if (elements.companyNameInput) elements.companyNameInput.value = company.name || '';
+                if (company.email && elements.companyEmailInput) {
+                    elements.companyEmailInput.value = company.email;
+                }
+                
+                // Show the product selection and hide company selection
+                showProductSelection(company.name);
+                return true;
+                
+            } catch (error) {
+                console.error('Error parsing stored company data:', error);
+                // Clear invalid data
+                sessionStorage.removeItem('selectedCompany');
+            }
+        }
+        
+        // If we get here, no valid company was found in session
+        return false;
+    }
+
+    // Load products for the selected company
+    async function loadProducts(companyId) {
+        try {
+            const productsDisplay = document.getElementById('productsDisplay');
+            if (!productsDisplay) return;
+            
+            // Show loading state
+            productsDisplay.innerHTML = `
+                <div class="text-center my-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading products...</p>
+                </div>
+            `;
+            productsDisplay.style.display = 'block';
+
+            // Load products from the server
+            const [mpacksResponse, blanketsResponse] = await Promise.all([
+                fetch('/static/data/mpack.json'),
+                fetch('/static/data/blankets.json')
+            ]);
+
+            if (!mpacksResponse.ok || !blanketsResponse.ok) {
+                throw new Error('Failed to load products');
+            }
+
+            state.products.mpacks = await mpacksResponse.json();
+            state.products.blankets = await blanketsResponse.json();
+
+            // Display products
+            displayProducts();
+        } catch (error) {
+            console.error('Error loading products:', error);
+            const productsDisplay = document.getElementById('productsDisplay');
+            if (productsDisplay) {
+                productsDisplay.innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load products. Please try again later.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    // Display products in the UI
+    function displayProducts() {
+        const productsDisplay = document.getElementById('productsDisplay');
+        if (!productsDisplay) return;
+        
+        // Create HTML for M-Packs
+        const mpacksHtml = state.products.mpacks.map(product => `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 product-card">
+                    <div class="card-body">
+                        <h5 class="card-title">${product.name || 'M-Pack'}</h5>
+                        <p class="card-text">${product.description || ''}</p>
+                        <p class="card-text"><strong>Price: $${product.price || '0.00'}</strong></p>
+                        <button class="btn btn-primary" onclick="ChemoApp.addToCart('mpack', '${product.id}')">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Create HTML for Blankets
+        const blanketsHtml = state.products.blankets.map(product => `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 product-card">
+                    <div class="card-body">
+                        <h5 class="card-title">${product.name || 'Blanket'}</h5>
+                        <p class="card-text">${product.description || ''}</p>
+                        <p class="card-text"><strong>Base Price: $${product.base_price || '0.00'}</strong></p>
+                        <button class="btn btn-primary" onclick="ChemoApp.addToCart('blanket', '${product.id}')">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Update the DOM
+        productsDisplay.innerHTML = `
+            <!-- M-Packs Section -->
+            <div class="product-section">
+                <h2 class="text-center mb-4">M-Packs</h2>
+                <div class="row">
+                    ${mpacksHtml || '<div class="col-12 text-center">No M-Packs available</div>'}
+                </div>
+            </div>
+
+            <!-- Blankets Section -->
+            <div class="product-section mt-4">
+                <h2 class="text-center mb-4">Blankets</h2>
+                <div class="row">
+                    ${blanketsHtml || '<div class="col-12 text-center">No Blankets available</div>'}
+                </div>
+            </div>
+        `;
+    }
+
+    // Add product to cart
+    async function addToCart(productType, productId) {
+        // Find the product in our local data
+        const product = state.products[productType === 'mpack' ? 'mpacks' : 'blankets']
+            .find(p => p.id === productId);
+        
+        if (!product) {
+            console.error('Product not found');
+            return;
+        }
+
+        try {
+            // Prepare the cart item
+            const cartItem = {
+                id: product.id,
+                name: product.name,
+                type: productType,
+                quantity: 1,
+                unit_price: product.price || 0,
+                base_price: product.base_price || 0,
+                bar_price: product.bar_price || 0,
+                discount_percent: 0,
+                gst_percent: 18
+            };
+
+            // Add to cart via API
+            const response = await fetch('/add-to-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cartItem)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update cart count
+                updateCartCount(data.cart_count || 0);
+                
+                // Show success message
+                showAlert('Product added to cart!', 'success');
+            } else {
+                throw new Error(data.error || 'Failed to add to cart');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            showAlert('Failed to add product to cart. Please try again.', 'danger');
+        }
+    }
+
+    // Update cart count
+    async function updateCartCount() {
+        try {
+            const response = await fetch('/get_cart_count');
+            const data = await response.json();
+            if (elements.cartCount && data.count !== undefined) {
+                elements.cartCount.textContent = data.count;
+                state.cartCount = data.count;
+            }
+        } catch (error) {
+            console.error('Error loading cart count:', error);
+        }
+    }
+
+    // Show alert message
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'message';
+        alertDiv.role = 'alert';
+        
+        // Style to match our flash messages
+        Object.assign(alertDiv.style, {
+            background: 'white',
+            color: type === 'success' ? '#27ae60' : (type === 'error' ? '#e74c3c' : '#333'),
+            padding: '12px 20px',
+            borderRadius: '6px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            textAlign: 'center',
+            margin: '0 auto 20px',
+            display: 'block',
+            fontSize: '14px',
+            transition: 'opacity 0.3s ease-in-out',
+            maxWidth: '420px',
+            width: '100%',
+            opacity: '1'
+        });
+        
+        alertDiv.textContent = message;
+        
+        // Get or create flash messages container
+        let flashContainer = document.getElementById('flash-messages');
+        if (!flashContainer) {
+            flashContainer = document.createElement('div');
+            flashContainer.id = 'flash-messages';
+            Object.assign(flashContainer.style, {
+                position: 'fixed',
+                top: '20px',
+                left: '0',
+                right: '0',
+                zIndex: '1100',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                pointerEvents: 'none',
+                padding: '0 15px'
+            });
+            document.body.appendChild(flashContainer);
+        }
+        
+        // Add the alert to the container
+        flashContainer.appendChild(alertDiv);
+        
+        // Auto-dismiss after 2 seconds with fade out
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+            setTimeout(() => {
+                if (alertDiv.parentNode === flashContainer) {
+                    flashContainer.removeChild(alertDiv);
+                }
+            }, 300);
+        }, 2000);
+    }
+
+    // Show product selection section
+    function showProductSelection(companyName) {
+        // Remove company selection section completely
+        const companySection = document.getElementById('companySelectionSection');
+        if (companySection) {
+            companySection.remove();
+        }
+        
+        // Show product selection
+        const productSection = document.getElementById('productSelectionSection');
+        if (productSection) {
+            productSection.style.display = 'block';
+            productSection.style.opacity = '1';
+            
+            // Scroll to product selection after a short delay to ensure the element is visible
+            setTimeout(() => {
+                productSection.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+        
+        // Update the page title
+        document.title = `Products - ${companyName} | Product Calculator`;
+        
+        // Update the change company button to reload the page
+        const changeCompanyBtn = document.getElementById('changeCompanyBtn');
+        if (changeCompanyBtn) {
+            changeCompanyBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Clear the selected company from session storage
+                sessionStorage.removeItem('selectedCompany');
+                sessionStorage.removeItem('companyId');
+                sessionStorage.removeItem('companyName');
+                sessionStorage.removeItem('companyEmail');
+                // Reload the page to reset the state
+                window.location.href = window.location.href.split('?')[0];
+            });
+        }
+    }
+    
+    // Public API
+    return {
+        init,
+        addToCart,
+        updateCartCount,
+        showAlert
+    };
+})();
+
+// Initialize the application when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    ChemoApp.init();
+});
+
+// All functionality is now handled within the ChemoApp module
+</script>
+{% endblock %}

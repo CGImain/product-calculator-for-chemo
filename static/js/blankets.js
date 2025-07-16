@@ -86,38 +86,67 @@ window.onload = () => {
     
   // Function to filter blankets by category
   function filterBlanketsByCategory(category, categories) {
-    if (!blanketData || !blanketData.length) return;
+    console.log('Filtering blankets for category:', category);
+    
+    if (!blanketData || !blanketData.length) {
+      console.error('No blanket data available');
+      return;
+    }
     
     let filteredBlankets = [];
     
     if (category === "All") {
-      // Show all blankets if "All Categories" is selected
+      console.log('Showing all blankets');
       filteredBlankets = [...blanketData];
     } else if (categories[category]) {
-      // Show only blankets in the selected category
-      const categoryBlanketIds = categories[category];
-      filteredBlankets = blanketData.filter(blanket => 
-        categoryBlanketIds.includes(blanket.id)
-      );
+      console.log('Filtering by category:', category, 'IDs:', categories[category]);
+      // Convert category IDs to numbers for comparison
+      const categoryBlanketIds = categories[category].map(id => Number(id));
+      filteredBlankets = blanketData.filter(blanket => {
+        const match = categoryBlanketIds.includes(Number(blanket.id));
+        console.log('Checking blanket:', blanket.id, 'Type:', typeof blanket.id, 'Match:', match);
+        return match;
+      });
     }
     
-    // Populate the blanket select with filtered blankets
-    const blanketSelect = document.getElementById("blanketSelect");
-    blanketSelect.innerHTML = '<option value="">-- Select Blanket --</option>';
+    console.log('Filtered blankets:', filteredBlankets);
     
+    const blanketSelect = document.getElementById("blanketSelect");
+    if (!blanketSelect) {
+      console.error('Blanket select element not found');
+      return;
+    }
+    
+    // Clear and disable the select while updating
+    blanketSelect.innerHTML = '<option value="">-- Select Blanket --</option>';
+    blanketSelect.disabled = true;
+    
+    if (filteredBlankets.length === 0) {
+      console.warn('No blankets found for the selected category');
+      return;
+    }
+    
+    // Add filtered blankets to the select
     filteredBlankets.forEach(blanket => {
-      const option = document.createElement("option");
-      option.value = blanket.id;
-      option.text = blanket.name || `Blanket ${blanket.id}`;
-      blanketSelect.appendChild(option);
+      const option = new Option(blanket.name || `Blanket ${blanket.id}`, blanket.id);
+      blanketSelect.add(option);
     });
     
-    // Show the blanket section
-    document.getElementById("blanketSection").style.display = 'block';
+    // Enable the select and set up change handler
     blanketSelect.disabled = false;
+    blanketSelect.onchange = function() {
+      console.log('Blanket selected:', this.value);
+      displayRates();
+      calculatePrice();
+    };
     
-    // Update the display when a blanket is selected
-    blanketSelect.onchange = displayRates;
+    // Show the blanket section
+    const blanketSection = document.getElementById("blanketSection");
+    if (blanketSection) {
+      blanketSection.style.display = 'block';
+    }
+    
+    console.log('Blanket selection updated');
   }
 
   // Load thickness data

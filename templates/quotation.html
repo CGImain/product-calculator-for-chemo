@@ -202,8 +202,42 @@
     </tbody>
 
 </table>
-  
-  <!-- Optional Notes Section -->
+
+<!-- Tax and Total Breakdown -->
+<div class="row justify-content-end mt-4">
+    <div class="col-md-6">
+        <table class="table table-borderless">
+            <tbody>
+                <tr>
+                    <td class="text-end">Sub Total:</td>
+                    <td class="text-end">₹{{ '%.2f'|format(cart_total) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end">Total Taxable Amount:</td>
+                    <td class="text-end">₹{{ '%.2f'|format(cart_total) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end">CGST9 (9%):</td>
+                    <td class="text-end">₹{{ '%.2f'|format(cart_total * 0.09) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end">SGST9 (9%):</td>
+                    <td class="text-end">₹{{ '%.2f'|format(cart_total * 0.09) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end">Rounding:</td>
+                    <td class="text-end">{{ '%.2f'|format((cart_total * 1.18) % 1) }}</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="text-end fw-bold">Total:</td>
+                    <td class="text-end fw-bold">₹{{ '%.2f'|format(cart_total * 1.18) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Optional Notes Section -->
   <div class="mt-4">
     <h6 class="mb-3">Additional Notes (Optional)</h6>
     <div class="mb-3">

@@ -3023,8 +3023,42 @@ def send_quotation():
                 
                 <div style='overflow-x: auto; margin: 1.5rem 0;'>
 {rows_html}
-              </div>
-              
+                </div>
+                
+                <!-- Tax and Total Breakdown -->
+                <div style='margin: 2rem 0; display: flex; justify-content: flex-end;'>
+                    <div style='width: 50%;'>
+                        <table style='width: 100%; border-collapse: collapse;'>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 8px; text-align: right;'>Sub Total:</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{subtotal:,.2f}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px; text-align: right;'>Total Taxable Amount:</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{subtotal:,.2f}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px; text-align: right;'>CGST9 (9%):</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{subtotal * 0.09:,.2f}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px; text-align: right;'>SGST9 (9%):</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{subtotal * 0.09:,.2f}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px; text-align: right;'>Rounding:</td>
+                                    <td style='padding: 8px; text-align: right;'>{(subtotal * 1.18) % 1:,.2f}</td>
+                                </tr>
+                                <tr style='border-top: 1px solid #dee2e6; font-weight: bold;'>
+                                    <td style='padding: 8px; text-align: right;'>Total:</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{subtotal * 1.18:,.2f}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
                 <p style='margin: 2rem 0 1rem 0;'>Thank you for your business!<br>— Team CGI</p>
               </div>
             </div>

@@ -2746,8 +2746,8 @@ def quotation_preview():
     # Ensure session is saved before rendering the template
     session.modified = True
     
-    # Calculate cart_total as the subtotal before taxes
-    cart_total = final_subtotal
+    # Calculate cart_total as the subtotal after discount but before taxes
+    cart_total = subtotal_after_discount
     
     context = {
         'cart': cart,

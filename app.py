@@ -3121,9 +3121,9 @@ def send_quotation():
         # Generate discount text for email
         discount_text = []
         if blanket_discounts:
-            discount_text.append(f"{max(blanket_discounts):.1f}% for Blankets")
+            discount_text.append(f"{max(blanket_discounts):.1f}% ")
         if mpack_discounts:
-            discount_text.append(f"{max(mpack_discounts):.1f}% for MPacks")
+            discount_text.append(f"{max(mpack_discounts):.1f}% ")
         discount_text = ", ".join(discount_text)
         
         # Calculate total discount amount
@@ -3223,41 +3223,49 @@ def send_quotation():
                 </div>
                 
                 <!-- Tax and Total Breakdown -->
-                <div style='margin: 2rem 0; display: flex; justify-content: flex-end;'>
-                    <div style='width: 50%;'>
-                        <table style='width: 100%; border-collapse: collapse;'>
-                            <tbody>
-                                <tr>
-                                    <td style='padding: 8px; text-align: right;'>Subtotal (Pre-Discount):</td>
-                                    <td style='padding: 8px; text-align: right;'>₹{sum((p.get('unit_price', p.get('base_price', 0)) + p.get('bar_price', 0)) * p.get('quantity', 1) for p in products):,.2f}</td>
-                                </tr>
-                                <tr style="display: {'block' if show_discount else 'none'}">
-                                    <td style="padding: 8px; text-align: right;">Discount ({discount_text}):</td>
-                                    <td style="padding: 8px; text-align: right; color: #dc3545;">-₹{total_discount:,.2f}</td>
-                                </tr>
-                                <tr>
-                                    <td style='padding: 8px; text-align: right; font-weight: bold;'>Total (Pre-GST):</td>
-                                    <td style='padding: 8px; text-align: right; font-weight: bold;'>₹{sum(p.get("calculations", {}).get("taxable_amount", p.get("calculations", {}).get("subtotal", 0)) for p in products):,.2f}</td>
-                                </tr>
+                <div style='margin: 2rem 0;'>
+                    <div style='display: flex; justify-content: flex-end;'>
+                        <div style='width: 50%;'>
+                            <table style='width: 100%; border-collapse: collapse;'>
+                                <tbody>
+                                    <tr>
+                                        <td style='padding: 8px; text-align: right;'>Subtotal (Pre-Discount):</td>
+                                        <td style='padding: 8px; text-align: right;'>₹{sum((p.get('unit_price', p.get('base_price', 0)) + p.get('bar_price', 0)) * p.get('quantity', 1) for p in products):,.2f}</td>
+                                    </tr>
+                                    {f'''
+                                    <tr style="display: {'block' if show_discount else 'none'}">
+                                        <td style="padding: 8px; text-align: right;">Discount ({discount_text}):</td>
+                                        <td style="padding: 8px; text-align: right; color: #dc3545;">-₹{total_discount:,.2f}</td>
+                                    </tr>
+                                    ''' if show_discount else ''}
+                                    <tr style='border-top: 1px solid #dee2e6;'>
+                                        <td style='padding: 8px; text-align: right; font-weight: bold;'>Total (Pre-GST):</td>
+                                        <td style='padding: 8px; text-align: right; font-weight: bold;'>₹{sum(p.get("calculations", {}).get("taxable_amount", p.get("calculations", {}).get("subtotal", 0)) for p in products):,.2f}</td>
+                                    </tr>
                                 
-                                {f'''
-                                <tr>
-                                    <td style='padding: 8px; text-align: right;'>GST (9.0% CGST + 9.0% SGST):</td>
-                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("gst_amount", 0) for p in products if p.get("type") == "blanket"):,.2f}</td>
-                                </tr>
-                                ''' if any(p.get("type") == "blanket" for p in products) else ''}
-                                
-                                {f'''
-                                <tr>
-                                    <td style='padding: 8px; text-align: right;'>GST (12.0%):</td>
-                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("gst_amount", 0) for p in products if p.get("type") == "mpack"):,.2f}</td>
-                                </tr>
-                                ''' if any(p.get("type") == "mpack" for p in products) else ''}
-                                
-                                <tr style='border-top: 1px solid #dee2e6; font-weight: bold;'>
-                                    <td style='padding: 8px; text-align: right;'>Total:</td>
-                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("final_total", 0) for p in products):,.2f}</td>
-                                </tr>
+                                    {f'''
+                                    <tr>
+                                        <td style='padding: 8px; text-align: right;'>GST (9.0% CGST + 9.0% SGST):</td>
+                                        <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("gst_amount", 0) for p in products if p.get("type") == "blanket"):,.2f}</td>
+                                    </tr>
+                                    ''' if any(p.get("type") == "blanket" for p in products) else ''}
+                                    
+                                    {f'''
+                                    <tr>
+                                        <td style='padding: 8px; text-align: right;'>GST (12.0%):</td>
+                                        <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("gst_amount", 0) for p in products if p.get("type") == "mpack"):,.2f}</td>
+                                    </tr>
+                                    ''' if any(p.get("type") == "mpack" for p in products) else ''}
+                                    
+                                    <tr style='border-top: 1px solid #dee2e6;'>
+                                        <td style='padding: 8px; text-align: right; font-weight: bold;'>Total:</td>
+                                        <td style='padding: 8px; text-align: right; font-weight: bold;'>₹{sum(p.get("calculations", {}).get("final_total", 0) for p in products):,.2f}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
                             </tbody>
                         </table>
                     </div>

@@ -1167,7 +1167,8 @@ def add_to_cart():
                 # Include MPack specific details
                 'machine': data.get('machine', ''),
                 'thickness': data.get('thickness', ''),
-                'size': data.get('size', '')
+                'size': data.get('size', ''),
+                'underpacking_type': data.get('underpacking_type', '')  # Add underpacking type
             }
             
             # Calculate prices for other product types if needed
@@ -1234,7 +1235,8 @@ def add_to_cart():
                         if (item.get('type') == 'mpack' and 
                             item.get('machine') == product.get('machine') and
                             item.get('thickness') == product.get('thickness') and
-                            item.get('size') == product.get('size')):
+                            item.get('size') == product.get('size') and
+                            item.get('underpacking_type') == product.get('underpacking_type')):
                             duplicate_index = idx
                             break
                 

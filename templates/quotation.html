@@ -211,8 +211,8 @@
         <table class="table table-borderless">
             <tbody>
                 <tr>
-                    <td class="text-end">Subtotal:</td>
-                    <td class="text-end">₹{{ '%.2f'|format(calculations.subtotal_after_discount) }}</td>
+                    <td class="text-end">Subtotal (Pre-Discount):</td>
+                    <td class="text-end">₹{{ '%.2f'|format(calculations.subtotal_before_discount) }}</td>
                 </tr>
                 
                 {% if calculations.total_discount > 0 %}

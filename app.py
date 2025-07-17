@@ -3230,7 +3230,7 @@ def send_quotation():
                                 <tbody>
                                     <tr>
                                         <td style='padding: 8px; text-align: right;'>Subtotal (Pre-Discount):</td>
-                                        <td style='padding: 8px; text-align: right;'>₹{sum((p.get('unit_price', p.get('base_price', 0)) + p.get('bar_price', 0)) * p.get('quantity', 1) for p in products):,.2f}</td>
+                                        <td style='padding: 8px; text-align: right;'>₹{sum((p.get('unit_price', p.get('base_price', 0))) * p.get('quantity', 1) for p in products):,.2f}</td>
                                     </tr>
                                     {f'''
                                     <tr style="display: {'block' if show_discount else 'none'}">

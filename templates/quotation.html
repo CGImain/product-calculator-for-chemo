@@ -173,7 +173,7 @@
           <td>{{ item.get('machine', '') }}</td>
           <td>{{ prod_type }}</td>
           <td>{{ item.get('blanket_type') or item.get('name','----') if prod_type == 'blanket' else '----' }}</td>
-          <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }}{% else %}{{ item.thickness }}{% endif %}{% else %}------{% endif %}</td>
+          <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }} mm{% else %}{{ item.thickness }}{% endif %}{% else %}------{% endif %}</td>
           <td>
             {% if item.get('size') %}
               {{ item.size|replace('.0 mm', ' mm')|replace('.0mm', 'mm') }}
@@ -215,7 +215,7 @@
                 
                 {% if calculations.total_discount > 0 %}
                 <tr>
-                    <td class="text-end">Discount:</td>
+                    <td class="text-end">Discount{% if calculations.gst_breakdown.blankets.discount_percent > 0 or calculations.gst_breakdown.mpacks.discount_percent > 0 %}{% if calculations.gst_breakdown.blankets.discount_percent > 0 %} ({{ '%.1f'|format(calculations.gst_breakdown.blankets.discount_percent) }}%{% if calculations.gst_breakdown.mpacks.discount_percent > 0 %}, {{ '%.1f'|format(calculations.gst_breakdown.mpacks.discount_percent) }}%{% endif %}){% elif calculations.gst_breakdown.mpacks.discount_percent > 0 %} ({{ '%.1f'|format(calculations.gst_breakdown.mpacks.discount_percent) }}%){% endif %}{% endif %}:</td>
                     <td class="text-end text-danger">-₹{{ '%.2f'|format(calculations.total_discount) }}</td>
                 </tr>
                 {% endif %}

@@ -3041,6 +3041,13 @@ def send_quotation():
                 taxable_amount = subtotal_val - discount_amount
                 gst_amount = taxable_amount * gst_percent / 100
                 total_val = taxable_amount + gst_amount
+                
+                # Store discount percent for email template
+                p['discount_percent_display'] = discount_percent
+                
+                # Add discount percent to calculations for display
+                p['calculations'] = p.get('calculations', {})
+                p['calculations']['discount_percent'] = discount_percent
 
                 # Update (or create) calculations dict so subsequent routes remain consistent
                 p['calculations'] = {
@@ -3088,7 +3095,7 @@ def send_quotation():
                     <td style='padding: 8px; border: 1px solid #ddd;'>{machine}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{prod_type if prod_type else '----'}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('name', '----') if prod_type == 'blanket' else '----'}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}{' mm' if p.get('type') == 'blanket' and p.get('thickness') else ''}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{dimensions}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('bar_type', '----') if prod_type == 'blanket' else '----'}</td>
                     <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{qty}</td>
@@ -3104,6 +3111,17 @@ def send_quotation():
         <p>This quotation is not a contract or invoice. It is our best estimate.</p>
         """
 
+        # Generate discount text for email
+        discount_text = []
+        if calculations.gst_breakdown.blankets.discount_percent > 0:
+            discount_text.append(f"{calculations.gst_breakdown.blankets.discount_percent:.1f}% for Blankets")
+        if calculations.gst_breakdown.mpacks.discount_percent > 0:
+            discount_text.append(f"{calculations.gst_breakdown.mpacks.discount_percent:.1f}% for MPacks")
+        discount_text = ", ".join(discount_text)
+        
+        # Determine if we should show the discount row
+        show_discount = calculations.gst_breakdown.blankets.discount_percent > 0 or calculations.gst_breakdown.mpacks.discount_percent > 0
+        
         # Generate a unique quote ID
         quote_id = f"CGI-{datetime.utcnow().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
 
@@ -3199,14 +3217,10 @@ def send_quotation():
                                     <td style='padding: 8px; text-align: right;'>Subtotal:</td>
                                     <td style='padding: 8px; text-align: right;'>₹{subtotal:,.2f}</td>
                                 </tr>
-                                
-                                {f'''
-                                <tr>
-                                    <td style='padding: 8px; text-align: right;'>Discount:</td>
-                                    <td style='padding: 8px; text-align: right; color: red;'>-₹{sum(p.get("calculations", {}).get("discount_amount", 0) for p in products):,.2f}</td>
+                                <tr style="display: {'block' if show_discount else 'none'}">
+                                    <td style="padding: 8px; text-align: right;">Discount ({discount_text}):</td>
+                                    <td style="padding: 8px; text-align: right; color: #dc3545;">-₹{calculations.total_discount:,.2f}</td>
                                 </tr>
-                                ''' if any(p.get("calculations", {}).get("discount_amount", 0) > 0 for p in products) else ''}
-                                
                                 <tr>
                                     <td style='padding: 8px; text-align: right; font-weight: bold;'>Total (Pre-GST):</td>
                                     <td style='padding: 8px; text-align: right; font-weight: bold;'>₹{sum(p.get("calculations", {}).get("taxable_amount", p.get("calculations", {}).get("subtotal", 0)) for p in products):,.2f}</td>

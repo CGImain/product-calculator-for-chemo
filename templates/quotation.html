@@ -173,9 +173,26 @@
           <td>{{ loop_index }}</td>
           <td>{{ item.get('machine', '') }}</td>
           <td>{% if prod_type == 'mpack' %}Underpacking{% else %}{{ prod_type }}{% endif %}</td>
-          <td>{% if prod_type == 'blanket' %}{{ item.get('blanket_type', item.get('name', '----')) }}
-              {% elif prod_type == 'mpack' %}{{ item.get('underpacking_type', '----').replace('_', ' ').title() }}
-              {% else %}----{% endif %}</td>
+          <td>
+            {% if prod_type == 'blanket' %}
+              {{ item.get('blanket_type', item.get('name', '----')) }}
+            {% elif prod_type == 'mpack' %}
+              {% set underpacking_type = item.get('underpacking_type', '') %}
+              {% if underpacking_type %}
+                {% if underpacking_type == 'mtech_mpack' %}
+                  Mtech Mpack
+                {% elif underpacking_type == 'mark3zet' %}
+                  Mark3zet
+                {% else %}
+                  {{ underpacking_type|replace('_', ' ')|title }}
+                {% endif %}
+              {% else %}
+                ----
+              {% endif %}
+            {% else %}
+              ----
+            {% endif %}
+          </td>
           <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }} mm{% else %}{{ item.thickness }}{% if item.thickness and not (item.thickness|string).endswith(('mm', 'micron', 'in', 'cm')) and item.thickness|float >= 1 %} mm{% endif %}{% endif %}{% else %}------{% endif %}</td>
           <td>
             {% if item.get('size') %}

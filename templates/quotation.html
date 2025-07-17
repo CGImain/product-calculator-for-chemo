@@ -205,32 +205,43 @@
 
 <!-- Tax and Total Breakdown -->
 <div class="row justify-content-end mt-4">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <table class="table table-borderless">
             <tbody>
                 <tr>
-                    <td class="text-end">Sub Total:</td>
+                    <td class="text-end">Sub Total (Before Tax):</td>
                     <td class="text-end">₹{{ '%.2f'|format(cart_total) }}</td>
                 </tr>
+                
+                {% if calculations.gst_breakdown.blankets.subtotal > 0 %}
                 <tr>
-                    <td class="text-end">Total Taxable Amount:</td>
-                    <td class="text-end">₹{{ '%.2f'|format(cart_total) }}</td>
+                    <td class="text-end">Blankets ({{ calculations.gst_breakdown.blankets.rate }}% GST):</td>
+                    <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.blankets.subtotal) }}</td>
                 </tr>
                 <tr>
-                    <td class="text-end">CGST9 (9%):</td>
-                    <td class="text-end">₹{{ '%.2f'|format(cart_total * 0.09) }}</td>
+                    <td class="text-end ps-4">GST ({{ calculations.gst_breakdown.blankets.rate/2 }}% CGST + {{ calculations.gst_breakdown.blankets.rate/2 }}% SGST):</td>
+                    <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.blankets.gst) }}</td>
+                </tr>
+                {% endif %}
+                
+                {% if calculations.gst_breakdown.mpacks.subtotal > 0 %}
+                <tr>
+                    <td class="text-end">MPacks ({{ calculations.gst_breakdown.mpacks.rate }}% GST):</td>
+                    <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.mpacks.subtotal) }}</td>
                 </tr>
                 <tr>
-                    <td class="text-end">SGST9 (9%):</td>
-                    <td class="text-end">₹{{ '%.2f'|format(cart_total * 0.09) }}</td>
+                    <td class="text-end ps-4">GST ({{ calculations.gst_breakdown.mpacks.rate/2 }}% CGST + {{ calculations.gst_breakdown.mpacks.rate/2 }}% SGST):</td>
+                    <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.mpacks.gst) }}</td>
                 </tr>
-                <tr>
-                    <td class="text-end">Rounding:</td>
-                    <td class="text-end">{{ '%.2f'|format((cart_total * 1.18) % 1) }}</td>
+                {% endif %}
+                
+                <tr class="border-top">
+                    <td class="text-end fw-bold">Total GST:</td>
+                    <td class="text-end fw-bold">₹{{ '%.2f'|format(calculations.gst_breakdown.total_gst) }}</td>
                 </tr>
                 <tr class="border-top">
-                    <td class="text-end fw-bold">Total:</td>
-                    <td class="text-end fw-bold">₹{{ '%.2f'|format(cart_total * 1.18) }}</td>
+                    <td class="text-end fw-bold">Grand Total:</td>
+                    <td class="text-end fw-bold">₹{{ '%.2f'|format(calculations.total) }}</td>
                 </tr>
             </tbody>
         </table>

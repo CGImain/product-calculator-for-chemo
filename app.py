@@ -2703,17 +2703,36 @@ def quotation_preview():
         
         subtotal += item_subtotal
     
-    # Calculate final totals by summing up all item final_totals
-    final_subtotal = 0
+    # Calculate final totals with appropriate tax rates
+    subtotal_blankets = 0
+    subtotal_mpacks = 0
+    
     for item in cart.get('products', []):
-        final_subtotal += item.get('calculations', {}).get('final_total', 0)
+        item_total = item.get('calculations', {}).get('subtotal', 0)
+        if item.get('type') == 'blanket':
+            subtotal_blankets += item_total
+        else:  # Assume mpacks for other types
+            subtotal_mpacks += item_total
+    
+    # Calculate GST for each category
+    gst_blankets = subtotal_blankets * 0.18  # 18% GST for blankets
+    gst_mpacks = subtotal_mpacks * 0.12      # 12% GST for mpacks
+    
+    # Calculate final totals
+    final_subtotal = subtotal_blankets + subtotal_mpacks
+    total_gst = gst_blankets + gst_mpacks
+    total = final_subtotal + total_gst
     
     # Round to 2 decimal places for display
     final_subtotal = round(final_subtotal, 2)
-    total = final_subtotal  # In this case, subtotal and total are the same
+    total = round(total, 2)
+    total_gst = round(total_gst, 2)
 
     # Ensure session is saved before rendering the template
     session.modified = True
+    
+    # Calculate cart_total as the subtotal before taxes
+    cart_total = final_subtotal
     
     context = {
         'cart': cart,
@@ -2724,8 +2743,22 @@ def quotation_preview():
         'now': current_datetime,  # Add current datetime object for the template
         'calculations': {
             'subtotal': final_subtotal,
-            'total': total
-        }
+            'total': total,
+            'gst_breakdown': {
+                'blankets': {
+                    'subtotal': round(subtotal_blankets, 2),
+                    'gst': round(gst_blankets, 2),
+                    'rate': 18
+                },
+                'mpacks': {
+                    'subtotal': round(subtotal_mpacks, 2),
+                    'gst': round(gst_mpacks, 2),
+                    'rate': 12
+                },
+                'total_gst': round(total_gst, 2)
+            }
+        },
+        'cart_total': final_subtotal  # cart_total is the subtotal before taxes
     }
     
     return render_template('quotation.html', **context)

@@ -3002,7 +3002,7 @@ def send_quotation():
                 <tr style='background-color: #1a5276; color: white;'>
                     <th style='padding: 10px; text-align: left;'>Item</th>
                     <th style='padding: 10px; text-align: left;'>Machine</th>
-                    <th style='padding: 10px; text-align: left;'>Product</th>
+                    <th style='padding: 10px; text-align: left;'>Product Type</th>
                     <th style='padding: 10px; text-align: left;'>Type</th>
                     <th style='padding: 10px; text-align: left;'>Thickness</th>
                     <th style='padding: 10px; text-align: left;'>Size</th>
@@ -3095,8 +3095,12 @@ def send_quotation():
                 <tr>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{idx}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{machine}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{prod_type if prod_type else '----'}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('name', '----') if prod_type == 'blanket' else '----'}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{'Underpacking' if prod_type == 'mpack' else prod_type if prod_type else '----'}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>
+                        {p.get('blanket_type', p.get('name', '----')) if prod_type == 'blanket' 
+                        else p.get('underpacking_type', '----').replace('_', ' ').title() if prod_type == 'mpack' 
+                        else p.get('name', '----')}
+                    </td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}{' mm' if p.get('type') == 'blanket' and p.get('thickness') else (' mm' if p.get('thickness') and not str(p.get('thickness', '')).endswith(('mm', 'micron', 'in', 'cm')) and float(p.get('thickness', 0)) >= 1 else '')}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{dimensions}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('bar_type', '----') if prod_type == 'blanket' else '----'}</td>

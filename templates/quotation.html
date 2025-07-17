@@ -155,7 +155,7 @@
         <th>Sr No</th>
         <th>Machine</th>
         <th>Product Type</th>
-        <th>Blanket Type</th>
+        <th>Type</th>
         <th>Thickness</th>
         <th>Dimensions</th>
         <th>Barring Type</th>
@@ -172,8 +172,10 @@
         <tr>
           <td>{{ loop_index }}</td>
           <td>{{ item.get('machine', '') }}</td>
-          <td>{{ prod_type }}</td>
-          <td>{{ item.get('blanket_type') or item.get('name','----') if prod_type == 'blanket' else '----' }}</td>
+          <td>{% if prod_type == 'mpack' %}Underpacking{% else %}{{ prod_type }}{% endif %}</td>
+          <td>{% if prod_type == 'blanket' %}{{ item.get('blanket_type', item.get('name', '----')) }}
+              {% elif prod_type == 'mpack' %}{{ item.get('underpacking_type', '----')|title|replace('_', ' ') }}
+              {% else %}----{% endif %}</td>
           <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }} mm{% else %}{{ item.thickness }}{% if item.thickness and not (item.thickness|string).endswith(('mm', 'micron', 'in', 'cm')) and item.thickness|float >= 1 %} mm{% endif %}{% endif %}{% else %}------{% endif %}</td>
           <td>
             {% if item.get('size') %}

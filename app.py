@@ -3085,28 +3085,39 @@ def send_quotation():
                         <table style='width: 100%; border-collapse: collapse;'>
                             <tbody>
                                 <tr>
-                                    <td style='padding: 8px; text-align: right;'>Sub Total:</td>
+                                    <td style='padding: 8px; text-align: right;'>Subtotal:</td>
                                     <td style='padding: 8px; text-align: right;'>₹{subtotal:,.2f}</td>
                                 </tr>
+                                
+                                {f'''
                                 <tr>
-                                    <td style='padding: 8px; text-align: right;'>Total Taxable Amount:</td>
-                                    <td style='padding: 8px; text-align: right;'>₹{subtotal:,.2f}</td>
+                                    <td style='padding: 8px; text-align: right;'>Discount:</td>
+                                    <td style='padding: 8px; text-align: right; color: red;'>-₹{sum(p.get("calculations", {}).get("discount_amount", 0) for p in products):,.2f}</td>
                                 </tr>
+                                ''' if any(p.get("calculations", {}).get("discount_amount", 0) > 0 for p in products) else ''}
+                                
                                 <tr>
-                                    <td style='padding: 8px; text-align: right;'>CGST9 (9%):</td>
-                                    <td style='padding: 8px; text-align: right;'>₹{subtotal * 0.09:,.2f}</td>
+                                    <td style='padding: 8px; text-align: right; font-weight: bold;'>Total (Pre-GST):</td>
+                                    <td style='padding: 8px; text-align: right; font-weight: bold;'>₹{sum(p.get("calculations", {}).get("taxable_amount", p.get("calculations", {}).get("subtotal", 0)) for p in products):,.2f}</td>
                                 </tr>
+                                
+                                {f'''
                                 <tr>
-                                    <td style='padding: 8px; text-align: right;'>SGST9 (9%):</td>
-                                    <td style='padding: 8px; text-align: right;'>₹{subtotal * 0.09:,.2f}</td>
+                                    <td style='padding: 8px; text-align: right;'>GST (9.0% CGST + 9.0% SGST):</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("gst_amount", 0) for p in products if p.get("type") == "blanket"):,.2f}</td>
                                 </tr>
+                                ''' if any(p.get("type") == "blanket" for p in products) else ''}
+                                
+                                {f'''
                                 <tr>
-                                    <td style='padding: 8px; text-align: right;'>Rounding:</td>
-                                    <td style='padding: 8px; text-align: right;'>{(subtotal * 1.18) % 1:,.2f}</td>
+                                    <td style='padding: 8px; text-align: right;'>GST (12.0%):</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("gst_amount", 0) for p in products if p.get("type") == "mpack"):,.2f}</td>
                                 </tr>
+                                ''' if any(p.get("type") == "mpack" for p in products) else ''}
+                                
                                 <tr style='border-top: 1px solid #dee2e6; font-weight: bold;'>
                                     <td style='padding: 8px; text-align: right;'>Total:</td>
-                                    <td style='padding: 8px; text-align: right;'>₹{subtotal * 1.18:,.2f}</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("final_total", 0) for p in products):,.2f}</td>
                                 </tr>
                             </tbody>
                         </table>

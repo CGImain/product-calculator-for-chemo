@@ -2703,28 +2703,43 @@ def quotation_preview():
         
         subtotal += item_subtotal
     
-    # Calculate final totals with appropriate tax rates
+    # Calculate final totals with appropriate tax rates and discounts
     subtotal_blankets = 0
     subtotal_mpacks = 0
+    discount_blankets = 0
+    discount_mpacks = 0
     
     for item in cart.get('products', []):
-        item_total = item.get('calculations', {}).get('subtotal', 0)
+        item_calc = item.get('calculations', {})
+        item_subtotal = item_calc.get('subtotal', 0)
+        item_discount = item_calc.get('discount_amount', 0)
+        
         if item.get('type') == 'blanket':
-            subtotal_blankets += item_total
+            subtotal_blankets += item_subtotal
+            discount_blankets += item_discount
         else:  # Assume mpacks for other types
-            subtotal_mpacks += item_total
+            subtotal_mpacks += item_subtotal
+            discount_mpacks += item_discount
     
-    # Calculate GST for each category
-    gst_blankets = subtotal_blankets * 0.18  # 18% GST for blankets
-    gst_mpacks = subtotal_mpacks * 0.12      # 12% GST for mpacks
+    # Calculate amounts after discount
+    subtotal_after_discount_blankets = max(0, subtotal_blankets - discount_blankets)
+    subtotal_after_discount_mpacks = max(0, subtotal_mpacks - discount_mpacks)
+    
+    # Calculate GST for each category (on discounted amount)
+    gst_blankets = subtotal_after_discount_blankets * 0.18  # 18% GST for blankets
+    gst_mpacks = subtotal_after_discount_mpacks * 0.12      # 12% GST for mpacks
     
     # Calculate final totals
-    final_subtotal = subtotal_blankets + subtotal_mpacks
+    subtotal_before_discount = subtotal_blankets + subtotal_mpacks
+    total_discount = discount_blankets + discount_mpacks
+    subtotal_after_discount = subtotal_after_discount_blankets + subtotal_after_discount_mpacks
     total_gst = gst_blankets + gst_mpacks
-    total = final_subtotal + total_gst
+    total = subtotal_after_discount + total_gst
     
     # Round to 2 decimal places for display
-    final_subtotal = round(final_subtotal, 2)
+    subtotal_before_discount = round(subtotal_before_discount, 2)
+    total_discount = round(total_discount, 2)
+    subtotal_after_discount = round(subtotal_after_discount, 2)
     total = round(total, 2)
     total_gst = round(total_gst, 2)
 
@@ -2742,23 +2757,29 @@ def quotation_preview():
         'company_email': customer_email,
         'now': current_datetime,  # Add current datetime object for the template
         'calculations': {
-            'subtotal': final_subtotal,
+            'subtotal_before_discount': subtotal_before_discount,
+            'total_discount': total_discount,
+            'subtotal_after_discount': subtotal_after_discount,
             'total': total,
             'gst_breakdown': {
                 'blankets': {
                     'subtotal': round(subtotal_blankets, 2),
+                    'discount': round(discount_blankets, 2),
+                    'subtotal_after_discount': round(subtotal_after_discount_blankets, 2),
                     'gst': round(gst_blankets, 2),
                     'rate': 18
                 },
                 'mpacks': {
                     'subtotal': round(subtotal_mpacks, 2),
+                    'discount': round(discount_mpacks, 2),
+                    'subtotal_after_discount': round(subtotal_after_discount_mpacks, 2),
                     'gst': round(gst_mpacks, 2),
                     'rate': 12
                 },
                 'total_gst': round(total_gst, 2)
             }
         },
-        'cart_total': final_subtotal  # cart_total is the subtotal before taxes
+        'cart_total': subtotal_after_discount  # cart_total is the subtotal after discount but before taxes
     }
     
     return render_template('quotation.html', **context)

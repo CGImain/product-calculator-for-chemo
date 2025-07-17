@@ -209,15 +209,36 @@
         <table class="table table-borderless">
             <tbody>
                 <tr>
-                    <td class="text-end">Sub Total (Before Tax):</td>
-                    <td class="text-end">₹{{ '%.2f'|format(cart_total) }}</td>
+                    <td class="text-end">Subtotal (Before Discount):</td>
+                    <td class="text-end">₹{{ '%.2f'|format(calculations.subtotal_before_discount) }}</td>
                 </tr>
+                
+                {% if calculations.total_discount > 0 %}
+                <tr>
+                    <td class="text-end text-danger">Total Discount:</td>
+                    <td class="text-end text-danger">-₹{{ '%.2f'|format(calculations.total_discount) }}</td>
+                </tr>
+                <tr class="border-bottom">
+                    <td class="text-end fw-bold">Subtotal (After Discount):</td>
+                    <td class="text-end fw-bold">₹{{ '%.2f'|format(calculations.subtotal_after_discount) }}</td>
+                </tr>
+                {% endif %}
                 
                 {% if calculations.gst_breakdown.blankets.subtotal > 0 %}
                 <tr>
                     <td class="text-end">Blankets ({{ calculations.gst_breakdown.blankets.rate }}% GST):</td>
                     <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.blankets.subtotal) }}</td>
                 </tr>
+                {% if calculations.gst_breakdown.blankets.discount > 0 %}
+                <tr>
+                    <td class="text-end ps-4">- Discount:</td>
+                    <td class="text-end text-danger">-₹{{ '%.2f'|format(calculations.gst_breakdown.blankets.discount) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end ps-4">Subtotal after discount:</td>
+                    <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.blankets.subtotal_after_discount) }}</td>
+                </tr>
+                {% endif %}
                 <tr>
                     <td class="text-end ps-4">GST ({{ calculations.gst_breakdown.blankets.rate/2 }}% CGST + {{ calculations.gst_breakdown.blankets.rate/2 }}% SGST):</td>
                     <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.blankets.gst) }}</td>
@@ -225,10 +246,20 @@
                 {% endif %}
                 
                 {% if calculations.gst_breakdown.mpacks.subtotal > 0 %}
-                <tr>
+                <tr class="border-top">
                     <td class="text-end">MPacks ({{ calculations.gst_breakdown.mpacks.rate }}% GST):</td>
                     <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.mpacks.subtotal) }}</td>
                 </tr>
+                {% if calculations.gst_breakdown.mpacks.discount > 0 %}
+                <tr>
+                    <td class="text-end ps-4">- Discount:</td>
+                    <td class="text-end text-danger">-₹{{ '%.2f'|format(calculations.gst_breakdown.mpacks.discount) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end ps-4">Subtotal after discount:</td>
+                    <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.mpacks.subtotal_after_discount) }}</td>
+                </tr>
+                {% endif %}
                 <tr>
                     <td class="text-end ps-4">GST ({{ calculations.gst_breakdown.mpacks.rate/2 }}% CGST + {{ calculations.gst_breakdown.mpacks.rate/2 }}% SGST):</td>
                     <td class="text-end">₹{{ '%.2f'|format(calculations.gst_breakdown.mpacks.gst) }}</td>

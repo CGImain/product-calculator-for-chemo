@@ -217,7 +217,7 @@
                 
                 {% if calculations.total_discount > 0 %}
                 <tr>
-                    <td class="text-end">Discount{% if calculations.gst_breakdown.blankets.discount_percent > 0 or calculations.gst_breakdown.mpacks.discount_percent > 0 %}{% if calculations.gst_breakdown.blankets.discount_percent > 0 %} ({{ '%.1f'|format(calculations.gst_breakdown.blankets.discount_percent) }}%{% if calculations.gst_breakdown.mpacks.discount_percent > 0 %}, {{ '%.1f'|format(calculations.gst_breakdown.mpacks.discount_percent) }}%{% endif %}){% elif calculations.gst_breakdown.mpacks.discount_percent > 0 %} ({{ '%.1f'|format(calculations.gst_breakdown.mpacks.discount_percent) }}%){% endif %}{% endif %}:</td>
+                    <td class="text-end">Discount{% if calculations.gst_breakdown.blankets.get('discount_percent', 0) > 0 or calculations.gst_breakdown.mpacks.get('discount_percent', 0) > 0 %}{% if calculations.gst_breakdown.blankets.get('discount_percent', 0) > 0 %} ({{ '%.1f'|format(calculations.gst_breakdown.blankets.get('discount_percent', 0)) }}%{% if calculations.gst_breakdown.mpacks.get('discount_percent', 0) > 0 %}, {{ '%.1f'|format(calculations.gst_breakdown.mpacks.get('discount_percent', 0)) }}%{% endif %}){% elif calculations.gst_breakdown.mpacks.get('discount_percent', 0) > 0 %} ({{ '%.1f'|format(calculations.gst_breakdown.mpacks.get('discount_percent', 0)) }}%){% endif %}{% endif %}:</td>
                     <td class="text-end text-danger">-₹{{ '%.2f'|format(calculations.total_discount) }}</td>
                 </tr>
                 {% endif %}

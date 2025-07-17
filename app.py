@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, make_response
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
@@ -3019,40 +3020,14 @@ def send_quotation():
             machine = p.get('machine', '')
             prod_type = p.get('type', '')
             
-            # Initialize variables with default values
-            thickness_display = '----'
-            dimensions = '----'
-            discount = '----'
-            
-            # Format thickness with units if applicable
-            thickness_val = p.get('thickness', '')
-            if thickness_val:
-                try:
-                    if p.get('type') == 'blanket':
-                        thickness_display = f"{int(thickness_val) if float(thickness_val).is_integer() else thickness_val} mm"
-                    elif not str(thickness_val).endswith(('mm', 'micron', 'in', 'cm')) and float(thickness_val or 0) >= 1:
-                        thickness_display = f"{int(thickness_val) if float(thickness_val).is_integer() else thickness_val} mm"
-                    else:
-                        thickness_display = str(thickness_val)
-                except (ValueError, TypeError):
-                    thickness_display = str(thickness_val)
-            
-            # Format dimensions
-            try:
-                if p.get('size'):
-                    dimensions = p['size'].replace('.0 mm', ' mm').replace('.0mm', 'mm')
-                elif p.get('length') is not None and p.get('width') is not None:
-                    if p.get('type') == 'mpack':
-                        length = int(p['length']) if float(p['length']).is_integer() else p['length']
-                        width = int(p['width']) if float(p['width']).is_integer() else p['width']
-                        dimensions = f"{length}x{width} mm"
-                    else:
-                        unit = p.get('unit', '').replace('mm', ' mm')
-                        length = int(p['length']) if float(p['length']).is_integer() else p['length']
-                        width = int(p['width']) if float(p['width']).is_integer() else p['width']
-                        dimensions = f"{length}x{width}{unit}"
-            except (ValueError, TypeError):
-                dimensions = '----'
+            # Dimensions
+            if p.get('size'):
+                dimensions = p['size']
+            else:
+                length = p.get('length') or ''
+                width = p.get('width') or ''
+                unit = p.get('unit', '')
+                dimensions = f"{length} x {width} {unit}" if length and width else '----'
             
             qty = p.get('quantity', 1)
             
@@ -3088,35 +3063,47 @@ def send_quotation():
                     'final_total': round(total_val, 2)
                 }
                 
-                # Format discount for mpack products
-                if p.get('discount_percent', 0) > 0:
-                    discount = f"{p['discount_percent']:.1f}%"
-                
-            # Format price with proper number formatting
-            price = float(p.get('unit_price', p.get('base_price', 0)))
-            formatted_price = f"₹{price:,.2f}"
+            elif prod_type == 'blanket':
+                # Always recalculate Blanket totals as well
+                base_price = float(p.get('base_price', 0))
+                bar_price = float(p.get('bar_price', 0))
+                unit_price = base_price + bar_price
+                discount_percent = float(p.get('discount_percent', 0))
+                gst_percent = float(p.get('gst_percent', 18))
+
+                subtotal_val = unit_price * qty
+                discount_amount = subtotal_val * discount_percent / 100 if discount_percent else 0
+                taxable_amount = subtotal_val - discount_amount
+                gst_amount = taxable_amount * gst_percent / 100
+                total_val = taxable_amount + gst_amount
+
+                # Sync calculations back to product
+                p['calculations'] = {
+                    'unit_price': round(unit_price, 2),
+                    'quantity': qty,
+                    'discount_percent': discount_percent,
+                    'discount_amount': round(discount_amount, 2),
+                    'taxable_amount': round(taxable_amount, 2),
+                    'gst_percent': gst_percent,
+                    'gst_amount': round(gst_amount, 2),
+                    'final_total': round(total_val, 2)
+                }
             
-            # Get product name/type
-            product_name = p.get('blanket_type') or p.get('name', '----')
-            if p.get('type') != 'blanket':
-                product_name = p.get('name', '----')
-            
-            # Alternate row background for better readability
-            row_bg = '#ffffff' if idx % 2 == 1 else '#f8f9fa'
+            subtotal += total_val
             
             rows_html += f"""
-            <tr style='background-color: {row_bg};'>
-                <td style='padding: 12px; border: 1px solid #dee2e6;'>{idx}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6;'>{p.get('machine', '----')}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6;'>{p.get('type', '').capitalize()}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6;'>{product_name}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6;'>{thickness_display}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6;'>{dimensions}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6;'>{p.get('bar_type', '----') if p.get('type') == 'blanket' else '----'}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6; text-align: right;'>{p.get('quantity', 1)}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6; text-align: right;'>{formatted_price}</td>
-                <td style='padding: 12px; border: 1px solid #dee2e6; text-align: right;'>{discount}</td>
-            </tr>
+                <tr>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{idx}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{machine}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{prod_type if prod_type else '----'}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('name', '----') if prod_type == 'blanket' else '----'}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}{' mm' if p.get('type') == 'blanket' and p.get('thickness') else (' mm' if p.get('thickness') and not str(p.get('thickness', '')).endswith(('mm', 'micron', 'in', 'cm')) and float(p.get('thickness', 0)) >= 1 else '')}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{dimensions}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('bar_type', '----') if prod_type == 'blanket' else '----'}</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{qty}</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>₹{p.get('unit_price', p.get('base_price', 0)):,.2f}</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{p.get('discount_percent', 0):.1f}%</td>
+                </tr>
             """
         
         # Close the table
@@ -3134,9 +3121,9 @@ def send_quotation():
         # Generate discount text for email
         discount_text = []
         if blanket_discounts:
-            discount_text.append(f"{max(blanket_discounts):.1f}% ")
+            discount_text.append(f"{max(blanket_discounts):.1f}% for Blankets")
         if mpack_discounts:
-            discount_text.append(f"{max(mpack_discounts):.1f}% ")
+            discount_text.append(f"{max(mpack_discounts):.1f}% for MPacks")
         discount_text = ", ".join(discount_text)
         
         # Calculate total discount amount
@@ -3151,22 +3138,10 @@ def send_quotation():
         
         # Generate a unique quote ID
         quote_id = f"CGI-{datetime.utcnow().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
-        
-        # Calculate totals for display
-        subtotal_before_discount = sum(p.get('unit_price', p.get('base_price', 0)) * p.get('quantity', 1) for p in products)
-        subtotal_after_discount = sum(p.get('calculations', {}).get('taxable_amount', p.get('calculations', {}).get('subtotal', 0)) for p in products)
-        total = sum(p.get('calculations', {}).get('final_total', 0) for p in products)
-        
-        # Calculate GST amounts
-        gst_blanket = sum(p.get('calculations', {}).get('gst_amount', 0) for p in products if p.get('type') == 'blanket')
-        gst_mpack = sum(p.get('calculations', {}).get('gst_amount', 0) for p in products if p.get('type') == 'mpack')
-        
-        # Calculate total discount
-        total_discount = subtotal_before_discount - subtotal_after_discount
-        
+
         # Build email content with improved table layout and consistent white background
         email_content = f"""
-        <div style='font-family: Arial, sans-serif; color: #333; max-width: 1200px; margin: 0 auto; line-height: 1.6; background-color: #f8f9fa; padding: 20px;'>
+        <div style='font-family: Arial, sans-serif; color: #333; max-width: 1200px; margin: 0 auto; line-height: 1.6; background-color: #e0caa9; padding: 20px;'>
           <div style='background-color: white; border-radius: 0.5rem; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); padding: 2rem; margin-bottom: 1.5rem;'>
             <div style='text-align: center; margin-bottom: 2rem;'>
               <img src='https://i.ibb.co/1GVLnJcc/image-2025-07-04-163516213.png' alt='CGI Logo' style='max-width: 200px; margin-bottom: 1rem;'>
@@ -3239,87 +3214,61 @@ def send_quotation():
               </div>
               <div style='padding: 1.5rem; background-color: white;'>
                 <p style='margin-bottom: 1rem;'>Hello,</p>
-                <p style='margin-bottom: 1rem;'>This is <strong>{current_user.username}</strong> from CGI.</p>
+                <p style='margin-bottom: 1rem;'>This is {current_user.username} from CGI.</p>
                 <p style='margin-bottom: 1.5rem;'>Here is the proposed quotation for the required products:</p>
+                {'<p style="margin-bottom: 1.5rem;"><strong>Notes:</strong><br>' + notes + '</p>' if notes else ''}
                 
                 <div style='overflow-x: auto; margin: 1.5rem 0;'>
-                  <table style='width: 100%; border-collapse: collapse;'>
-                    <thead>
-                      <tr style='background-color: #f8f9fa;'>
-                        <th style='padding: 12px; text-align: left; border: 1px solid #dee2e6;'>Item</th>
-                        <th style='padding: 12px; text-align: left; border: 1px solid #dee2e6;'>Machine</th>
-                        <th style='padding: 12px; text-align: left; border: 1px solid #dee2e6;'>Type</th>
-                        <th style='padding: 12px; text-align: left; border: 1px solid #de2e6;'>Product</th>
-                        <th style='padding: 12px; text-align: left; border: 1px solid #dee2e6;'>Thickness</th>
-                        <th style='padding: 12px; text-align: left; border: 1px solid #dee2e6;'>Size</th>
-                        <th style='padding: 12px; text-align: left; border: 1px solid #dee2e6;'>Barri...</th>
-                        <th style='padding: 12px; text-align: right; border: 1px solid #dee2e6;'>Qty</th>
-                        <th style='padding: 12px; text-align: right; border: 1px solid #dee2e6;'>Price</th>
-                        <th style='padding: 12px; text-align: right; border: 1px solid #dee2e6;'>Discount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows_html}
-                    </tbody>
-                  </table>
+{rows_html}
                 </div>
                 
                 <!-- Tax and Total Breakdown -->
-                <div style='margin: 2rem 0;'>
-                  <div style='display: flex; justify-content: flex-end;'>
+                <div style='margin: 2rem 0; display: flex; justify-content: flex-end;'>
                     <div style='width: 50%;'>
-                      <table style='width: 100%; border-collapse: collapse;'>
-                        <tbody>
-                          <tr>
-                            <td style='padding: 8px; text-align: right;'>Subtotal (Pre-Discount):</td>
-                            <td style='padding: 8px; text-align: right;'>₹{subtotal_before_discount:,.2f}</td>
-                          </tr>
-                          
-                          {f'''
-                          <tr>
-                            <td style='padding: 8px; text-align: right;'>
-                              Discount{'s' if len(blanket_discounts) + len(mpack_discounts) > 1 else ''}:
-                              {discount_text}
-                            </td>
-                            <td style='padding: 8px; text-align: right; color: #dc3545;'>-₹{total_discount:,.2f}</td>
-                          </tr>
-                          <tr>
-                            <td style='padding: 8px; text-align: right; font-weight: bold;'>Subtotal (After Discount):</td>
-                            <td style='padding: 8px; text-align: right; font-weight: bold;'>₹{subtotal_after_discount:,.2f}</td>
-                          </tr>
-                          ''' if total_discount > 0 else ''}
-                          
-                          <tr style='border-top: 1px solid #dee2e6;'>
-                            <td style='padding: 8px; text-align: right; font-weight: bold;'>Total (Pre-GST):</td>
-                            <td style='padding: 8px; text-align: right; font-weight: bold;'>₹{subtotal_after_discount:,.2f}</td>
-                          </tr>
-                          
-                          {'<tr><td style="padding: 8px; text-align: right;">GST (9.0% CGST + 9.0% SGST):</td><td style="padding: 8px; text-align: right;">₹' + f'{gst_blanket:,.2f}' + '</td></tr>' if gst_blanket > 0 else ''}
-                          
-                          {'<tr><td style="padding: 8px; text-align: right;">GST (12.0%):</td><td style="padding: 8px; text-align: right;">₹' + f'{gst_mpack:,.2f}' + '</td></tr>' if gst_mpack > 0 else ''}
-                          
-                          <tr style='border-top: 1px solid #dee2e6; font-weight: bold;'>
-                            <td style='padding: 8px; text-align: right;'>Total:</td>
-                            <td style='padding: 8px; text-align: right;'>₹{total:,.2f}</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                        <table style='width: 100%; border-collapse: collapse;'>
+                            <tbody>
+                                <tr>
+                                    <td style='padding: 8px; text-align: right;'>Subtotal (Pre-Discount):</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{sum((p.get('unit_price', p.get('base_price', 0)) + p.get('bar_price', 0)) * p.get('quantity', 1) for p in products):,.2f}</td>
+                                </tr>
+                                <tr style="display: {'block' if show_discount else 'none'}">
+                                    <td style="padding: 8px; text-align: right;">Discount ({discount_text}):</td>
+                                    <td style="padding: 8px; text-align: right; color: #dc3545;">-₹{total_discount:,.2f}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px; text-align: right; font-weight: bold;'>Total (Pre-GST):</td>
+                                    <td style='padding: 8px; text-align: right; font-weight: bold;'>₹{sum(p.get("calculations", {}).get("taxable_amount", p.get("calculations", {}).get("subtotal", 0)) for p in products):,.2f}</td>
+                                </tr>
+                                
+                                {f'''
+                                <tr>
+                                    <td style='padding: 8px; text-align: right;'>GST (9.0% CGST + 9.0% SGST):</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("gst_amount", 0) for p in products if p.get("type") == "blanket"):,.2f}</td>
+                                </tr>
+                                ''' if any(p.get("type") == "blanket" for p in products) else ''}
+                                
+                                {f'''
+                                <tr>
+                                    <td style='padding: 8px; text-align: right;'>GST (12.0%):</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("gst_amount", 0) for p in products if p.get("type") == "mpack"):,.2f}</td>
+                                </tr>
+                                ''' if any(p.get("type") == "mpack" for p in products) else ''}
+                                
+                                <tr style='border-top: 1px solid #dee2e6; font-weight: bold;'>
+                                    <td style='padding: 8px; text-align: right;'>Total:</td>
+                                    <td style='padding: 8px; text-align: right;'>₹{sum(p.get("calculations", {}).get("final_total", 0) for p in products):,.2f}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                  </div>
                 </div>
                 
-                <div style='margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #dee2e6;'>
-                  <p>Thank you for your business. We look forward to working with you!</p>
-                  <p style='margin-bottom: 0;'>Best regards,<br>
-                  <strong>{current_user.username}</strong><br>
-                  <span style='color: #6c757d;'>CGI - Chemo Graphics INTERNATIONAL</span></p>
-                </div>
+                <p style='margin: 2rem 0 1rem 0;'>Thank you for your business!<br>— Team CGI</p>
               </div>
             </div>
             
             <div style='margin-top: 1.5rem; padding: 1rem; background-color: #f8f9fa; border-radius: 0.25rem; text-align: center;'>
-              <p style='color: #6c757d; font-size: 0.9rem; margin: 0;'>
-                <i class='fas fa-info-circle' style='margin-right: 0.5rem;'></i>
+              <p style='color: #6c757d; font-size: 0.8rem; margin: 0;'>
                 This quotation is not a contract or invoice. It is our best estimate.
               </p>
             </div>

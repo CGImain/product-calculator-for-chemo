@@ -161,6 +161,7 @@
         <th>Barring Type</th>
         <th>Qty</th>
         <th>Price</th>
+        <th>Discount</th>
       </tr>
     </thead>
     <tbody>
@@ -173,7 +174,7 @@
           <td>{{ item.get('machine', '') }}</td>
           <td>{{ prod_type }}</td>
           <td>{{ item.get('blanket_type') or item.get('name','----') if prod_type == 'blanket' else '----' }}</td>
-          <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }} mm{% else %}{{ item.thickness }}{% endif %}{% else %}------{% endif %}</td>
+          <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }} mm{% else %}{{ item.thickness }}{% if item.thickness and not (item.thickness|string).endswith(('mm', 'micron', 'in', 'cm')) and item.thickness|float >= 1 %} mm{% endif %}{% endif %}{% else %}------{% endif %}</td>
           <td>
             {% if item.get('size') %}
               {{ item.size|replace('.0 mm', ' mm')|replace('.0mm', 'mm') }}
@@ -197,6 +198,7 @@
           <td>{{ item.get('bar_type', '------') if prod_type == 'blanket' else '------' }}</td>
           <td>{{ item.get('quantity', 1) }}</td>
           <td>₹{{ '%.2f'|format(item.get('unit_price', item.get('base_price', 0))|float) }}</td>
+          <td>{% if item.get('discount_percent', 0) > 0 %}{{ '%.1f'|format(item.discount_percent) }}%{% else %}------{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>

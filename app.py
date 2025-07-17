@@ -3008,6 +3008,7 @@ def send_quotation():
                     <th style='padding: 10px; text-align: left;'>Barri...</th>
                     <th style='padding: 10px; text-align: right;'>Qty</th>
                     <th style='padding: 10px; text-align: right;'>Price</th>
+                    <th style='padding: 10px; text-align: right;'>Discount</th>
                 </tr>
             </thead>
             <tbody>
@@ -3095,11 +3096,12 @@ def send_quotation():
                     <td style='padding: 8px; border: 1px solid #ddd;'>{machine}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{prod_type if prod_type else '----'}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('name', '----') if prod_type == 'blanket' else '----'}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}{' mm' if p.get('type') == 'blanket' and p.get('thickness') else ''}</td>
+                    <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('thickness', '----')}{' mm' if p.get('type') == 'blanket' and p.get('thickness') else (' mm' if p.get('thickness') and not str(p.get('thickness', '')).endswith(('mm', 'micron', 'in', 'cm')) and float(p.get('thickness', 0)) >= 1 else '')}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{dimensions}</td>
                     <td style='padding: 8px; border: 1px solid #ddd;'>{p.get('bar_type', '----') if prod_type == 'blanket' else '----'}</td>
                     <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{qty}</td>
                     <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>₹{p.get('unit_price', p.get('base_price', 0)):,.2f}</td>
+                    <td style='padding: 8px; text-align: right; border: 1px solid #ddd;'>{p.get('discount_percent', 0):.1f}%</td>
                 </tr>
             """
         

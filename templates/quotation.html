@@ -184,13 +184,13 @@
                 {% elif underpacking_type == 'mark3zet' %}
                   Mark3zet
                 {% else %}
-                  {{ underpacking_type|replace('_', ' ')|title }}
+                  {{ item.name }}
                 {% endif %}
               {% else %}
-                ----
+                {{ item.name }}
               {% endif %}
             {% else %}
-              ----
+              {{ item.get('name', '----') }}
             {% endif %}
           </td>
           <td>{% if item.get('thickness') %}{% if item.type == 'blanket' %}{{ item.thickness|replace('.0', '') }} mm{% else %}{{ item.thickness }}{% if item.thickness and not (item.thickness|string).endswith(('mm', 'micron', 'in', 'cm')) and item.thickness|float >= 1 %} mm{% endif %}{% endif %}{% else %}------{% endif %}</td>

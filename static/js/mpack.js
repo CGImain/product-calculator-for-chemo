@@ -582,10 +582,19 @@ function addMpackToCart() {
   const thicknessSelect = document.getElementById('thicknessSelect');
   const sizeSelect = document.getElementById('sizeSelect');
   const sheetInput = document.getElementById('sheetInput');
+  const underpackingTypeSelect = document.getElementById('underpackingType');
   const quantity = parseInt(sheetInput.value) || 1;
   
-  if (!machineSelect.value || !thicknessSelect.value || !sizeSelect.value || !sheetInput.value) {
-    showToast('Error', 'Please fill in all required fields', 'error');
+  // Get underpacking type display name
+  let underpackingType = '';
+  let underpackingTypeDisplay = 'Underpacking Material';
+  if (underpackingTypeSelect && underpackingTypeSelect.value) {
+    underpackingType = underpackingTypeSelect.value;
+    underpackingTypeDisplay = underpackingTypeSelect.options[underpackingTypeSelect.selectedIndex].text;
+  }
+  
+  if (!machineSelect.value || !thicknessSelect.value || !sizeSelect.value || !sheetInput.value || !underpackingType) {
+    showToast('Error', 'Please fill in all required fields including underpacking type', 'error');
     return;
   }
 
@@ -607,10 +616,11 @@ function addMpackToCart() {
   const product = {
     id: 'mpack_' + Date.now(),
     type: 'mpack',
-    name: 'Underpacking Material',
+    name: underpackingTypeDisplay,
     machine: machineSelect.options[machineSelect.selectedIndex].text,
     thickness: thicknessSelect.value + ' micron',
     size: sizeSelect.options[sizeSelect.selectedIndex].text,
+    underpacking_type: underpackingType,
     quantity: quantity,
     unit_price: parseFloat(unitPrice.toFixed(2)),
     discount_percent: discount,

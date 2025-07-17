@@ -400,6 +400,18 @@
                                                 <p class="mb-1"><strong>Machine:</strong> {{ item.machine }}</p>
                                             {% endif %}
                                             
+                                            {% if item.underpacking_type %}
+                                                <p class="mb-1"><strong>Type:</strong> 
+                                                    {% if item.underpacking_type == 'mtech_mpack' %}
+                                                        Mtech Mpack
+                                                    {% elif item.underpacking_type == 'mark3zet' %}
+                                                        Mark3zet
+                                                    {% else %}
+                                                        {{ item.underpacking_type|title }}
+                                                    {% endif %}
+                                                </p>
+                                            {% endif %}
+                                            
                                             {% if item.thickness %}
                                                 <p class="mb-1">
                                                     <strong>Thickness:</strong> 

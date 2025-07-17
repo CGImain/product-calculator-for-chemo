@@ -3113,16 +3113,27 @@ def send_quotation():
         <p>This quotation is not a contract or invoice. It is our best estimate.</p>
         """
 
+        # Calculate discount information from products
+        blanket_discounts = [p.get('discount_percent', 0) for p in products if p.get('type') == 'blanket' and p.get('discount_percent', 0) > 0]
+        mpack_discounts = [p.get('discount_percent', 0) for p in products if p.get('type') == 'mpack' and p.get('discount_percent', 0) > 0]
+        
         # Generate discount text for email
         discount_text = []
-        if calculations.gst_breakdown.blankets.discount_percent > 0:
-            discount_text.append(f"{calculations.gst_breakdown.blankets.discount_percent:.1f}% for Blankets")
-        if calculations.gst_breakdown.mpacks.discount_percent > 0:
-            discount_text.append(f"{calculations.gst_breakdown.mpacks.discount_percent:.1f}% for MPacks")
+        if blanket_discounts:
+            discount_text.append(f"{max(blanket_discounts):.1f}% for Blankets")
+        if mpack_discounts:
+            discount_text.append(f"{max(mpack_discounts):.1f}% for MPacks")
         discount_text = ", ".join(discount_text)
         
+        # Calculate total discount amount
+        total_discount = sum(
+            p.get('calculations', {}).get('discount_amount', 0) 
+            for p in products 
+            if p.get('calculations', {}).get('discount_amount', 0) > 0
+        )
+        
         # Determine if we should show the discount row
-        show_discount = calculations.gst_breakdown.blankets.discount_percent > 0 or calculations.gst_breakdown.mpacks.discount_percent > 0
+        show_discount = bool(blanket_discounts or mpack_discounts)
         
         # Generate a unique quote ID
         quote_id = f"CGI-{datetime.utcnow().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
@@ -3221,7 +3232,7 @@ def send_quotation():
                                 </tr>
                                 <tr style="display: {'block' if show_discount else 'none'}">
                                     <td style="padding: 8px; text-align: right;">Discount ({discount_text}):</td>
-                                    <td style="padding: 8px; text-align: right; color: #dc3545;">-₹{calculations.total_discount:,.2f}</td>
+                                    <td style="padding: 8px; text-align: right; color: #dc3545;">-₹{total_discount:,.2f}</td>
                                 </tr>
                                 <tr>
                                     <td style='padding: 8px; text-align: right; font-weight: bold;'>Total (Pre-GST):</td>

@@ -1403,6 +1403,117 @@ def update_cart_quantity():
         }), 500
 
 
+@app.route('/update_cart_discount', methods=['POST'])
+@login_required
+def update_cart_discount():
+    """Update the discount percentage of a product in the user's cart."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': 'No data provided'
+            }), 400
+            
+        index = int(data.get('index'))
+        discount_percent = float(data.get('discount_percent', 0))
+        
+        # Validate discount percentage
+        if discount_percent < 0 or discount_percent > 100:
+            return jsonify({
+                'success': False,
+                'message': 'Discount percentage must be between 0 and 100'
+            }), 400
+        
+        # Get current cart
+        cart = get_user_cart()
+        products = cart.get('products', [])
+        
+        # Check if index is valid
+        if 0 <= index < len(products):
+            # Update the discount percentage
+            products[index]['discount_percent'] = discount_percent
+            
+            # Recalculate prices based on product type
+            if products[index].get('type') == 'blanket':
+                # Recalculate blanket prices
+                base_price = products[index].get('base_price', 0)
+                bar_price = products[index].get('bar_price', 0)
+                quantity = products[index].get('quantity', 1)
+                gst_percent = products[index].get('gst_percent', 18)
+                
+                price_per_unit = base_price + bar_price
+                subtotal = price_per_unit * quantity
+                discount_amount = subtotal * (discount_percent / 100)
+                discounted_subtotal = subtotal - discount_amount
+                gst_amount = (discounted_subtotal * gst_percent) / 100
+                final_total = discounted_subtotal + gst_amount
+                
+                # Update all price fields
+                products[index].update({
+                    'unit_price': round(price_per_unit, 2),
+                    'total_price': round(final_total, 2),
+                    'calculations': {
+                        **products[index].get('calculations', {}),
+                        'subtotal': round(subtotal, 2),
+                        'discount_amount': round(discount_amount, 2),
+                        'discounted_subtotal': round(discounted_subtotal, 2),
+                        'gst_amount': round(gst_amount, 2),
+                        'final_price': round(final_total, 2)
+                    }
+                })
+            else:
+                # For mpacks and other product types
+                unit_price = products[index].get('unit_price', 0)
+                quantity = products[index].get('quantity', 1)
+                gst_percent = products[index].get('gst_percent', 18)
+                
+                subtotal = unit_price * quantity
+                discount_amount = subtotal * (discount_percent / 100)
+                discounted_subtotal = subtotal - discount_amount
+                gst_amount = (discounted_subtotal * gst_percent) / 100
+                final_total = discounted_subtotal + gst_amount
+                
+                # Update all price fields
+                products[index].update({
+                    'total_price': round(final_total, 2),
+                    'calculations': {
+                        **products[index].get('calculations', {}),
+                        'subtotal': round(subtotal, 2),
+                        'discount_amount': round(discount_amount, 2),
+                        'discounted_subtotal': round(discounted_subtotal, 2),
+                        'gst_amount': round(gst_amount, 2),
+                        'final_price': round(final_total, 2)
+                    }
+                })
+            
+            # Get the updated item
+            updated_item = products[index]
+            
+            # Save the updated cart
+            save_user_cart({'products': products})
+            
+            return jsonify({
+                'success': True,
+                'message': 'Cart discount updated',
+                'cart_count': len(products),
+                'updated_item': updated_item
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid item index',
+                'cart_count': len(products)
+            }), 400
+    except Exception as e:
+        app.logger.error(f'Error updating cart discount: {str(e)}')
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while updating the cart discount',
+            'error': str(e)
+        }), 500
+
+
 @app.route('/get_cart_count')
 def get_cart_count():
     """Return the number of products currently in the user's cart."""

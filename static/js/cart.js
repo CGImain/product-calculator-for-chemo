@@ -622,12 +622,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 handleQuantityChange({ target: input });
             }
         }
+        
+        // Handle discount update button
+        if (event.target.closest('.update-discount-btn')) {
+            handleDiscountUpdate(event);
+        }
     });
     
     // Set up input change handler for direct input
     document.addEventListener('change', function(event) {
         if (event.target.classList.contains('quantity-input')) {
             handleQuantityChange(event);
+        }
+    });
+    
+    // Handle discount input on Enter key
+    document.addEventListener('keydown', function(event) {
+        if (event.target.classList.contains('discount-input') && event.key === 'Enter') {
+            handleDiscountKeyDown(event);
         }
     });
     
@@ -991,11 +1003,109 @@ function updateCartTotals() {
     }
 }
 
+// Function to handle discount updates
+function handleDiscountUpdate(event) {
+    const button = event.target.closest('.update-discount-btn');
+    if (!button) return;
+    
+    const index = button.getAttribute('data-index');
+    if (index === null) {
+        console.error('Could not find cart item index');
+        return;
+    }
+    
+    const cartItem = document.querySelector(`.cart-item[data-index="${index}"]`);
+    if (!cartItem) {
+        console.error('Cart item not found in DOM');
+        return;
+    }
+    
+    const discountInput = cartItem.querySelector('.discount-input');
+    let discountPercent = parseFloat(discountInput.value);
+    
+    // Ensure the discount is between 0 and 100
+    if (isNaN(discountPercent) || discountPercent < 0) {
+        discountPercent = 0;
+    } else if (discountPercent > 100) {
+        discountPercent = 100;
+    }
+    
+    // Update the input value in case it was out of bounds
+    discountInput.value = discountPercent;
+    
+    // Update the cart item discount
+    updateCartItemDiscount(index, discountPercent);
+}
+
+// Function to handle discount input keydown (Enter key)
+function handleDiscountKeyDown(event) {
+    if (event.key === 'Enter') {
+        handleDiscountUpdate(event);
+    }
+}
+
+// Function to update cart item discount
+function updateCartItemDiscount(index, discountPercent) {
+    const csrfToken = getCSRFToken();
+    const cartItem = document.querySelector(`.cart-item[data-index="${index}"]`);
+    
+    if (!cartItem) {
+        console.error('Cart item not found in DOM');
+        return;
+    }
+    
+    // Show loading state
+    const updateButton = cartItem.querySelector('.update-discount-btn');
+    const originalHtml = updateButton.innerHTML;
+    updateButton.disabled = true;
+    updateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    
+    fetch('/update_cart_discount', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            index: parseInt(index),
+            discount_percent: parseFloat(discountPercent)
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Update the UI with the new data from the server
+            if (data.updated_item) {
+                updateItemDisplay(cartItem, data.updated_item);
+                updateCartTotals();
+                showToast('Success', 'Discount updated', 'success');
+            } else {
+                updateCartTotals();
+                showToast('Success', 'Discount updated', 'success');
+            }
+        } else {
+            throw new Error(data.message || 'Failed to update discount');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating discount:', error);
+        showToast('Error', error.message || 'An error occurred while updating discount', 'error');
+    })
+    .finally(() => {
+        updateButton.disabled = false;
+        updateButton.innerHTML = originalHtml;
+    });
+}
+
 // Function to handle quantity changes
 function handleQuantityChange(event) {
     const input = event.target;
-    const container = input.closest('.cart-item');
-    const index = container ? container.dataset.index : null;
+    const index = input.getAttribute('data-index');
     
     if (index === null) {
         console.error('Could not find cart item index');

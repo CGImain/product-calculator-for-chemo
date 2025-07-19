@@ -789,6 +789,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Handle change item button clicks using event delegation
+    document.addEventListener('click', function(event) {
+        if (event.target.closest('.change-item-btn')) {
+            handleChangeItem(event);
+        }
+    });
+    
     // Handle discount input on Enter key
     document.addEventListener('keydown', function(event) {
         if (event.target.classList.contains('discount-input') && event.key === 'Enter') {

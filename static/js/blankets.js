@@ -15,37 +15,59 @@ async function updateCartItem(button, itemIndex) {
         // Add the item index to the form data for server-side processing
         formData.item_index = itemIndex;
         
-        // Send the update request to the server
-        const response = await fetch('/update_cart_item', {
+        // First remove the old item from the cart
+        const removeResponse = await fetch('/remove_from_cart', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            body: JSON.stringify({ index: itemIndex })
         });
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (!removeResponse.ok) {
+            throw new Error(`Failed to remove old item: ${removeResponse.status}`);
         }
         
-        const data = await response.json();
+        // Then add the updated item to the cart
+        const addResponse = await fetch('/add_to_cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...formData, force_add: true })
+        });
+        
+        if (!addResponse.ok) {
+            throw new Error(`HTTP error! status: ${addResponse.status}`);
+        }
+        
+        const data = await addResponse.json();
         
         if (data.success) {
             // Update the local cart
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            if (itemIndex >= 0 && itemIndex < cart.length) {
-                // Remove the old item
-                cart.splice(itemIndex, 1);
-                
-                // Add the updated item (from the server response if available, or use the form data)
-                const updatedItem = data.updated_item || formData;
-                cart.splice(itemIndex, 0, updatedItem);
-                
-                // Save the updated cart
-                localStorage.setItem('cart', JSON.stringify(cart));
-                
-                // Update the cart count
-                if (typeof updateCartCount === 'function') {
-                    updateCartCount();
+            
+            // If we have a duplicate item, we need to handle it specially
+            if (data.is_duplicate) {
+                // Find the duplicate item
+                const duplicateIndex = data.duplicate_index;
+                if (duplicateIndex >= 0 && duplicateIndex < cart.length) {
+                    // Update the quantity of the existing item
+                    const quantity = formData.quantity || 1;
+                    const updateResponse = await fetch('/update_cart_quantity', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            index: duplicateIndex,
+                            quantity: quantity
+                        })
+                    });
+                    
+                    if (!updateResponse.ok) {
+                        throw new Error(`Failed to update quantity: ${updateResponse.status}`);
+                    }
                 }
+            }
+            
+            // Update the cart count
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
             }
             
             // Show success message and redirect back to cart

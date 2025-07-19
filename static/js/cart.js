@@ -242,9 +242,65 @@ function updateNavCompanyDisplay(companyName) {
     }
 }
 
+// Function to normalize cart data structure
+function normalizeCartData(cartData) {
+    console.log('Normalizing cart data...');
+    
+    if (!cartData) {
+        console.log('No cart data, returning empty cart');
+        return { products: [] };
+    }
+    
+    try {
+        // If cartData is already an object with products array, return as is
+        if (cartData.products && Array.isArray(cartData.products)) {
+            console.log('Cart data already has products array');
+            return cartData;
+        }
+        
+        // If cartData is an array, convert to object with products array
+        if (Array.isArray(cartData)) {
+            console.log('Converting array cart to object with products array');
+            return { products: cartData };
+        }
+        
+        // If cartData is an object but doesn't have products array, create one
+        if (typeof cartData === 'object' && cartData !== null) {
+            console.log('Converting object cart to standard format');
+            return { 
+                products: Object.values(cartData).filter(item => item !== null && typeof item === 'object')
+            };
+        }
+        
+        // If we get here, the format is unexpected
+        console.warn('Unexpected cart format, initializing empty cart');
+        return { products: [] };
+        
+    } catch (error) {
+        console.error('Error normalizing cart data:', error);
+        return { products: [] };
+    }
+}
+
 // Initialize all cart handlers
 function initializeCart() {
     console.log('Initializing cart...');
+    
+    // Load and normalize cart data
+    try {
+        const cartData = localStorage.getItem('cart');
+        const parsedCart = cartData ? JSON.parse(cartData) : { products: [] };
+        const normalizedCart = normalizeCartData(parsedCart);
+        
+        // Save normalized cart back to localStorage
+        if (JSON.stringify(parsedCart) !== JSON.stringify(normalizedCart)) {
+            console.log('Saving normalized cart data');
+            localStorage.setItem('cart', JSON.stringify(normalizedCart));
+        }
+    } catch (error) {
+        console.error('Error initializing cart data:', error);
+        localStorage.setItem('cart', JSON.stringify({ products: [] }));
+    }
     
     // Store original quantities when page loads
     document.querySelectorAll('.quantity-input').forEach(input => {
@@ -1321,61 +1377,87 @@ function handleQuantityKeyDown(event) {
 
 // Function to handle change item button clicks
 function handleChangeItem(e) {
-    if (!e.target.closest('.change-item-btn')) return;
+    console.log('=== handleChangeItem called ===');
+    
+    if (!e.target.closest('.change-item-btn')) {
+        console.log('Not a change button click');
+        return;
+    }
     
     e.preventDefault();
     e.stopPropagation();
     
     const button = e.target.closest('.change-item-btn');
     if (!button || !button.dataset || !button.dataset.index) {
-        console.error('Invalid change button or missing data-index attribute');
+        console.error('❌ Invalid change button or missing data-index attribute');
+        console.log('Button element:', button);
+        console.log('Button dataset:', button ? button.dataset : 'No button');
         return;
     }
     
     const index = parseInt(button.dataset.index, 10);
     if (isNaN(index) || index < 0) {
-        console.error('Invalid item index:', button.dataset.index);
+        console.error('❌ Invalid item index:', button.dataset.index);
         return;
     }
     
-    console.log('Change button clicked for item at index:', index);
+    console.log(`🔍 Change button clicked for item at index: ${index}`);
     
     // Get the cart data with proper error handling
     let cart = { products: [] };
+    let cartData;
+    
     try {
-        const cartData = localStorage.getItem('cart');
+        cartData = localStorage.getItem('cart');
+        console.log('📦 Raw cart data from localStorage:', cartData);
+        
         if (cartData) {
             const parsed = JSON.parse(cartData);
-            // Ensure we have a valid cart object with products array
-            if (parsed && Array.isArray(parsed.products)) {
+            console.log('🔍 Parsed cart data:', parsed);
+            
+            // Check different possible cart structures
+            if (Array.isArray(parsed)) {
+                console.log('ℹ️ Cart is an array, converting to products format');
+                cart = { products: parsed };
+            } else if (parsed && Array.isArray(parsed.products)) {
+                console.log('ℹ️ Cart has products array');
                 cart = parsed;
             } else if (parsed && !parsed.products) {
-                // Handle case where cart exists but products array is missing
+                console.log('ℹ️ Cart exists but has no products array, initializing');
                 cart.products = [];
             }
         }
-        console.log('Cart data:', cart);
+        
+        console.log('🛒 Final cart structure:', cart);
+        console.log('📊 Number of items in cart:', cart.products.length);
+        
     } catch (error) {
-        console.error('Error parsing cart data:', error);
-        // Initialize empty cart on error
+        console.error('❌ Error parsing cart data:', error);
+        console.error('Raw cart data that caused error:', cartData);
         cart = { products: [] };
     }
     
     // Ensure products array exists
     if (!Array.isArray(cart.products)) {
-        console.error('Invalid cart products format, initializing empty cart');
+        console.error('❌ Invalid cart products format, initializing empty cart');
         cart.products = [];
     }
     
+    // Log all items in cart for debugging
+    console.log('📋 All items in cart:');
+    cart.products.forEach((item, i) => {
+        console.log(`  [${i}]`, item ? `Type: ${item.type || 'unknown'}, ID: ${item.id || 'none'}` : 'null/undefined');
+    });
+    
     // Validate index range
-    if (index >= cart.products.length) {
-        console.error(`Item index ${index} out of range (${cart.products.length} items in cart)`);
+    if (index < 0 || index >= cart.products.length) {
+        console.error(`❌ Item index ${index} out of range (${cart.products.length} items in cart)`);
         return;
     }
     
     const item = cart.products[index];
     if (!item) {
-        console.error('No item found at index:', index);
+        console.error(`❌ No item found at index ${index}`);
         return;
     }
     

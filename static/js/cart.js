@@ -485,6 +485,65 @@ function checkForDuplicateMpacks() {
     }
 }
 
+// Helper to remove or merge duplicate Blanket items in the cart
+function checkForDuplicateBlankets() {
+    try {
+        const blanketItems = document.querySelectorAll('.cart-item[data-type="blanket"]');
+        const seen = new Map();
+
+        blanketItems.forEach(item => {
+            // Create a unique key based on all relevant attributes
+            const itemId = item.dataset.id || '';
+            const itemName = item.dataset.name || item.querySelector('.item-name')?.textContent?.trim() || '';
+            const size = item.dataset.size || '';
+            const thickness = item.dataset.thickness || '';
+            const barType = item.dataset.barType || '';
+            
+            // Create a composite key using all relevant attributes
+            const key = `${itemId}-${itemName}-${size}-${thickness}-${barType}`.toLowerCase();
+            
+            if (!key) return; // Skip if no identifiable key
+
+            if (seen.has(key)) {
+                // Duplicate found – only merge if it's truly the same product with same attributes
+                const existing = seen.get(key);
+                const existingAttrs = existing.dataset;
+                const newAttrs = item.dataset;
+                
+                // Check if all data attributes match before considering them duplicates
+                let isExactMatch = true;
+                for (const attr in existingAttrs) {
+                    if (existingAttrs[attr] !== newAttrs[attr]) {
+                        isExactMatch = false;
+                        break;
+                    }
+                }
+                
+                if (isExactMatch) {
+                    const qtyInputExisting = existing.querySelector('.quantity-input');
+                    const qtyInputDuplicate = item.querySelector('.quantity-input');
+
+                    if (qtyInputExisting && qtyInputDuplicate) {
+                        const totalQty = (parseInt(qtyInputExisting.value) || 1) + (parseInt(qtyInputDuplicate.value) || 1);
+                        qtyInputExisting.value = totalQty;
+                        existing.setAttribute('data-quantity', totalQty);
+                    }
+
+                    // Remove the duplicate row from DOM
+                    item.remove();
+                }
+            } else {
+                seen.set(key, item);
+            }
+        });
+
+        // After checking for duplicates, recalculate totals
+        updateCartTotals();
+    } catch (err) {
+        console.error('Error checking for duplicate Blankets:', err);
+    }
+}
+
 // Function to toggle quotation section
 function toggleQuotationSection() {
     const cartItems = document.querySelectorAll('.cart-item');
@@ -633,9 +692,12 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Updating cart totals...');
         updateCartTotals();
         
-        // Check for duplicate MPacks
+        // Check for duplicate items
         console.log('Checking for duplicate MPacks...');
         checkForDuplicateMpacks();
+        
+        console.log('Checking for duplicate Blankets...');
+        checkForDuplicateBlankets();
         
         // Toggle quotation section based on cart items
         toggleQuotationSection();
@@ -770,6 +832,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const observer = new MutationObserver(function() {
             checkForDuplicateMpacks();
+            checkForDuplicateBlankets();
             updateCartTotals(); // Ensure totals are updated on any cart changes
         });
         
@@ -791,8 +854,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the cart
     initializeCart();
     
-    // Check for duplicate mpacks on initial load
+    // Check for duplicate items on initial load
     checkForDuplicateMpacks();
+    checkForDuplicateBlankets();
     
     console.log('Cart initialization complete');
 });

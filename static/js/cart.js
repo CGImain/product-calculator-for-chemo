@@ -1529,60 +1529,86 @@ function handleChangeItem(e) {
     console.log('📌 Item type from data attribute:', itemType);
     console.log('📌 Button dataset:', button.dataset);
     
-    // Find the item in the cart using the UI index as the primary method
+    // Find the item in the cart
     let item = null;
     let itemIndex = -1;
     
     console.log('🔍 Looking for item at UI index:', uiIndex);
-    console.log('🔍 Total items in cart:', cart.products.length);
+    console.log('🔍 Total items in cart data:', cart.products.length);
+    console.log('🔍 Cart items in DOM:', document.querySelectorAll('.cart-item').length);
     
     // First try to find by UI index if it's valid
-    if (uiIndex >= 0 && uiIndex < cart.products.length) {
-        item = cart.products[uiIndex];
-        itemIndex = uiIndex;
-        console.log(`✅ Found item at UI index: ${uiIndex}`);
+    if (uiIndex >= 0) {
+        // Try direct index first
+        if (uiIndex < cart.products.length) {
+            item = cart.products[uiIndex];
+            itemIndex = uiIndex;
+            console.log(`✅ Found item at cart data index: ${uiIndex}`);
+        }
         
-        // Verify the item type matches if we have it from the DOM
-        if (itemType && item && item.type && item.type.toLowerCase() !== itemType.toLowerCase()) {
-            console.warn(`⚠️ Item type mismatch: expected ${itemType}, found ${item ? item.type : 'unknown'}. Trying to find matching item...`);
-            console.log('🔍 Item details:', item);
+        // If not found or type mismatch, try to find by DOM data attributes
+        if (!item || (itemType && item.type && item.type.toLowerCase() !== itemType.toLowerCase())) {
+            console.log('⚠️ Item not found at cart data index or type mismatch, checking DOM data...');
             
-            // If types don't match, try to find an item with matching type and similar properties
-            const matchingItem = cart.products.find((product, idx) => {
-                if (!product || product.type !== itemType) return false;
+            // Get all cart items from DOM
+            const cartItems = document.querySelectorAll('.cart-item');
+            if (uiIndex < cartItems.length) {
+                const domItem = cartItems[uiIndex];
+                const domItemType = domItem.dataset.type;
+                const domItemName = domItem.querySelector('.item-name')?.textContent?.trim() || '';
                 
-                // For blankets, check additional properties to ensure it's the right one
-                if (itemType === 'blanket' && product.name === item.name && 
-                    product.machine === item.machine) {
+                console.log(`🔍 Found DOM item at index ${uiIndex}:`, { type: domItemType, name: domItemName });
+                
+                // Try to find matching item in cart data
+                const foundItem = cart.products.find((product, idx) => {
+                    if (!product) return false;
+                    
+                    // If we have a type from DOM, it must match
+                    if (domItemType && product.type !== domItemType) return false;
+                    
+                    // If we have a name from DOM, it should match
+                    if (domItemName) {
+                        const productName = product.name || '';
+                        if (productName.toLowerCase() !== domItemName.toLowerCase()) {
+                            return false;
+                        }
+                    }
+                    
+                    // For blankets, check additional attributes
+                    if (domItemType === 'blanket') {
+                        const domMachine = domItem.dataset.machine || '';
+                        const domThickness = domItem.dataset.thickness || '';
+                        
+                        if (domMachine && product.machine !== domMachine) return false;
+                        if (domThickness && product.thickness !== domThickness) return false;
+                    }
+                    
+                    // For mpacks, check unit price if available
+                    if (domItemType === 'mpack') {
+                        const domUnitPrice = parseFloat(domItem.dataset.unitPrice || 0);
+                        if (domUnitPrice > 0 && product.unit_price != domUnitPrice) return false;
+                    }
+                    
                     itemIndex = idx;
                     return true;
-                }
+                });
                 
-                // For mpacks, check name and unit price
-                if (itemType === 'mpack' && product.name === item.name && 
-                    product.unit_price === item.unit_price) {
-                    itemIndex = idx;
-                    return true;
+                if (foundItem) {
+                    console.log(`✅ Found matching cart item at index ${itemIndex} by DOM data`);
+                    item = foundItem;
                 }
-                
-                return false;
-            });
-            
-            if (matchingItem) {
-                console.log(`✅ Found matching item at index ${itemIndex} after type mismatch`);
-                item = matchingItem;
-            } else {
-                console.warn('⚠️ Could not find matching item by type, using original item');
             }
         }
-    } else if (cart.products.length > 0) {
-        // If we couldn't find by index but there are items, try to find by type and name
-        console.warn(`⚠️ Item not found at UI index ${uiIndex}, trying to find by type and name...`);
+    }
+    
+    // If still not found, try to find by name and type as last resort
+    if (!item && itemType) {
+        console.warn('⚠️ Item not found by index or DOM data, trying to find by name and type...');
         
         const itemName = cartItemElement ? 
             (cartItemElement.dataset.name || cartItemElement.querySelector('.item-name')?.textContent?.trim()) : '';
             
-        if (itemType && itemName) {
+        if (itemName) {
             const matchingItem = cart.products.find((product, idx) => {
                 if (!product || product.type !== itemType) return false;
                 
@@ -1597,7 +1623,7 @@ function handleChangeItem(e) {
             });
             
             if (matchingItem) {
-                console.log(`✅ Found matching item at index ${itemIndex} by name`);
+                console.log(`✅ Found matching item at index ${itemIndex} by name and type`);
                 item = matchingItem;
             }
         }

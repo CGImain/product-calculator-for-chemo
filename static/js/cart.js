@@ -1398,6 +1398,8 @@ function handleChangeItem(e) {
     const index = parseInt(button.dataset.index, 10);
     if (isNaN(index) || index < 0) {
         console.error('❌ Invalid item index:', button.dataset.index);
+        console.log('Button element:', button);
+        console.log('Button dataset:', button.dataset);
         return;
     }
     
@@ -1434,7 +1436,8 @@ function handleChangeItem(e) {
     } catch (error) {
         console.error('❌ Error parsing cart data:', error);
         console.error('Raw cart data that caused error:', cartData);
-        cart = { products: [] };
+        alert('Error loading cart data. Please refresh the page and try again.');
+        return;
     }
     
     // Ensure products array exists
@@ -1451,7 +1454,10 @@ function handleChangeItem(e) {
     
     // Validate index range
     if (index < 0 || index >= cart.products.length) {
-        console.error(`❌ Item index ${index} out of range (${cart.products.length} items in cart)`);
+        const errorMsg = `❌ Item index ${index} out of range (${cart.products.length} items in cart)`;
+        console.error(errorMsg);
+        alert('This item could not be found in your cart. Please refresh the page and try again.');
+        console.error('Cart items:', cart.products);
         return;
     }
     
@@ -1493,20 +1499,8 @@ function handleChangeItem(e) {
         alert('An error occurred while preparing the item for editing. Please try again.');
     }
     
-    // Redirect to the appropriate product page
-    let redirectUrl = '/';
-    
-    if (item.type === 'mpack') {
-        redirectUrl = '/mpacks';
-    } else if (item.type === 'blanket') {
-        redirectUrl = '/blankets';
-        // Include the blanket type in the URL if available
-        if (item.blanket_type) {
-            redirectUrl += `?type=${encodeURIComponent(item.blanket_type)}`;
-        }
-    }
-    
-    window.location.href = redirectUrl;
+    // Redirection is already handled above
+    return;
 }
 
 // Function to set up remove handlers using event delegation

@@ -1516,13 +1516,25 @@ function handleChangeItem(e) {
         cart.products = [];
     }
     
-    // Get the cart item element and its type
+    // Get the item type from the button's data attribute first, then fall back to cart item element
+    let itemType = button.getAttribute('data-item-type');
     const cartItemElement = button.closest('.cart-item');
-    const itemType = cartItemElement ? cartItemElement.dataset.type : null;
+    
+    // If not found in button, try to get from cart item element
+    if (!itemType && cartItemElement) {
+        itemType = cartItemElement.dataset.type;
+    }
+    
+    console.log('📌 Cart item element:', cartItemElement);
+    console.log('📌 Item type from data attribute:', itemType);
+    console.log('📌 Button dataset:', button.dataset);
     
     // Find the item in the cart using the UI index as the primary method
     let item = null;
     let itemIndex = -1;
+    
+    console.log('🔍 Looking for item at UI index:', uiIndex);
+    console.log('🔍 Total items in cart:', cart.products.length);
     
     // First try to find by UI index if it's valid
     if (uiIndex >= 0 && uiIndex < cart.products.length) {
@@ -1531,8 +1543,9 @@ function handleChangeItem(e) {
         console.log(`✅ Found item at UI index: ${uiIndex}`);
         
         // Verify the item type matches if we have it from the DOM
-        if (itemType && item && item.type !== itemType) {
-            console.warn(`⚠️ Item type mismatch: expected ${itemType}, found ${item.type}. Trying to find matching item...`);
+        if (itemType && item && item.type && item.type.toLowerCase() !== itemType.toLowerCase()) {
+            console.warn(`⚠️ Item type mismatch: expected ${itemType}, found ${item ? item.type : 'unknown'}. Trying to find matching item...`);
+            console.log('🔍 Item details:', item);
             
             // If types don't match, try to find an item with matching type and similar properties
             const matchingItem = cart.products.find((product, idx) => {
@@ -1673,7 +1686,6 @@ function setupRemoveHandlers() {
     
     // Add event delegation for remove buttons
     document.addEventListener('click', handleRemoveClick);
-    document.addEventListener('click', handleChangeItem);
 }
 
 // Handle remove button clicks using event delegation

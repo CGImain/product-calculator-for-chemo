@@ -237,19 +237,60 @@ function getFormData() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("MPACK JS loaded");
+  console.log("MPACK JS loaded - DOM fully loaded");
   
   try {
+    // Load machines first
+    console.log("Loading machines...");
     loadMachines();
-    await loadDiscounts(); // Load discounts when the page loads
+    
+    // Load discounts
+    console.log("Loading discounts...");
+    await loadDiscounts();
     
     // Check if we're editing an existing cart item
+    console.log("Checking for editing item...");
     const editingItem = checkForEditingItem();
+    
     if (editingItem) {
-      prefillFormWithItem(editingItem);
+      console.log("Editing existing item:", editingItem);
+      
+      // Small delay to ensure all elements are rendered
+      setTimeout(() => {
+        try {
+          prefillFormWithItem(editingItem);
+          
+          // Update the add to cart button to show "Update Item"
+          const addToCartBtn = document.getElementById('addToCartBtn');
+          if (addToCartBtn) {
+            addToCartBtn.textContent = 'Update Item';
+            // Update the onclick handler to use updateMpackInCart
+            addToCartBtn.onclick = function() { 
+              updateMpackInCart(editingItem.index); 
+            };
+          }
+          
+          // Show the mpack section if it's hidden
+          const mpackSection = document.getElementById("mpackSection");
+          if (mpackSection) {
+            mpackSection.style.display = 'block';
+          }
+          
+        } catch (error) {
+          console.error("Error prefilling form with item:", error);
+        }
+      }, 100);
+    } else {
+      console.log("No editing item found");
     }
+    
   } catch (error) {
-    console.error("Error initializing page:", error);
+    console.error("Error initializing MPack page:", error);
+    // Show error to user
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-danger';
+    errorDiv.textContent = 'Error loading page. Please refresh and try again.';
+    document.querySelector('main').prepend(errorDiv);
   }
 
   // Debug log element statuses

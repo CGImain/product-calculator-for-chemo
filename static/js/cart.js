@@ -1324,37 +1324,91 @@ function handleChangeItem(e) {
     if (!e.target.closest('.change-item-btn')) return;
     
     e.preventDefault();
-    const button = e.target.closest('.change-item-btn');
-    const index = parseInt(button.dataset.index);
-    if (isNaN(index)) return;
+    e.stopPropagation();
     
-    // Get the cart data
-    let cart;
-    try {
-        const cartData = localStorage.getItem('cart');
-        cart = cartData ? JSON.parse(cartData) : {};
-    } catch (error) {
-        console.error('Error parsing cart data:', error);
+    const button = e.target.closest('.change-item-btn');
+    if (!button || !button.dataset || !button.dataset.index) {
+        console.error('Invalid change button or missing data-index attribute');
         return;
     }
     
-    // Check if cart has products array and the item exists
-    if (!cart.products || !Array.isArray(cart.products) || !cart.products[index]) {
-        console.error('Cart item not found at index:', index);
+    const index = parseInt(button.dataset.index, 10);
+    if (isNaN(index) || index < 0) {
+        console.error('Invalid item index:', button.dataset.index);
+        return;
+    }
+    
+    console.log('Change button clicked for item at index:', index);
+    
+    // Get the cart data with proper error handling
+    let cart = { products: [] };
+    try {
+        const cartData = localStorage.getItem('cart');
+        if (cartData) {
+            const parsed = JSON.parse(cartData);
+            // Ensure we have a valid cart object with products array
+            if (parsed && Array.isArray(parsed.products)) {
+                cart = parsed;
+            } else if (parsed && !parsed.products) {
+                // Handle case where cart exists but products array is missing
+                cart.products = [];
+            }
+        }
+        console.log('Cart data:', cart);
+    } catch (error) {
+        console.error('Error parsing cart data:', error);
+        // Initialize empty cart on error
+        cart = { products: [] };
+    }
+    
+    // Ensure products array exists
+    if (!Array.isArray(cart.products)) {
+        console.error('Invalid cart products format, initializing empty cart');
+        cart.products = [];
+    }
+    
+    // Validate index range
+    if (index >= cart.products.length) {
+        console.error(`Item index ${index} out of range (${cart.products.length} items in cart)`);
         return;
     }
     
     const item = cart.products[index];
+    if (!item) {
+        console.error('No item found at index:', index);
+        return;
+    }
+    
+    console.log('Found item to edit:', item);
     
     // Store the item data and index in session storage
     try {
-        sessionStorage.setItem('editingCartItem', JSON.stringify({
+        const editingData = {
             index: index,
             item: item
-        }));
+        };
+        
+        console.log('Storing editing data in sessionStorage:', editingData);
+        sessionStorage.setItem('editingCartItem', JSON.stringify(editingData));
+        
+        // Determine the redirect URL based on item type
+        let redirectUrl = '/';
+        
+        if (item.type === 'mpack') {
+            redirectUrl = '/mpacks';
+        } else if (item.type === 'blanket') {
+            redirectUrl = '/blankets';
+            if (item.blanket_type) {
+                redirectUrl += `?type=${encodeURIComponent(item.blanket_type)}`;
+            }
+        }
+        
+        console.log('Redirecting to:', redirectUrl);
+        window.location.href = redirectUrl;
+        
     } catch (error) {
-        console.error('Error storing item in session storage:', error);
-        return;
+        console.error('Error preparing item for editing:', error);
+        alert('An error occurred while preparing the item for editing. Please try again.');
     }
     
     // Redirect to the appropriate product page

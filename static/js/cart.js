@@ -1432,10 +1432,11 @@ function handleChangeItem(e) {
         console.error('❌ Invalid change button or missing data-index attribute');
         console.log('Button element:', button);
         console.log('Button dataset:', button ? button.dataset : 'No button');
-        return;
     }
     
-    const uiIndex = parseInt(button.dataset.index, 10);
+    // Get the UI index from the button's data attribute
+    const uiIndex = parseInt(button.getAttribute('data-index'));
+    
     if (isNaN(uiIndex) || uiIndex < 0) {
         console.error('❌ Invalid item index:', button.dataset.index);
         console.log('Button element:', button);
@@ -1529,6 +1530,32 @@ function handleChangeItem(e) {
                 item = matchingItem;
             } else {
                 console.warn('⚠️ Could not find matching item by type, using original item');
+            }
+        }
+    } else if (cart.products.length > 0) {
+        // If we couldn't find by index but there are items, try to find by type and name
+        console.warn(`⚠️ Item not found at UI index ${uiIndex}, trying to find by type and name...`);
+        
+        const itemName = cartItemElement ? 
+            (cartItemElement.dataset.name || cartItemElement.querySelector('.item-name')?.textContent?.trim()) : '';
+            
+        if (itemType && itemName) {
+            const matchingItem = cart.products.find((product, idx) => {
+                if (!product || product.type !== itemType) return false;
+                
+                // Check if names match (case insensitive)
+                const productName = product.name || '';
+                if (productName.toLowerCase() === itemName.toLowerCase()) {
+                    itemIndex = idx;
+                    return true;
+                }
+                
+                return false;
+            });
+            
+            if (matchingItem) {
+                console.log(`✅ Found matching item at index ${itemIndex} by name`);
+                item = matchingItem;
             }
         }
     }

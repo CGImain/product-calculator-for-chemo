@@ -1466,7 +1466,7 @@ function handleChangeItem(e) {
     // Store the item data and index in session storage
     try {
         const editingData = {
-            index: index,
+            index: itemIndex,
             item: item
         };
         

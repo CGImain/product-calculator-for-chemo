@@ -10,12 +10,244 @@ function logElementStatus(id) {
   return el;
 }
 
+// Function to check if we're editing an existing cart item
+function checkForEditingItem() {
+  const editingItem = sessionStorage.getItem('editingCartItem');
+  if (!editingItem) return null;
+  
+  try {
+    const parsed = JSON.parse(editingItem);
+    // Remove the item from session storage so it doesn't persist after refresh
+    sessionStorage.removeItem('editingCartItem');
+    return parsed;
+  } catch (e) {
+    console.error('Error parsing editing item:', e);
+    return null;
+  }
+}
+
+// Function to pre-fill the form with item data
+function prefillFormWithItem(item) {
+  if (!item) return;
+  
+  console.log('Prefilling MPack form with item:', item);
+  
+  try {
+    // Update the button text
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    if (addToCartBtn) {
+      addToCartBtn.textContent = 'Update Item';
+      addToCartBtn.onclick = function() { updateMpackInCart(item.item_index); };
+    }
+    
+    // Set underpacking type
+    if (item.underpacking_type) {
+      const underpackingTypeSelect = document.getElementById('underpackingType');
+      if (underpackingTypeSelect) {
+        underpackingTypeSelect.value = item.underpacking_type;
+        underpackingTypeSelect.dispatchEvent(new Event('change'));
+      }
+    }
+    
+    // Set machine
+    if (item.machine) {
+      const machineSelect = document.getElementById('machineSelect');
+      if (machineSelect) {
+        // Find the option that matches the machine name
+        for (let i = 0; i < machineSelect.options.length; i++) {
+          if (machineSelect.options[i].text === item.machine) {
+            machineSelect.selectedIndex = i;
+            machineSelect.dispatchEvent(new Event('change'));
+            break;
+          }
+        }
+      }
+    }
+    
+    // Set thickness after a short delay to allow the thickness options to load
+    setTimeout(() => {
+      if (item.thickness) {
+        const thicknessValue = item.thickness.replace(' micron', '');
+        const thicknessSelect = document.getElementById('thicknessSelect');
+        if (thicknessSelect) {
+          thicknessSelect.value = thicknessValue;
+          thicknessSelect.dispatchEvent(new Event('change'));
+          
+          // Set size after thickness is loaded
+          setTimeout(() => {
+            if (item.size) {
+              const sizeSelect = document.getElementById('sizeSelect');
+              const sizeInput = document.getElementById('sizeInput');
+              if (sizeSelect && sizeInput) {
+                // Find the option that matches the size
+                for (let i = 0; i < sizeSelect.options.length; i++) {
+                  if (sizeSelect.options[i].text === item.size) {
+                    sizeSelect.selectedIndex = i;
+                    sizeInput.value = item.size;
+                    sizeSelect.dispatchEvent(new Event('change'));
+                    break;
+                  }
+                }
+              }
+              
+              // Set quantity
+              const sheetInput = document.getElementById('sheetInput');
+              if (sheetInput && !isNaN(item.quantity)) {
+                sheetInput.value = item.quantity;
+              }
+              
+              // Set discount after a short delay to allow the discount options to load
+              setTimeout(() => {
+                if (item.discount_percent) {
+                  const discountSelect = document.getElementById('discountSelect');
+                  if (discountSelect) {
+                    // Try to find an exact match first
+                    let found = false;
+                    for (let i = 0; i < discountSelect.options.length; i++) {
+                      if (parseFloat(discountSelect.options[i].value) === item.discount_percent) {
+                        discountSelect.selectedIndex = i;
+                        discountSelect.dispatchEvent(new Event('change'));
+                        found = true;
+                        break;
+                      }
+                    }
+                    
+                    // If no exact match, set the value directly
+                    if (!found && discountSelect.value !== '') {
+                      discountSelect.value = item.discount_percent;
+                      discountSelect.dispatchEvent(new Event('change'));
+                    }
+                  }
+                }
+              }, 500);
+            }
+          }, 500);
+        }
+      }
+    }, 500);
+    
+  } catch (error) {
+    console.error('Error prefilling form:', error);
+  }
+}
+
+// Function to update an existing cart item
+async function updateMpackInCart(itemIndex) {
+  const addToCartBtn = document.getElementById('addToCartBtn');
+  if (!addToCartBtn) return;
+  
+  // Show loading state
+  const originalText = addToCartBtn.innerHTML;
+  addToCartBtn.disabled = true;
+  addToCartBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+  
+  try {
+    // Get the current form data
+    const formData = getFormData();
+    
+    // Add the item index to the form data for server-side processing
+    formData.item_index = itemIndex;
+    
+    // Send the update request to the server
+    const response = await fetch('/update_cart_item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Show success message and redirect back to cart
+      showToast('Success', 'Item updated in cart!', 'success');
+      setTimeout(() => {
+        window.location.href = '/cart';
+      }, 1000);
+    } else {
+      throw new Error(data.error || 'Failed to update item');
+    }
+  } catch (error) {
+    console.error('Error updating cart item:', error);
+    showToast('Error', 'Failed to update item. Please try again.', 'error');
+    addToCartBtn.disabled = false;
+    addToCartBtn.innerHTML = originalText;
+  }
+}
+
+// Helper function to get form data
+function getFormData() {
+  const machineSelect = document.getElementById('machineSelect');
+  const thicknessSelect = document.getElementById('thicknessSelect');
+  const sizeSelect = document.getElementById('sizeSelect');
+  const sheetInput = document.getElementById('sheetInput');
+  const underpackingTypeSelect = document.getElementById('underpackingType');
+  const discountSelect = document.getElementById('discountSelect');
+  
+  const quantity = parseInt(sheetInput.value) || 1;
+  const discount = discountSelect ? parseFloat(discountSelect.value) || 0 : 0;
+  
+  // Get underpacking type display name
+  let underpackingType = '';
+  let underpackingTypeDisplay = 'Underpacking Material';
+  if (underpackingTypeSelect && underpackingTypeSelect.value) {
+    underpackingType = underpackingTypeSelect.value;
+    underpackingTypeDisplay = underpackingTypeSelect.options[underpackingTypeSelect.selectedIndex].text;
+  }
+  
+  // Calculate prices
+  let unitPrice = parseFloat(document.getElementById('netPrice').textContent) || 0;
+  let totalPriceBeforeDiscount = unitPrice * quantity;
+  let discountAmount = (totalPriceBeforeDiscount * discount) / 100;
+  let priceAfterDiscount = totalPriceBeforeDiscount - discountAmount;
+  
+  // Add GST (12% as per the form)
+  const gstRate = 0.12;
+  const gstAmount = priceAfterDiscount * gstRate;
+  const finalPrice = priceAfterDiscount + gstAmount;
+  
+  return {
+    id: 'mpack_' + Date.now(),
+    type: 'mpack',
+    name: underpackingTypeDisplay,
+    machine: machineSelect.options[machineSelect.selectedIndex].text,
+    thickness: thicknessSelect.value + ' micron',
+    size: sizeSelect.options[sizeSelect.selectedIndex].text,
+    underpacking_type: underpackingType,
+    quantity: quantity,
+    unit_price: parseFloat(unitPrice.toFixed(2)),
+    discount_percent: discount,
+    gst_percent: 12,
+    image: 'images/mpack-placeholder.jpg',
+    added_at: new Date().toISOString(),
+    calculations: {
+      unit_price: parseFloat(unitPrice.toFixed(2)),
+      quantity: quantity,
+      discounted_subtotal: parseFloat(priceAfterDiscount.toFixed(2)),
+      discount_percent: discount,
+      discount_amount: parseFloat(discountAmount.toFixed(2)),
+      gst_percent: 12,
+      gst_amount: parseFloat(gstAmount.toFixed(2)),
+      final_total: parseFloat(finalPrice.toFixed(2))
+    }
+  };
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("MPACK JS loaded");
   
   try {
     loadMachines();
     await loadDiscounts(); // Load discounts when the page loads
+    
+    // Check if we're editing an existing cart item
+    const editingItem = checkForEditingItem();
+    if (editingItem) {
+      prefillFormWithItem(editingItem);
+    }
   } catch (error) {
     console.error("Error initializing page:", error);
   }

@@ -423,11 +423,34 @@ function handleContinueShopping() {
     } catch (error) {
         console.error('Error showing product type modal:', error);
         // Fallback in case modal fails to initialize
-        const companyId = sessionStorage.getItem('companyId') || 
-                       new URLSearchParams(window.location.search).get('company_id');
-        window.location.href = companyId ? 
-            `/product-selection?company_id=${companyId}` : 
-            '/product-selection';
+        let companyId = '';
+        try {
+            // Try to get company ID from the page data
+            const companyInfoElement = document.querySelector('[data-company-id]');
+            if (companyInfoElement) {
+                companyId = companyInfoElement.getAttribute('data-company-id');
+            } else {
+                // Fallback to URL parameters or session storage
+                companyId = new URLSearchParams(window.location.search).get('company_id') || 
+                           sessionStorage.getItem('companyId') ||
+                           (() => {
+                               const storedCompany = sessionStorage.getItem('selected_company');
+                               return storedCompany ? JSON.parse(storedCompany).id : '';
+                           })();
+            }
+            
+            // Build the URL with company ID if available
+            const url = new URL('/product-selection', window.location.origin);
+            if (companyId) {
+                url.searchParams.append('company_id', companyId);
+            }
+            
+            window.location.href = url.toString();
+            
+        } catch (e) {
+            console.error('Error in continue shopping fallback:', e);
+            window.location.href = '/product-selection';
+        }
     }
 }
 
@@ -1581,16 +1604,47 @@ function handleChangeItem(e) {
         console.log('Storing editing data in sessionStorage:', editingData);
         sessionStorage.setItem('editingCartItem', JSON.stringify(editingData));
         
+        // Get the current company information from the page or session
+        let companyId = '';
+        try {
+            // Try to get company ID from the page data
+            const companyInfoElement = document.querySelector('[data-company-id]');
+            if (companyInfoElement) {
+                companyId = companyInfoElement.getAttribute('data-company-id');
+            } else {
+                // Fallback to session storage
+                const storedCompany = sessionStorage.getItem('selected_company');
+                if (storedCompany) {
+                    const company = JSON.parse(storedCompany);
+                    companyId = company.id || '';
+                }
+            }
+        } catch (error) {
+            console.warn('Could not get company information:', error);
+        }
+        
         // Determine the redirect URL based on item type
         let redirectUrl = '/';
+        let urlParams = new URLSearchParams();
+        
+        // Add company ID to URL if available
+        if (companyId) {
+            urlParams.append('company_id', companyId);
+        }
         
         if (item.type === 'mpack') {
             redirectUrl = '/mpacks';
         } else if (item.type === 'blanket') {
             redirectUrl = '/blankets';
             if (item.blanket_type) {
-                redirectUrl += `?type=${encodeURIComponent(item.blanket_type)}`;
+                urlParams.append('type', item.blanket_type);
             }
+        }
+        
+        // Add query parameters if any exist
+        const queryString = urlParams.toString();
+        if (queryString) {
+            redirectUrl += `?${queryString}`;
         }
         
         console.log('Redirecting to:', redirectUrl);

@@ -3,6 +3,305 @@ let basePrice = 0, priceWithBar = 0, finalDiscountedPrice = 0;
 let currentDiscount = 0;
 let currentBarRate = 0;
 
+// Function to update an existing cart item
+async function updateCartItem(button, itemIndex) {
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+    
+    try {
+        // Get the current form data
+        const formData = getFormData();
+        
+        // Add the item index to the form data for server-side processing
+        formData.item_index = itemIndex;
+        
+        // Send the update request to the server
+        const response = await fetch('/update_cart_item', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update the local cart
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            if (itemIndex >= 0 && itemIndex < cart.length) {
+                // Remove the old item
+                cart.splice(itemIndex, 1);
+                
+                // Add the updated item (from the server response if available, or use the form data)
+                const updatedItem = data.updated_item || formData;
+                cart.splice(itemIndex, 0, updatedItem);
+                
+                // Save the updated cart
+                localStorage.setItem('cart', JSON.stringify(cart));
+                
+                // Update the cart count
+                if (typeof updateCartCount === 'function') {
+                    updateCartCount();
+                }
+            }
+            
+            // Show success message and redirect back to cart
+            showToast('Success', 'Item updated in cart!', 'success');
+            setTimeout(() => {
+                window.location.href = '/cart';
+            }, 1000);
+        } else {
+            throw new Error(data.error || 'Failed to update item');
+        }
+    } catch (error) {
+        console.error('Error updating cart item:', error);
+        showToast('Error', 'Failed to update item. Please try again.', 'error');
+        button.disabled = false;
+        button.textContent = 'Update Item';
+        throw error; // Re-throw the error to be caught by the caller
+    }
+}
+
+// Function to get form data for cart operations
+function getFormData() {
+    const blanketSelect = document.getElementById('blanketSelect');
+    const machineSelect = document.getElementById('machineSelect');
+    const thicknessSelect = document.getElementById('thicknessSelect');
+    const lengthInput = document.getElementById('lengthInput');
+    const widthInput = document.getElementById('widthInput');
+    const unitSelect = document.getElementById('unitSelect');
+    const quantityInput = document.getElementById('quantityInput');
+    const barSelect = document.getElementById('barSelect');
+    const gstSelect = document.getElementById('gstSelect');
+    const discountSelect = document.getElementById('discountSelect');
+    
+    // Get selected blanket
+    const selectedBlanketId = blanketSelect.value;
+    const selectedBlanket = blanketData.find(b => b.id.toString() === selectedBlanketId.toString());
+    
+    if (!selectedBlanket) {
+        throw new Error('Please select a valid blanket');
+    }
+    
+    // Get barring information
+    const selectedBar = barData.find(b => b.bar === barSelect.options[barSelect.selectedIndex]?.text);
+    const barType = selectedBar ? selectedBar.bar : 'None';
+    const barPrice = selectedBar ? parseFloat(selectedBar.barRate || selectedBar.price || 0) : 0;
+    
+    // Get dimensions and convert to meters for calculation
+    const length = parseFloat(lengthInput.value) || 0;
+    const width = parseFloat(widthInput.value) || 0;
+    const unit = unitSelect.value || 'mm';
+    const lengthM = convertToMeters(length, unit);
+    const widthM = convertToMeters(width, unit);
+    const areaSqM = lengthM * widthM;
+    
+    // Calculate base price
+    const ratePerSqMt = parseFloat(selectedBlanket.ratePerSqMt || selectedBlanket.base_rate || 0);
+    const basePrice = areaSqM * ratePerSqMt;
+    
+    // Apply discount if any
+    const discountPercent = parseFloat(discountSelect.value) || 0;
+    const discountAmount = discountPercent > 0 ? (basePrice * discountPercent / 100) : 0;
+    const discountedBasePrice = basePrice - discountAmount;
+    
+    // Add bar price after discount
+    const priceWithBar = discountedBasePrice + (barPrice * areaSqM);
+    
+    // Calculate GST
+    const gstPercent = parseFloat(gstSelect.value) || 0;
+    const gstAmount = (priceWithBar * gstPercent) / 100;
+    const finalUnitPrice = priceWithBar + gstAmount;
+    const quantity = parseInt(quantityInput.value) || 1;
+    const finalTotalPrice = finalUnitPrice * quantity;
+    
+    return {
+        type: 'blanket',
+        id: 'blanket_' + Date.now(),
+        name: selectedBlanket.name || 'Custom Blanket',
+        blanket_name: selectedBlanket.name || 'Custom Blanket',
+        machine: machineSelect.options[machineSelect.selectedIndex]?.text || '',
+        thickness: thicknessSelect ? thicknessSelect.value : '',
+        length: length,
+        width: width,
+        unit: unit,
+        bar_type: barType,
+        bar_price: barPrice,
+        quantity: quantity,
+        gst_percent: gstPercent,
+        base_price: parseFloat(basePrice.toFixed(2)),
+        discount_percent: discountPercent,
+        calculations: {
+            areaSqM: parseFloat(areaSqM.toFixed(4)),
+            ratePerSqMt: parseFloat(selectedBlanket.base_rate) || 0,
+            basePrice: parseFloat(basePrice.toFixed(2)),
+            pricePerUnit: parseFloat(priceWithBar.toFixed(2)),
+            subtotal: parseFloat((priceWithBar * quantity).toFixed(2)),
+            discount_percent: discountPercent,
+            discount_amount: parseFloat(discountAmount.toFixed(2)),
+            discounted_subtotal: parseFloat((priceWithBar * quantity).toFixed(2)),
+            gst_percent: gstPercent,
+            gst_amount: parseFloat((gstAmount * quantity).toFixed(2)),
+            final_price: parseFloat(finalTotalPrice.toFixed(2))
+        },
+        unit_price: parseFloat(finalUnitPrice.toFixed(2)),
+        total_price: parseFloat(finalTotalPrice.toFixed(2)),
+        image: 'images/products/blanket-placeholder.jpg',
+        added_at: new Date().toISOString()
+    };
+}
+
+// Function to check if we're editing an existing cart item
+function checkForEditingItem() {
+    const editingItem = sessionStorage.getItem('editingCartItem');
+    if (!editingItem) return null;
+    
+    try {
+        const parsed = JSON.parse(editingItem);
+        // Remove the item from session storage so it doesn't persist after refresh
+        sessionStorage.removeItem('editingCartItem');
+        return parsed;
+    } catch (e) {
+        console.error('Error parsing editing item:', e);
+        return null;
+    }
+}
+
+// Function to pre-fill the form with item data
+function prefillFormWithItem(item) {
+    if (!item) return;
+    
+    console.log('Prefilling form with item:', item);
+    
+    try {
+        // Update the button text
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        if (addToCartBtn) {
+            addToCartBtn.textContent = 'Update Item';
+        }
+        
+        // Set machine if available
+        if (item.machine) {
+            const machineSelect = document.getElementById('machineSelect');
+            if (machineSelect) {
+                // Find the option that matches the machine name
+                for (let i = 0; i < machineSelect.options.length; i++) {
+                    if (machineSelect.options[i].text === item.machine) {
+                        machineSelect.selectedIndex = i;
+                        // Trigger change event to load blankets for this machine
+                        machineSelect.dispatchEvent(new Event('change'));
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Set blanket type after a short delay to allow the blanket options to load
+        setTimeout(() => {
+            if (item.blanket_name) {
+                const blanketSelect = document.getElementById('blanketSelect');
+                if (blanketSelect) {
+                    // Find the option that matches the blanket name
+                    for (let i = 0; i < blanketSelect.options.length; i++) {
+                        if (blanketSelect.options[i].text === item.blanket_name) {
+                            blanketSelect.selectedIndex = i;
+                            // Trigger change event to update prices
+                            blanketSelect.dispatchEvent(new Event('change'));
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Set thickness if available
+            if (item.thickness) {
+                const thicknessSelect = document.getElementById('thicknessSelect');
+                if (thicknessSelect) {
+                    for (let i = 0; i < thicknessSelect.options.length; i++) {
+                        if (thicknessSelect.options[i].value === item.thickness) {
+                            thicknessSelect.selectedIndex = i;
+                            thicknessSelect.dispatchEvent(new Event('change'));
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Set dimensions
+            const lengthInput = document.getElementById('lengthInput');
+            const widthInput = document.getElementById('widthInput');
+            const unitSelect = document.getElementById('unitSelect');
+            
+            if (lengthInput && !isNaN(item.length)) lengthInput.value = item.length;
+            if (widthInput && !isNaN(item.width)) widthInput.value = item.width;
+            if (unitSelect && item.unit) unitSelect.value = item.unit;
+            
+            // Set quantity
+            const quantityInput = document.getElementById('quantityInput');
+            if (quantityInput && !isNaN(item.quantity)) quantityInput.value = item.quantity;
+            
+            // Set bar type after a short delay to allow the bar options to load
+            setTimeout(() => {
+                if (item.bar_type && item.bar_type !== 'None') {
+                    const barSelect = document.getElementById('barSelect');
+                    if (barSelect) {
+                        for (let i = 0; i < barSelect.options.length; i++) {
+                            if (barSelect.options[i].text === item.bar_type) {
+                                barSelect.selectedIndex = i;
+                                barSelect.dispatchEvent(new Event('change'));
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Set GST
+                const gstSelect = document.getElementById('gstSelect');
+                if (gstSelect && !isNaN(item.gst_percent)) {
+                    gstSelect.value = item.gst_percent;
+                    gstSelect.dispatchEvent(new Event('change'));
+                }
+                
+                // Set discount if available
+                if (item.discount_percent) {
+                    const discountSelect = document.getElementById('discountSelect');
+                    if (discountSelect) {
+                        // Try to find an exact match first
+                        let found = false;
+                        for (let i = 0; i < discountSelect.options.length; i++) {
+                            if (parseFloat(discountSelect.options[i].value) === item.discount_percent) {
+                                discountSelect.selectedIndex = i;
+                                discountSelect.dispatchEvent(new Event('change'));
+                                found = true;
+                                break;
+                            }
+                        }
+                        
+                        // If no exact match, set the value directly (this will work if the select allows custom values)
+                        if (!found && discountSelect.value !== '') {
+                            discountSelect.value = item.discount_percent;
+                            discountSelect.dispatchEvent(new Event('change'));
+                        }
+                    }
+                }
+                
+                // Recalculate the price to update the display
+                if (typeof calculatePrice === 'function') {
+                    calculatePrice();
+                }
+                
+            }, 500); // Additional delay for bar options to load
+            
+        }, 500); // Initial delay for blanket options to load
+        
+    } catch (error) {
+        console.error('Error prefilling form:', error);
+    }
+}
+
 window.onload = () => {
   fetch("/api/machines")
     .then(res => res.json())
@@ -331,24 +630,35 @@ window.onload = () => {
   }
   
   // Hook add-to-cart button
-  const addBtn = document.getElementById("addToCartBlanket");
-  if (addBtn) {
-    addBtn.addEventListener("click", () => {
-      if (!selectedBlanket) return;
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      cart.push({
-        type: "blanket",
-        blanketId: selectedBlanket.id,
-        name: selectedBlanket.name,
-        lengthM: lengthM,
-        widthM: widthM,
-        quantity: quantity,
-        unitPrice: priceWithBar,
-        subtotal: priceWithBar * quantity
-      });
-      localStorage.setItem("cart", JSON.stringify(cart));
-      if (typeof updateCartCount === "function") updateCartCount();
-      alert("Added to cart");
+  const addToCartBtn = document.getElementById("addToCartBtn");
+  if (addToCartBtn) {
+    addToCartBtn.addEventListener("click", async function(e) {
+      e.preventDefault();
+      const button = this;
+      const editingItem = checkForEditingItem();
+      
+      button.disabled = true;
+      button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + 
+                        (editingItem ? 'Updating...' : 'Adding...');
+      
+      try {
+        if (editingItem) {
+          // If editing an existing item, update it
+          await updateCartItem(button, editingItem.index);
+        } else {
+          // Otherwise, add a new item
+          await addBlanketToCart();
+          button.textContent = 'Added to Cart';
+          setTimeout(() => {
+            button.disabled = false;
+            button.textContent = 'Add to Cart';
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        button.disabled = false;
+        button.textContent = editingItem ? 'Update Item' : 'Add to Cart';
+      }
     });
   }
 
@@ -666,6 +976,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function addBlanketToCart() {
+  return new Promise((resolve, reject) => {
   // Get input elements
   const blanketSelect = document.getElementById('blanketSelect');
   const machineSelect = document.getElementById('machineSelect');
@@ -824,6 +1135,7 @@ function addBlanketToCart() {
           if (typeof updateCartCount === 'function') {
             updateCartCount();
           }
+          resolve(data); // Resolve the promise when item is successfully added
         } else if (data.is_duplicate) {
           // Show confirmation dialog for duplicate product
           if (confirm('A product with the same dimensions is already in your cart. Would you like to add it anyway?')) {
@@ -840,18 +1152,24 @@ function addBlanketToCart() {
                 if (typeof updateCartCount === 'function') {
                   updateCartCount();
                 }
+                resolve(data); // Resolve the promise when duplicate is confirmed and added
               } else {
                 showToast('Error', data.error || 'Failed to add to cart', 'error');
+                reject(data.error || 'Failed to add to cart'); // Reject the promise if there's an error
               }
             })
             .catch(err => {
               console.error('Error adding to cart:', err);
               showToast('Error', 'Failed to add to cart. Please try again.', 'error');
+              reject(err);
             });
+          } else {
+            // User chose not to add duplicate
+            reject('Duplicate item not added');
           }
         } else {
           showToast('Error', data.error || 'Failed to add to cart', 'error');
-          throw new Error(data.error || 'Failed to add to cart');
+          reject(data.error || 'Failed to add to cart');
         }
       })
       .catch(err => {
@@ -861,8 +1179,7 @@ function addBlanketToCart() {
   } catch (e) {
     console.error('Unexpected error:', e);
     showToast('Error', 'Failed to add to cart. Please try again.', 'error');
+    reject(e); // Reject the promise if there's an error
   }
-
-  showToast('Success', 'Blanket added to cart!', 'success');
-  if (typeof updateCartCount === 'function') updateCartCount();
+});
 }

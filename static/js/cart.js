@@ -1319,6 +1319,42 @@ function handleQuantityKeyDown(event) {
     }
 }
 
+// Function to handle change item button clicks
+function handleChangeItem(e) {
+    if (e.target.closest('.change-item-btn')) {
+        e.preventDefault();
+        const button = e.target.closest('.change-item-btn');
+        const index = parseInt(button.dataset.index);
+        
+        // Get the cart item
+        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+        const item = cart.products[index];
+        
+        if (!item) return;
+        
+        // Store the item data and index in session storage
+        sessionStorage.setItem('editingCartItem', JSON.stringify({
+            index: index,
+            item: item
+        }));
+        
+        // Redirect to the appropriate product page
+        let redirectUrl = '/';
+        
+        if (item.type === 'mpack') {
+            redirectUrl = '/mpacks';
+        } else if (item.type === 'blanket') {
+            redirectUrl = '/blankets';
+            // Include the blanket type in the URL if available
+            if (item.blanket_type) {
+                redirectUrl += `?type=${encodeURIComponent(item.blanket_type)}`;
+            }
+        }
+        
+        window.location.href = redirectUrl;
+    }
+}
+
 // Function to set up remove handlers using event delegation
 function setupRemoveHandlers() {
     // Remove any existing event listeners to prevent duplicates
@@ -1326,6 +1362,7 @@ function setupRemoveHandlers() {
     
     // Add event delegation for remove buttons
     document.addEventListener('click', handleRemoveClick);
+    document.addEventListener('click', handleChangeItem);
 }
 
 // Handle remove button clicks using event delegation

@@ -438,30 +438,47 @@ function checkForDuplicateMpacks() {
         const seen = new Map();
 
         mpackItems.forEach(item => {
-            // Determine a unique key for the MPack – fall back to product name text if no attribute present
-            const key = item.dataset.name || item.querySelector('.item-name')?.textContent?.trim();
+            // Create a more specific key that includes both ID and name to prevent incorrect merging
+            const itemId = item.dataset.id || '';
+            const itemName = item.dataset.name || item.querySelector('.item-name')?.textContent?.trim() || '';
+            const key = `${itemId}-${itemName}`; // Combine ID and name for uniqueness
+            
             if (!key) return; // Skip if no identifiable key
 
             if (seen.has(key)) {
-                // Duplicate found – merge quantities instead of keeping duplicate DOM nodes
+                // Duplicate found – only merge if it's truly the same product with same attributes
                 const existing = seen.get(key);
-                const qtyInputExisting = existing.querySelector('.quantity-input');
-                const qtyInputDuplicate = item.querySelector('.quantity-input');
-
-                if (qtyInputExisting && qtyInputDuplicate) {
-                    const totalQty = (parseInt(qtyInputExisting.value) || 1) + (parseInt(qtyInputDuplicate.value) || 1);
-                    qtyInputExisting.value = totalQty;
-                    existing.setAttribute('data-quantity', totalQty);
+                const existingAttrs = existing.dataset;
+                const newAttrs = item.dataset;
+                
+                // Check if all data attributes match before considering them duplicates
+                let isExactMatch = true;
+                for (const attr in existingAttrs) {
+                    if (existingAttrs[attr] !== newAttrs[attr]) {
+                        isExactMatch = false;
+                        break;
+                    }
                 }
+                
+                if (isExactMatch) {
+                    const qtyInputExisting = existing.querySelector('.quantity-input');
+                    const qtyInputDuplicate = item.querySelector('.quantity-input');
 
-                // Remove the duplicate row from DOM
-                item.remove();
+                    if (qtyInputExisting && qtyInputDuplicate) {
+                        const totalQty = (parseInt(qtyInputExisting.value) || 1) + (parseInt(qtyInputDuplicate.value) || 1);
+                        qtyInputExisting.value = totalQty;
+                        existing.setAttribute('data-quantity', totalQty);
+                    }
+
+                    // Remove the duplicate row from DOM
+                    item.remove();
+                }
             } else {
                 seen.set(key, item);
             }
         });
 
-        // After merging duplicates, recalculate totals
+        // After checking for duplicates, recalculate totals
         updateCartTotals();
     } catch (err) {
         console.error('Error checking for duplicate MPacks:', err);

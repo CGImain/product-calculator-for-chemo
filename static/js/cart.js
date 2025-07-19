@@ -1341,12 +1341,7 @@ function handleQuantityKeyDown(event) {
 
 // Function to handle change item button clicks
 function handleChangeItem(e) {
-    console.log('=== handleChangeItem called ===');
-    
-    if (!e.target.closest('.change-item-btn')) {
-        console.log('Not a change button click');
-        return;
-    }
+    if (!e.target.closest('.change-item-btn')) return;
     
     e.preventDefault();
     e.stopPropagation();
@@ -1359,15 +1354,15 @@ function handleChangeItem(e) {
         return;
     }
     
-    const index = parseInt(button.dataset.index, 10);
-    if (isNaN(index) || index < 0) {
+    const uiIndex = parseInt(button.dataset.index, 10);
+    if (isNaN(uiIndex) || uiIndex < 0) {
         console.error('❌ Invalid item index:', button.dataset.index);
         console.log('Button element:', button);
         console.log('Button dataset:', button.dataset);
         return;
     }
     
-    console.log(`🔍 Change button clicked for item at index: ${index}`);
+    console.log(`🔍 Change button clicked for item at UI index: ${uiIndex}`);
     
     // Get the cart data with proper error handling
     let cart = { products: [] };
@@ -1404,30 +1399,65 @@ function handleChangeItem(e) {
         return;
     }
     
-    // Ensure products array exists
     if (!Array.isArray(cart.products)) {
         console.error('❌ Invalid cart products format, initializing empty cart');
         cart.products = [];
     }
     
-    // Log all items in cart for debugging
-    console.log('📋 All items in cart:');
-    cart.products.forEach((item, i) => {
-        console.log(`  [${i}]`, item ? `Type: ${item.type || 'unknown'}, ID: ${item.id || 'none'}` : 'null/undefined');
-    });
+    // Get the cart item element and its type
+    const cartItemElement = button.closest('.cart-item');
+    const itemType = cartItemElement ? cartItemElement.dataset.type : null;
     
-    // Validate index range
-    if (index < 0 || index >= cart.products.length) {
-        const errorMsg = `❌ Item index ${index} out of range (${cart.products.length} items in cart)`;
-        console.error(errorMsg);
-        alert('This item could not be found in your cart. Please refresh the page and try again.');
-        console.error('Cart items:', cart.products);
-        return;
+    // Find the item in the cart using the UI index as the primary method
+    let item = null;
+    let itemIndex = -1;
+    
+    // First try to find by UI index if it's valid
+    if (uiIndex >= 0 && uiIndex < cart.products.length) {
+        item = cart.products[uiIndex];
+        itemIndex = uiIndex;
+        console.log(`✅ Found item at UI index: ${uiIndex}`);
+        
+        // Verify the item type matches if we have it from the DOM
+        if (itemType && item && item.type !== itemType) {
+            console.warn(`⚠️ Item type mismatch: expected ${itemType}, found ${item.type}. Trying to find matching item...`);
+            
+            // If types don't match, try to find an item with matching type and similar properties
+            const matchingItem = cart.products.find((product, idx) => {
+                if (!product || product.type !== itemType) return false;
+                
+                // For blankets, check additional properties to ensure it's the right one
+                if (itemType === 'blanket' && product.name === item.name && 
+                    product.machine === item.machine) {
+                    itemIndex = idx;
+                    return true;
+                }
+                
+                // For mpacks, check name and unit price
+                if (itemType === 'mpack' && product.name === item.name && 
+                    product.unit_price === item.unit_price) {
+                    itemIndex = idx;
+                    return true;
+                }
+                
+                return false;
+            });
+            
+            if (matchingItem) {
+                console.log(`✅ Found matching item at index ${itemIndex} after type mismatch`);
+                item = matchingItem;
+            } else {
+                console.warn('⚠️ Could not find matching item by type, using original item');
+            }
+        }
     }
     
-    const item = cart.products[index];
+    // If still no item found, show error
     if (!item) {
-        console.error(`❌ No item found at index ${index}`);
+        const errorMsg = `❌ Could not find item in cart. UI Index: ${uiIndex}, Found items: ${cart.products.length}`;
+        console.error(errorMsg);
+        console.error('Cart items:', cart.products);
+        alert('This item could not be found in your cart. Please refresh the page and try again.');
         return;
     }
     

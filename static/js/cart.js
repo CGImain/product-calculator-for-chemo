@@ -563,58 +563,53 @@ function handleClearCart(event) {
     return false;
 }
 
+// Function to sync cart from server to localStorage
+function syncCartFromServer() {
+    try {
+        // Get the cart data from the server-rendered template
+        const serverCartData = document.getElementById('cartData');
+        if (serverCartData && serverCartData.textContent) {
+            const serverCart = JSON.parse(serverCartData.textContent);
+            if (serverCart && Array.isArray(serverCart.products)) {
+                // Update localStorage with server cart data
+                localStorage.setItem('cart', JSON.stringify(serverCart));
+                console.log('Synced cart from server to localStorage');
+                return true;
+            }
+        }
+    } catch (error) {
+        console.error('Error syncing cart from server:', error);
+    }
+    return false;
+}
+
 // Initialize cart when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing cart...');
     
-    // Initial empty state check
-    updateCartEmptyState();
-    
     try {
-        // Initialize company info
-        initCompanyInfo();
+        // Sync cart from server to localStorage first
+        syncCartFromServer();
         
-        // Set up continue shopping buttons
-        const continueShoppingBtns = [
-            'continueShoppingBtn',
-            'continueShoppingBtnBottom',
-            'emptyCartContinueShopping'
-        ];
+        // Initial empty state check
+        updateCartEmptyState();
         
-        continueShoppingBtns.forEach(btnId => {
-            const btn = document.getElementById(btnId);
-            if (btn) {
-                // Remove any existing event listeners to prevent duplicates
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode.replaceChild(newBtn, btn);
-                
-                newBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    handleContinueShopping();
-                });
-            }
-        });
-        
-        // Set up clear cart button
-        const clearCartBtn = document.getElementById('clearCartBtn');
-        if (clearCartBtn) {
-            clearCartBtn.addEventListener('click', handleClearCart);
-        }
-        
-        // Initialize all cart functionality
-        console.log('Initializing cart functionality...');
+        // Initialize cart
         initializeCart();
         
-        // Set up quantity handlers
-        console.log('Setting up quantity handlers...');
-        setupQuantityHandlers();
+        // Set up continue shopping buttons
+        const continueShoppingBtn = document.getElementById('continueShoppingBtn');
+        const continueShoppingBtnBottom = document.getElementById('continueShoppingBtnBottom');
         
-        // Set up remove handlers
-        console.log('Setting up remove handlers...');
-        setupRemoveHandlers();
+        if (continueShoppingBtn) {
+            continueShoppingBtn.addEventListener('click', handleContinueShopping);
+        }
+        
+        if (continueShoppingBtnBottom) {
+            continueShoppingBtnBottom.addEventListener('click', handleContinueShopping);
+        }
         
         // Initialize cart calculations
-        console.log('Initializing cart calculations...');
         initializeCartCalculations();
         
         // Update cart totals
@@ -645,17 +640,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Force a recalculation of totals after a short delay
             updateCartTotals();
         }, 100);
+        
+        // Set up clear cart button
+        const clearCartBtn = document.getElementById('clearCartBtn');
+        if (clearCartBtn) {
+            clearCartBtn.addEventListener('click', handleClearCart);
+        }
     } catch (error) {
         console.error('Error initializing cart:', error);
     }
     
-    // Set up clear cart button
-    const clearCartBtn = document.getElementById('clearCartBtn');
-    
-    // Initialize all cart handlers
-    initializeCart();
-    
-    // Set up event delegation for quantity buttons
+    // Set up event delegation for quantity buttons and discount updates
     document.addEventListener('click', function(event) {
         // Handle decrease quantity button click
         if (event.target.closest('.decrease-quantity')) {
@@ -707,39 +702,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check for duplicate MPacks
     checkForDuplicateMpacks();
+    
+    // Set up clear cart button
+    const clearCartBtn = document.getElementById('clearCartBtn');
     if (clearCartBtn) {
         clearCartBtn.addEventListener('click', function(e) {
             e.preventDefault();
             if (confirm('Are you sure you want to clear your cart? This cannot be undone.')) {
-                fetch('/clear_cart', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken()
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.reload();
-                    } else {
-                        showToast('Error', data.message || 'Failed to clear cart', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error clearing cart:', error);
-                    showToast('Error', 'An error occurred while clearing the cart', 'error');
-                });
+                handleClearCart(e);
             }
         });
     }
-    
-    // Initialize cart functionality
-    initializeCart();
-    setupQuantityHandlers();
-    setupRemoveHandlers();
-    initializeCartCalculations();
-    checkForDuplicateMpacks();
     
     // Set up checkout button
     const checkoutBtn = document.getElementById('checkoutBtn');
@@ -747,15 +720,6 @@ document.addEventListener('DOMContentLoaded', function() {
         checkoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
             window.location.href = '/checkout';
-        });
-    }
-    
-    // Set up header continue shopping button
-    const continueShoppingBtn = document.getElementById('continueShoppingBtn');
-    if (continueShoppingBtn) {
-        continueShoppingBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            handleContinueShopping();
         });
     }
     

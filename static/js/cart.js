@@ -1321,38 +1321,56 @@ function handleQuantityKeyDown(event) {
 
 // Function to handle change item button clicks
 function handleChangeItem(e) {
-    if (e.target.closest('.change-item-btn')) {
-        e.preventDefault();
-        const button = e.target.closest('.change-item-btn');
-        const index = parseInt(button.dataset.index);
-        
-        // Get the cart item
-        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
-        const item = cart.products[index];
-        
-        if (!item) return;
-        
-        // Store the item data and index in session storage
+    if (!e.target.closest('.change-item-btn')) return;
+    
+    e.preventDefault();
+    const button = e.target.closest('.change-item-btn');
+    const index = parseInt(button.dataset.index);
+    if (isNaN(index)) return;
+    
+    // Get the cart data
+    let cart;
+    try {
+        const cartData = localStorage.getItem('cart');
+        cart = cartData ? JSON.parse(cartData) : {};
+    } catch (error) {
+        console.error('Error parsing cart data:', error);
+        return;
+    }
+    
+    // Check if cart has products array and the item exists
+    if (!cart.products || !Array.isArray(cart.products) || !cart.products[index]) {
+        console.error('Cart item not found at index:', index);
+        return;
+    }
+    
+    const item = cart.products[index];
+    
+    // Store the item data and index in session storage
+    try {
         sessionStorage.setItem('editingCartItem', JSON.stringify({
             index: index,
             item: item
         }));
-        
-        // Redirect to the appropriate product page
-        let redirectUrl = '/';
-        
-        if (item.type === 'mpack') {
-            redirectUrl = '/mpacks';
-        } else if (item.type === 'blanket') {
-            redirectUrl = '/blankets';
-            // Include the blanket type in the URL if available
-            if (item.blanket_type) {
-                redirectUrl += `?type=${encodeURIComponent(item.blanket_type)}`;
-            }
-        }
-        
-        window.location.href = redirectUrl;
+    } catch (error) {
+        console.error('Error storing item in session storage:', error);
+        return;
     }
+    
+    // Redirect to the appropriate product page
+    let redirectUrl = '/';
+    
+    if (item.type === 'mpack') {
+        redirectUrl = '/mpacks';
+    } else if (item.type === 'blanket') {
+        redirectUrl = '/blankets';
+        // Include the blanket type in the URL if available
+        if (item.blanket_type) {
+            redirectUrl += `?type=${encodeURIComponent(item.blanket_type)}`;
+        }
+    }
+    
+    window.location.href = redirectUrl;
 }
 
 // Function to set up remove handlers using event delegation

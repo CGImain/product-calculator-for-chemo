@@ -1501,16 +1501,29 @@ function handleChangeItem(e) {
         console.log('🛒 Cart loaded with', cart.products.length, 'items');
         
         // Find the item by ID, handling both string and ObjectId formats
+        console.log('Searching for item with ID:', itemId);
+        console.log('Available items:', cart.products);
+        
         const item = cart.products.find(cartItem => {
             if (!cartItem) return false;
+            
+            // Get the ID, handling both id and _id fields
             const cartItemId = cartItem.id || cartItem._id;
-            // Convert both to string for comparison to handle ObjectId
-            return String(cartItemId) === String(itemId);
+            if (!cartItemId) return false;
+            
+            // Convert both to string and compare
+            const match = String(cartItemId) === String(itemId);
+            console.log(`Comparing ${cartItemId} (${typeof cartItemId}) with ${itemId} (${typeof itemId}):`, match);
+            return match;
         });
         
         if (!item) {
             console.error('❌ Could not find item in cart with ID:', itemId);
-            console.log('Available item IDs:', cart.products.map(i => i?.id || i?._id));
+            console.log('Available item IDs:', cart.products.map(i => ({
+                id: i?.id || i?._id,
+                type: i?.type,
+                name: i?.name
+            })));
             showToast('Error', 'Item not found in cart', 'error');
             return;
         }

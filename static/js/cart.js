@@ -1537,67 +1537,72 @@ function handleChangeItem(e) {
     console.log('🔍 Total items in cart data:', cart.products.length);
     console.log('🔍 Cart items in DOM:', document.querySelectorAll('.cart-item').length);
     
-    // First try to find by UI index if it's valid
-    if (uiIndex >= 0) {
-        // Try direct index first
-        if (uiIndex < cart.products.length) {
-            item = cart.products[uiIndex];
-            itemIndex = uiIndex;
-            console.log(`✅ Found item at cart data index: ${uiIndex}`);
-        }
+    // Get all cart items from the DOM
+    const cartItems = document.querySelectorAll('.cart-item');
+    
+    if (uiIndex >= 0 && uiIndex < cartItems.length) {
+        const targetItem = cartItems[uiIndex];
+        const itemId = targetItem.getAttribute('data-item-id') || 
+                      targetItem.querySelector('[data-item-id]')?.getAttribute('data-item-id');
+        const itemName = targetItem.getAttribute('data-name') || 
+                        targetItem.querySelector('.item-name')?.textContent?.trim() || '';
+        const itemType = targetItem.getAttribute('data-type');
         
-        // If not found or type mismatch, try to find by DOM data attributes
-        if (!item || (itemType && item.type && item.type.toLowerCase() !== itemType.toLowerCase())) {
-            console.log('⚠️ Item not found at cart data index or type mismatch, checking DOM data...');
-            
-            // Get all cart items from DOM
-            const cartItems = document.querySelectorAll('.cart-item');
-            if (uiIndex < cartItems.length) {
-                const domItem = cartItems[uiIndex];
-                const domItemType = domItem.dataset.type;
-                const domItemName = domItem.querySelector('.item-name')?.textContent?.trim() || '';
-                
-                console.log(`🔍 Found DOM item at index ${uiIndex}:`, { type: domItemType, name: domItemName });
-                
-                // Try to find matching item in cart data
-                const foundItem = cart.products.find((product, idx) => {
-                    if (!product) return false;
-                    
-                    // If we have a type from DOM, it must match
-                    if (domItemType && product.type !== domItemType) return false;
-                    
-                    // If we have a name from DOM, it should match
-                    if (domItemName) {
-                        const productName = product.name || '';
-                        if (productName.toLowerCase() !== domItemName.toLowerCase()) {
-                            return false;
-                        }
-                    }
-                    
-                    // For blankets, check additional attributes
-                    if (domItemType === 'blanket') {
-                        const domMachine = domItem.dataset.machine || '';
-                        const domThickness = domItem.dataset.thickness || '';
-                        
-                        if (domMachine && product.machine !== domMachine) return false;
-                        if (domThickness && product.thickness !== domThickness) return false;
-                    }
-                    
-                    // For mpacks, check unit price if available
-                    if (domItemType === 'mpack') {
-                        const domUnitPrice = parseFloat(domItem.dataset.unitPrice || 0);
-                        if (domUnitPrice > 0 && product.unit_price != domUnitPrice) return false;
-                    }
-                    
+        console.log(`🔍 Looking for item with UI index: ${uiIndex}, itemId: ${itemId}, name: ${itemName}, type: ${itemType}`);
+        
+        // First try to find by ID if available (most reliable)
+        if (itemId) {
+            const foundById = cart.products.find((p, idx) => {
+                if (!p) return false;
+                const itemIdToCompare = p.id || p._id;
+                if (itemIdToCompare && itemIdToCompare.toString() === itemId.toString()) {
                     itemIndex = idx;
                     return true;
-                });
-                
-                if (foundItem) {
-                    console.log(`✅ Found matching cart item at index ${itemIndex} by DOM data`);
-                    item = foundItem;
                 }
+                return false;
+            });
+            
+            if (foundById) {
+                item = foundById;
+                console.log(`✅ Found item by ID at index ${itemIndex}`);
             }
+        }
+        
+        // If not found by ID, try by exact position (second most reliable)
+        if (!item && uiIndex < cart.products.length) {
+            const candidate = cart.products[uiIndex];
+            // Verify the candidate matches at least the type
+            if (candidate && candidate.type === itemType) {
+                item = candidate;
+                itemIndex = uiIndex;
+                console.log(`✅ Found item at cart data index: ${uiIndex}`);
+            }
+        }
+        
+        // If still not found, try to match by name and type (fallback)
+        if (!item && itemName && itemType) {
+            const foundByName = cart.products.find((p, idx) => {
+                if (!p || p.type !== itemType) return false;
+                
+                const productName = p.name || '';
+                if (productName.toLowerCase() === itemName.toLowerCase()) {
+                    itemIndex = idx;
+                    return true;
+                }
+                return false;
+            });
+            
+            if (foundByName) {
+                item = foundByName;
+                console.log(`✅ Found item by name and type at index ${itemIndex}`);
+            }
+        }
+        
+        // Last resort: if we still don't have an item but have a valid index, use it
+        if (!item && uiIndex < cart.products.length) {
+            console.warn('⚠️ Using fallback: selecting item by index without verification');
+            item = cart.products[uiIndex];
+            itemIndex = uiIndex;
         }
     }
     

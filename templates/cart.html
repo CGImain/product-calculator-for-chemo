@@ -371,12 +371,16 @@
                     <div class="cart-item mb-4" 
                          data-type="{{ item.type }}" 
                          data-index="{{ loop.index0 }}" 
+                         data-item-id="{{ item.id or item._id or '' }}"
+                         data-name="{{ item.name }}"
                          {% if item.type == 'blanket' %}
                              data-base-price="{{ item.base_price|default(0) }}" 
                              data-bar-price="{{ item.bar_price|default(0) }}" 
                              data-quantity="{{ item.quantity|default(1) }}" 
                              data-discount-percent="{{ item.discount_percent|default(0) }}" 
                              data-gst-percent="{{ item.gst_percent|default(18) }}"
+                             {% if item.machine %}data-machine="{{ item.machine }}"{% endif %}
+                             {% if item.thickness %}data-thickness="{{ item.thickness }}"{% endif %}
                          {% elif item.type == 'mpack' %}
                              data-unit-price="{{ item.unit_price|default(0) }}" 
                              data-quantity="{{ item.quantity|default(1) }}" 
@@ -516,8 +520,9 @@
                                         <button type="button" class="btn btn-outline-primary btn-sm change-item-btn" 
                                                 data-index="{{ loop.index0 }}" 
                                                 data-item-type="{{ item.type }}"
-                                                style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                                            <i class="fas fa-edit"></i> Change
+                                                data-item-id="{{ item.id or item._id or '' }}"
+                                                title="Edit this item">
+                                            <i class="fas fa-edit me-1"></i> Change
                                         </button>
                                         <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                                             <i class="fas fa-trash"></i> Remove

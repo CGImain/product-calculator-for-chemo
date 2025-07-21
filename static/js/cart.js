@@ -1484,14 +1484,15 @@ function handleChangeItem(e) {
         return;
     }
     
-    // Get the item ID from the button's data attribute first, then fall back to the cart item element
-    let itemId = button.getAttribute('data-item-id');
-    if (!itemId) {
-        itemId = cartItemElement.getAttribute('data-item-id');
-    }
+    // Get all possible identifiers from the DOM
+    let itemId = button.getAttribute('data-item-id') || cartItemElement.getAttribute('data-item-id');
+    const originalItemId = itemId; // Store the original ID for reference
+    const itemName = cartItemElement.getAttribute('data-name');
+    const itemType = cartItemElement.getAttribute('data-type');
+    const itemMachine = cartItemElement.getAttribute('data-machine');
     
-    if (!itemId) {
-        console.error('❌ Could not find item ID in cart item element or button');
+    if (!itemId && !itemName) {
+        console.error('❌ Could not find item ID or name in cart item element or button');
         console.log('Button attributes:', Array.from(button.attributes).map(attr => ({
             name: attr.name,
             value: attr.value
@@ -1504,7 +1505,12 @@ function handleChangeItem(e) {
         return;
     }
     
-    console.log('Item ID to edit:', itemId);
+    console.log('🔍 Looking for item with:', {
+        itemId,
+        itemName,
+        itemType,
+        itemMachine
+    });
     
     // Get the cart data with proper error handling
     const cart = getCart();
@@ -1515,47 +1521,82 @@ function handleChangeItem(e) {
     }
     
     console.log('🛒 Cart loaded with', cart.products.length, 'items');
+    console.log('📦 Cart items:', cart.products.map((item, idx) => ({
+        index: idx,
+        id: item?.id || item?._id,
+        type: item?.type,
+        name: item?.name,
+        machine: item?.machine,
+        rawId: item?.id,
+        raw_id: item?._id
+    })));
     
-    // Get item type from the cart item element
-    const itemType = cartItemElement.getAttribute('data-type');
     if (!itemType) {
         console.error('❌ Could not determine item type');
         showToast('Error', 'Could not determine item type', 'error');
         return;
     }
     
-    // Try to find the item in the cart
+    // Try to find the item in the cart using multiple strategies
     let item = null;
     
-    // First try exact match with item.id or item._id
-    item = cart.products.find(cartItem => {
-        if (!cartItem) return false;
-        const cartItemId = cartItem.id || cartItem._id || '';
-        return String(cartItemId) === String(itemId);
-    });
-    
-    // If not found, try to find by name and type (as a fallback)
-    if (!item) {
-        console.log('Item not found by ID, trying to find by name and type...');
-        const itemName = cartItemElement.getAttribute('data-name');
+    // Strategy 1: Exact ID match (handles both string and ObjectId)
+    if (itemId) {
+        item = cart.products.find(cartItem => {
+            if (!cartItem) return false;
+            const cartItemId = cartItem.id || cartItem._id || '';
+            return String(cartItemId) === String(itemId);
+        });
         
-        if (itemName) {
-            item = cart.products.find(cartItem => {
-                return cartItem && 
-                       cartItem.type === itemType && 
-                       cartItem.name === itemName;
-            });
+        if (item) {
+            console.log('✅ Found item by exact ID match:', item);
+        }
+    }
+    
+    // Strategy 2: Match by name, type, and machine (for blankets)
+    if (!item && itemName && itemType) {
+        console.log('🔍 Trying to find item by name, type, and machine...');
+        item = cart.products.find(cartItem => {
+            if (!cartItem) return false;
             
-            if (item) {
-                console.log('Found item by name and type:', item);
-                // Update the itemId to the one from the found item
-                itemId = item.id || item._id || itemId;
+            const nameMatch = cartItem.name === itemName;
+            const typeMatch = cartItem.type === itemType;
+            
+            // For blankets, also match by machine
+            if (itemType === 'blanket') {
+                const machineMatch = cartItem.machine === itemMachine;
+                return nameMatch && typeMatch && machineMatch;
             }
+            
+            return nameMatch && typeMatch;
+        });
+        
+        if (item) {
+            console.log('✅ Found item by name/type/machine match:', item);
+            // Update the itemId to the one from the found item
+            itemId = item.id || item._id || itemId;
+        }
+    }
+    
+    // Strategy 3: Match by name and type only (less strict)
+    if (!item && itemName && itemType) {
+        console.log('🔍 Trying to find item by name and type only...');
+        item = cart.products.find(cartItem => {
+            return cartItem && 
+                   cartItem.type === itemType && 
+                   cartItem.name === itemName;
+        });
+        
+        if (item) {
+            console.log('✅ Found item by name/type match:', item);
+            // Update the itemId to the one from the found item
+            itemId = item.id || item._id || itemId;
         }
     }
     
     if (!item) {
-        console.error('❌ Could not find item in cart with ID:', itemId);
+        console.error('❌ Could not find matching item in cart');
+        console.log('Searched with:', { itemId, itemName, itemType, itemMachine });
         console.log('Available items in cart:', cart.products.map((i, idx) => ({
             index: idx,
             id: i?.id || i?._id,
@@ -1564,11 +1605,11 @@ function handleChangeItem(e) {
             machine: i?.machine,
             rawItem: i
         })));
-        showToast('Error', 'Item not found in cart', 'error');
+        showToast('Error', 'Could not find item in cart', 'error');
         return;
     }
     
-    console.log('✅ Found item:', item);
+    console.log('✅ Found item for editing:', item);
     
     // Determine the redirect URL based on item type
     let redirectUrl = '/' + itemType + 's'; // e.g., /blankets or /mpacks
@@ -1584,7 +1625,15 @@ function handleChangeItem(e) {
         Object.keys(item).forEach(key => {
             if (item[key] !== undefined && item[key] !== null && 
                 key !== 'id' && key !== '_id' && key !== 'calculations') {
-                urlParams.append(key, item[key]);
+                try {
+                    // Convert to string and handle potential circular references
+                    const value = typeof item[key] === 'object' 
+                        ? JSON.stringify(item[key])
+                        : String(item[key]);
+                    urlParams.append(key, value);
+                } catch (error) {
+                    console.warn(`Could not stringify property ${key}:`, error);
+                }
             }
         });
         

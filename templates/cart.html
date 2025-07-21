@@ -517,10 +517,16 @@
                                         </div>
                                     </div>
                                     <div class="mt-3 pt-3 border-top d-flex justify-content-end gap-2">
-                                        <button type="button" class="btn btn-outline-primary btn-sm change-item-btn" 
+                                        <button type="button" 
+                                                class="btn btn-outline-primary btn-sm change-item-btn" 
                                                 data-index="{{ loop.index0 }}" 
                                                 data-item-type="{{ item.type }}"
                                                 data-item-id="{{ item.id or item._id or '' }}"
+                                                data-item-name="{{ item.name }}"
+                                                {% if item.type == 'blanket' %}
+                                                    data-machine="{{ item.machine or '' }}"
+                                                    data-thickness="{{ item.thickness or '' }}"
+                                                {% endif %}
                                                 title="Edit this item">
                                             <i class="fas fa-edit me-1"></i> Change
                                         </button>

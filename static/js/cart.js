@@ -1534,6 +1534,7 @@ function handleChangeItem(e) {
     let itemIndex = -1;
     
     console.log('🔍 Looking for item at UI index:', uiIndex);
+    console.log('🔍 Cart data:', cart);
     console.log('🔍 Total items in cart data:', cart.products.length);
     console.log('🔍 Cart items in DOM:', document.querySelectorAll('.cart-item').length);
     
@@ -1551,7 +1552,7 @@ function handleChangeItem(e) {
         console.log(`🔍 Looking for item with UI index: ${uiIndex}, itemId: ${itemId}, name: ${itemName}, type: ${itemType}`);
         
         // First try to find by ID if available (most reliable)
-        if (itemId) {
+        if (itemId && itemId !== 'undefined') {
             const foundById = cart.products.find((p, idx) => {
                 if (!p) return false;
                 const itemIdToCompare = p.id || p._id;
@@ -1568,18 +1569,7 @@ function handleChangeItem(e) {
             }
         }
         
-        // If not found by ID, try by exact position (second most reliable)
-        if (!item && uiIndex < cart.products.length) {
-            const candidate = cart.products[uiIndex];
-            // Verify the candidate matches at least the type
-            if (candidate && candidate.type === itemType) {
-                item = candidate;
-                itemIndex = uiIndex;
-                console.log(`✅ Found item at cart data index: ${uiIndex}`);
-            }
-        }
-        
-        // If still not found, try to match by name and type (fallback)
+        // If not found by ID, try to match by name and type (more reliable than index)
         if (!item && itemName && itemType) {
             const foundByName = cart.products.find((p, idx) => {
                 if (!p || p.type !== itemType) return false;
@@ -1595,6 +1585,33 @@ function handleChangeItem(e) {
             if (foundByName) {
                 item = foundByName;
                 console.log(`✅ Found item by name and type at index ${itemIndex}`);
+            }
+        }
+        
+        // If still not found, try by exact position (less reliable)
+        if (!item && uiIndex < cart.products.length) {
+            const candidate = cart.products[uiIndex];
+            // Only use position if types match
+            if (candidate && (!itemType || candidate.type === itemType)) {
+                item = candidate;
+                itemIndex = uiIndex;
+                console.log(`✅ Found item at cart data index: ${uiIndex}`);
+            }
+        }
+        
+        // If we have items but still no match, try to find any item with matching type
+        if (!item && itemType && cart.products.length > 0) {
+            const foundByType = cart.products.find((p, idx) => {
+                if (p && p.type === itemType) {
+                    itemIndex = idx;
+                    return true;
+                }
+                return false;
+            });
+            
+            if (foundByType) {
+                item = foundByType;
+                console.log(`✅ Found item by type at index ${itemIndex}`);
             }
         }
         

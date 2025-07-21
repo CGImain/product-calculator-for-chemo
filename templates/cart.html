@@ -149,11 +149,22 @@
         border-color: #0a58ca;
     }
 
+    /* Cart items container */
+    .cart-items-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        gap: 25px;
+    }
+    
     /* Cart item container */
     .cart-item {
         width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
         padding: 0 15px;
-        margin-bottom: 25px;
     }
     
     .cart-item .card {
@@ -363,7 +374,7 @@
             </div>
         </div>
 
-        <div id="cartItems" class="cart-items row row-cols-1 g-4 mx-auto" style="width: 100%; max-width: 1400px;" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
+        <div id="cartItems" class="cart-items-container" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
             {% if cart.products %}
                 {% for item in cart.products %}
                 {% if item %}

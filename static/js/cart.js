@@ -1691,7 +1691,7 @@ function handleChangeItem(e) {
             console.warn('Could not get company information:', error);
         }
         
-        // Determine the redirect URL based on item type
+                // Determine the redirect URL based on item type
         let redirectUrl = '/';
         let urlParams = new URLSearchParams();
         
@@ -1700,12 +1700,39 @@ function handleChangeItem(e) {
             urlParams.append('company_id', companyId);
         }
         
-        if (item.type === 'mpack') {
-            redirectUrl = '/mpacks';
-        } else if (item.type === 'blanket') {
-            redirectUrl = '/blankets';
-            if (item.blanket_type) {
-                urlParams.append('type', item.blanket_type);
+        // Add item type to URL parameters
+        if (item.type) {
+            urlParams.append('edit_item', 'true');
+            
+            // Add item ID if available
+            if (item.id) {
+                urlParams.append('item_id', item.id);
+            } else if (item._id) {
+                urlParams.append('item_id', item._id);
+            }
+            
+            // Set the base URL based on item type
+            if (item.type === 'mpack') {
+                redirectUrl = '/mpacks';
+                // Add mpack specific parameters
+                if (item.thickness) {
+                    urlParams.append('thickness', item.thickness);
+                }
+            } else if (item.type === 'blanket') {
+                redirectUrl = '/blankets';
+                // Add blanket specific parameters
+                if (item.blanket_type) {
+                    urlParams.append('type', item.blanket_type);
+                }
+                if (item.machine) {
+                    urlParams.append('machine', item.machine);
+                }
+                if (item.thickness) {
+                    urlParams.append('thickness', item.thickness);
+                }
+                if (item.bar_type) {
+                    urlParams.append('bar_type', item.bar_type);
+                }
             }
         }
         

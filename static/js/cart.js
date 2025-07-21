@@ -1500,15 +1500,22 @@ function handleChangeItem(e) {
         
         console.log('🛒 Cart loaded with', cart.products.length, 'items');
         
-        // Find the item in the cart by ID
-        const item = cart.products.find(item => item && (item.id === itemId || item._id === itemId));
+        // Find the item by ID, handling both string and ObjectId formats
+        const item = cart.products.find(cartItem => {
+            if (!cartItem) return false;
+            const cartItemId = cartItem.id || cartItem._id;
+            // Convert both to string for comparison to handle ObjectId
+            return String(cartItemId) === String(itemId);
+        });
+        
         if (!item) {
             console.error('❌ Could not find item in cart with ID:', itemId);
+            console.log('Available item IDs:', cart.products.map(i => i?.id || i?._id));
             showToast('Error', 'Item not found in cart', 'error');
             return;
         }
         
-        console.log('✅ Found item to edit:', item);
+        console.log('✅ Found item:', item);
         
         // Determine the redirect URL based on item type
         let redirectUrl = '/';
@@ -1587,16 +1594,24 @@ function handleRemoveClick(e) {
     
     e.preventDefault();
     
-    // Get the item ID from the button's data attribute or its parent form
+    // Get the item element and its ID
     const itemElement = removeBtn.closest('.cart-item');
-    const itemId = itemElement ? itemElement.dataset.itemId : null;
-    
-    if (itemId) {
-        removeFromCart(e, itemId);
-    } else {
-        console.error('Could not find item ID for removal');
+    if (!itemElement) {
+        console.error('Could not find cart item element');
         showToast('Error', 'Could not identify item to remove', 'error');
+        return;
     }
+    
+    // Get the item ID from the data attribute
+    const itemId = itemElement.getAttribute('data-item-id');
+    if (!itemId) {
+        console.error('Item has no data-item-id attribute');
+        showToast('Error', 'Could not identify item to remove', 'error');
+        return;
+    }
+    
+    console.log('Removing item with ID:', itemId);
+    removeFromCart(e, itemId);
 }
 
 // Function to remove item from cart using item ID
@@ -1619,6 +1634,35 @@ function removeFromCart(event, itemId) {
     
     const csrfToken = getCSRFToken();
     
+    // First, find the item in the cart to get its exact ID format
+    let cart = { products: [] };
+    try {
+        const cartData = localStorage.getItem('cart');
+        if (cartData) {
+            const parsed = JSON.parse(cartData);
+            cart = Array.isArray(parsed) ? { products: parsed } : parsed;
+            
+            if (!Array.isArray(cart.products)) {
+                cart.products = [];
+            }
+            
+            // Find the item by ID, handling both string and ObjectId formats
+            const item = cart.products.find(item => {
+                if (!item) return false;
+                const cartItemId = item.id || item._id;
+                // Convert both to string for comparison to handle ObjectId
+                return String(cartItemId) === String(itemId);
+            });
+            
+            if (item) {
+                // Use the exact ID from the cart item for the request
+                itemId = item.id || item._id;
+            }
+        }
+    } catch (error) {
+        console.error('Error finding item in cart:', error);
+    }
+    
     fetch('/remove_from_cart', {
         method: 'POST',
         headers: {
@@ -1633,7 +1677,9 @@ function removeFromCart(event, itemId) {
     .then(data => {
         if (data.success) {
             // Remove the item from the DOM using the item ID
-            const itemElement = document.querySelector(`.cart-item[data-item-id="${itemId}"]`);
+            // Try both the original itemId and the normalized version
+            const itemElement = document.querySelector(`.cart-item[data-item-id="${itemId}"]`) ||
+                              document.querySelector(`.cart-item[data-item-id^="${String(itemId).substring(0, 8)}"]`);
             if (itemElement) {
                 itemElement.remove();
             }

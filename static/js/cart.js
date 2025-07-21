@@ -111,6 +111,20 @@ function getCSRFToken() {
     return '';
 }
 
+// Function to get cart from localStorage
+function getCart() {
+    try {
+        const cartData = localStorage.getItem('cart');
+        if (!cartData) return { products: [] };
+        
+        const parsed = JSON.parse(cartData);
+        return Array.isArray(parsed) ? { products: parsed } : parsed;
+    } catch (error) {
+        console.error('Error getting cart from localStorage:', error);
+        return { products: [] };
+    }
+}
+
 // Function to update cart empty state
 function updateCartEmptyState() {
     const cartItems = document.getElementById('cartItems');

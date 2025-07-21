@@ -375,7 +375,7 @@
                          data-name="{{ item.name }}"
                          data-quantity="{{ item.quantity|default(1) }}"
                          data-discount-percent="{{ item.discount_percent|default(0) }}"
-                         data-gst-percent="{{ item.gst_percent|default(item.type == 'mpack' ? 12 : 18) }}"
+                         data-gst-percent="{{ item.gst_percent|default(12 if item.type == 'mpack' else 18) }}"
                          {% if item.type == 'blanket' %}
                              data-base-price="{{ item.base_price|default(0) }}" 
                              data-bar-price="{{ item.bar_price|default(0) }}" 

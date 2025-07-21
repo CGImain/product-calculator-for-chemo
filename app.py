@@ -1534,60 +1534,51 @@ def load_companies_data():
     """Load companies data from MongoDB or fall back to JSON file."""
     try:
         if MONGO_AVAILABLE and USE_MONGO and mongo_db is not None:
-            # Get companies from MongoDB, including alternate field names that may exist
+            # Get companies from MongoDB with specific fields
             projection = {
                 '_id': 1,
+                'Company Name': 1,
+                'EmailID': 1,
                 'name': 1,
                 'email': 1,
-                'Company Name': 1,
-                'company_name': 1,
-                'EmailID': 1,
-                'emailID': 1,
-                'emailId': 1,
-                'Email Id': 1,
-                'Email': 1
+                'created_at': 1,
+                'created_by': 1
             }
-            companies = list(mongo_db.companies.find({}, projection))
-
+            
+            # Find all companies and sort by name for consistent ordering
+            companies_cursor = mongo_db.companies.find({}, projection).sort('Company Name', 1)
+            companies = list(companies_cursor)
+            
             mapped_companies = []
             for company in companies:
-                # Extract ID first
-                company_id = str(company.pop('_id'))
-
-                # Attempt to resolve name and email using various possible keys (case & space insensitive)
-                potential_name_keys = [
-                    'name', 'company name', 'company_name', 'companyname'
-                ]
-                potential_email_keys = [
-                    'email', 'emailid', 'email_id', 'email id'
-                ]
-
-                name = None
-                email = None
-
-                # Normalize keys for robust lookup
-                normalized_dict = {k.lower().replace(' ', ''): v for k, v in company.items()}
-
-                for key in potential_name_keys:
-                    if key.replace(' ', '') in normalized_dict and normalized_dict[key.replace(' ', '')]:
-                        name = normalized_dict[key.replace(' ', '')]
-                        break
-
-                for key in potential_email_keys:
-                    if key.replace(' ', '') in normalized_dict and normalized_dict[key.replace(' ', '')]:
-                        email = normalized_dict[key.replace(' ', '')]
-                        break
-
-                # Skip entries without a valid name (frontend requires it)
-                if not name:
+                try:
+                    company_id = str(company.pop('_id'))
+                    
+                    # Use the standard field names with fallbacks
+                    name = company.get('Company Name') or company.get('name')
+                    email = company.get('EmailID') or company.get('email', '')
+                    
+                    # Skip if we don't have a valid name
+                    if not name:
+                        app.logger.warning(f"Skipping company with missing name: {company_id}")
+                        continue
+                        
+                    # Ensure email is a string and lowercase
+                    email = str(email).lower().strip() if email else ''
+                    
+                    mapped_companies.append({
+                        'id': company_id,
+                        'name': name,
+                        'email': email,
+                        'created_at': company.get('created_at'),
+                        'created_by': company.get('created_by')
+                    })
+                    
+                except Exception as e:
+                    app.logger.error(f"Error processing company {company.get('_id')}: {str(e)}")
                     continue
-
-                mapped_companies.append({
-                    'id': company_id,
-                    'name': name,
-                    'email': email or ''  # Email is optional but keep empty string if missing
-                })
-
+                    
+            app.logger.info(f"Successfully loaded {len(mapped_companies)} companies from MongoDB")
             return mapped_companies
         else:
             # Fall back to JSON file
@@ -2280,28 +2271,41 @@ def api_add_company():
     try:
         # Check for existing company with same name or email
         if MONGO_AVAILABLE and USE_MONGO and mongo_db is not None:
-            # Check for existing company in MongoDB
-            existing_company = mongo_db.companies.find_one({
-                '$or': [
-                    {'Company Name': name},
-                    {'EmailID': email}
-                ]
-            })
-            
-            if existing_company:
-                return jsonify({
-                    'success': False, 
-                    'message': 'A company with this name or email already exists.'
-                }), 400
+            try:
+                # Check for existing company in MongoDB
+                existing_company = mongo_db.companies.find_one({
+                    '$or': [
+                        {'Company Name': name},
+                        {'EmailID': email}
+                    ]
+                })
                 
-            # Insert new company
-            result = mongo_db.companies.insert_one({
-                'Company Name': name, 
-                'EmailID': email,
-                'created_at': datetime.utcnow(),
-                'created_by': str(current_user.id)
-            })
-            company_id = str(result.inserted_id)
+                if existing_company:
+                    return jsonify({
+                        'success': False, 
+                        'message': 'A company with this name or email already exists.'
+                    }), 400
+                    
+                # Insert new company with consistent field names
+                company_data = {
+                    'Company Name': name, 
+                    'EmailID': email,
+                    'name': name,  # Lowercase version for compatibility
+                    'email': email.lower(),  # Ensure email is always lowercase
+                    'created_at': datetime.utcnow(),
+                    'created_by': str(current_user.id)
+                }
+                app.logger.info(f"Inserting company data: {company_data}")
+                result = mongo_db.companies.insert_one(company_data)
+                company_id = str(result.inserted_id)
+                app.logger.info(f"Successfully inserted company into MongoDB with ID: {company_id}")
+                
+            except Exception as db_error:
+                app.logger.error(f"Database error in api_add_company: {str(db_error)}", exc_info=True)
+                # Fall through to JSON fallback
+                app.logger.info("Falling back to JSON storage due to database error")
+                mongo_db = None  # Force fallback to JSON
+                raise db_error
         else:
             # JSON fallback implementation
             companies_file = os.path.join(app.root_path, 'static', 'data', 'company_emails.json')
@@ -2335,44 +2339,51 @@ def api_add_company():
             with open(companies_file, 'w', encoding='utf-8') as f:
                 json.dump(companies, f, ensure_ascii=False, indent=2)
 
-        # Log environment variables for debugging (sensitive values masked)
-        app.logger.info("Environment variables for email configuration:")
-        app.logger.info(f"SMTP_HOST: {os.getenv('SMTP_HOST', 'Not set')}")
-        app.logger.info(f"SMTP_PORT: {os.getenv('SMTP_PORT', 'Not set')}")
-        app.logger.info(f"EMAIL_USER: {'Set' if os.getenv('EMAIL_USER') else 'Not set'}")
-        app.logger.info(f"EMAIL_PASS: {'Set' if os.getenv('EMAIL_PASS') else 'Not set'}")
-        app.logger.info(f"ADMIN_ALERT_EMAIL: {ADMIN_ALERT_EMAIL}")
-
-        # Send alert email and handle the result
-        user_identity = getattr(current_user, 'email', getattr(current_user, 'username', 'Unknown User'))
-        email_sent = send_alert_email(
-            subject='Database Update: New Company Added',
-            body=f"{user_identity} added a new company ({name}, {email}) on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
-        )
+        # Log the successful addition
+        app.logger.info(f"Company added successfully - Name: {name}, Email: {email}")
+        
+        # Try to send notification email (non-blocking)
+        try:
+            user_identity = getattr(current_user, 'email', getattr(current_user, 'username', 'Unknown User'))
+            email_sent = send_alert_email(
+                subject='Database Update: New Company Added',
+                body=f"{user_identity} added a new company ({name}, {email}) on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+            )
+        except Exception as email_error:
+            app.logger.error(f"Error sending notification email: {str(email_error)}")
+            email_sent = False
+        
+        # Return success response regardless of email status
+        response = {
+            'success': True, 
+            'message': 'Company added successfully',
+            'id': company_id
+        }
         
         if email_sent:
             app.logger.info("Notification email sent successfully")
-            return jsonify({
-                'success': True, 
-                'message': 'Company added successfully. Notification email sent.', 
-                'id': company_id
-            })
+            response['message'] += '. Notification email sent.'
         else:
             app.logger.warning("Company added but failed to send notification email")
-            return jsonify({
-                'success': True, 
-                'message': 'Company added successfully. Failed to send notification email.',
-                'id': company_id,
-                'warning': 'Email notification failed'
-            })
+            response['message'] += '. Failed to send notification email.'
+            response['warning'] = 'Email notification failed'
+            
+        return jsonify(response)
         
     except Exception as e:
-        app.logger.error(f"Error adding company: {e}", exc_info=True)
+        app.logger.error(f"Error adding company: {str(e)}", exc_info=True)
+        error_message = str(e)
+        
+        # Provide more specific error messages for common issues
+        if "duplicate key error" in error_message.lower():
+            error_message = "A company with this name or email already exists."
+        elif "timed out" in error_message.lower() or "connection" in error_message.lower():
+            error_message = "Could not connect to the database. Please try again later."
+            
         return jsonify({
             'success': False, 
-            'message': 'An error occurred while adding the company. Please try again.'
+            'message': f'Failed to add company: {error_message}'
         }), 500
-        return jsonify({'success': False, 'message': 'Failed to add company.'}), 500
 
 
 @app.route('/api/add_machine', methods=['POST'])

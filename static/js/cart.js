@@ -1551,8 +1551,19 @@ function handleChangeItem(e) {
         
         console.log(`🔍 Looking for item with UI index: ${uiIndex}, itemId: ${itemId}, name: ${itemName}, type: ${itemType}`);
         
-        // First try to find by ID if available (most reliable)
-        if (itemId && itemId !== 'undefined') {
+        // First, try to find by exact UI index if it exists in cart data
+        if (uiIndex < cart.products.length) {
+            const candidate = cart.products[uiIndex];
+            // If the item at this index matches the clicked item's type, use it
+            if (candidate && candidate.type === itemType) {
+                item = candidate;
+                itemIndex = uiIndex;
+                console.log(`✅ Found item at exact cart data index: ${uiIndex}`);
+            }
+        }
+        
+        // If not found by exact index, try to find by ID
+        if (!item && itemId && itemId !== 'undefined') {
             const foundById = cart.products.find((p, idx) => {
                 if (!p) return false;
                 const itemIdToCompare = p.id || p._id;
@@ -1569,7 +1580,7 @@ function handleChangeItem(e) {
             }
         }
         
-        // If not found by ID, try to match by name and type (more reliable than index)
+        // If still not found, try to match by name and type
         if (!item && itemName && itemType) {
             const foundByName = cart.products.find((p, idx) => {
                 if (!p || p.type !== itemType) return false;
@@ -1585,17 +1596,6 @@ function handleChangeItem(e) {
             if (foundByName) {
                 item = foundByName;
                 console.log(`✅ Found item by name and type at index ${itemIndex}`);
-            }
-        }
-        
-        // If still not found, try by exact position (less reliable)
-        if (!item && uiIndex < cart.products.length) {
-            const candidate = cart.products[uiIndex];
-            // Only use position if types match
-            if (candidate && (!itemType || candidate.type === itemType)) {
-                item = candidate;
-                itemIndex = uiIndex;
-                console.log(`✅ Found item at cart data index: ${uiIndex}`);
             }
         }
         

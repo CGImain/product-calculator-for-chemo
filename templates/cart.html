@@ -373,20 +373,22 @@
                          data-index="{{ loop.index0 }}" 
                          data-item-id="{{ item.id or item._id or '' }}"
                          data-name="{{ item.name }}"
+                         data-quantity="{{ item.quantity|default(1) }}"
+                         data-discount-percent="{{ item.discount_percent|default(0) }}"
+                         data-gst-percent="{{ item.gst_percent|default(item.type == 'mpack' ? 12 : 18) }}"
                          {% if item.type == 'blanket' %}
                              data-base-price="{{ item.base_price|default(0) }}" 
                              data-bar-price="{{ item.bar_price|default(0) }}" 
-                             data-quantity="{{ item.quantity|default(1) }}" 
-                             data-discount-percent="{{ item.discount_percent|default(0) }}" 
-                             data-gst-percent="{{ item.gst_percent|default(18) }}"
-                             {% if item.machine %}data-machine="{{ item.machine }}"{% endif %}
-                             {% if item.thickness %}data-thickness="{{ item.thickness }}"{% endif %}
+                             data-machine="{{ item.machine|default('') }}"
+                             data-thickness="{{ item.thickness|default('') }}"
+                             data-length="{{ item.length|default(0) }}"
+                             data-width="{{ item.width|default(0) }}"
+                             data-unit="{{ item.unit|default('mm') }}"
+                             data-bar-type="{{ item.bar_type|default('') }}"
                          {% elif item.type == 'mpack' %}
-                             data-unit-price="{{ item.unit_price|default(0) }}" 
-                             data-quantity="{{ item.quantity|default(1) }}" 
-                             data-discount-percent="{{ item.discount_percent|default(0) }}" 
-                             data-gst-percent="{{ item.gst_percent|default(12) }}"
-                         {% endif %}>
+                             data-unit-price="{{ item.unit_price|default(0) }}"
+                         endif %}
+                         data-item-hash="{{ [item.type, item.name, item.machine|default(''), item.thickness|default('')]|join('_')|lower|replace({' ': '_'}) }}">
                     <div class="card h-100">
                         <div class="card-body">
                             <div class="item-details w-100">

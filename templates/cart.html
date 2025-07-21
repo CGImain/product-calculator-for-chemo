@@ -537,30 +537,27 @@
                                         </button>
                                     </div>
                                 </div>
-
-
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                                {% endif %}
-                            {% endfor %}
-                        {% else %}
-                            <div id="emptyCart" class="text-center py-5">
-                                <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
-                                <h4>Your cart is empty</h4>
-                                <p class="text-muted">Browse our products and add some items to your cart</p>
-                                <button type="button" class="btn btn-primary" id="emptyCartContinueShopping">
-                                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
-                                </button>
-                            </div>
-                        {% endif %}
-                        
-                        {% if cart.products and cart.products|length > 0 %}
-                        <div class="cart-summary mt-4" id="cartSummary">
-                            <!-- Cart summary will be dynamically updated -->
-                        </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div id="emptyCart" class="text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                <h4>Your cart is empty</h4>
+                <p class="text-muted">Browse our products and add some items to your cart</p>
+                <button type="button" class="btn btn-primary" id="emptyCartContinueShopping">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                </button>
+            </div>
+        {% endif %}
+        
+        {% if cart.products and cart.products|length > 0 %}
+            <div class="cart-summary mt-4" id="cartSummary">
+                <!-- Cart summary will be dynamically updated -->
+            </div>
             
             <!-- Cart Footer -->
             <div class="cart-footer d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
@@ -576,10 +573,8 @@
                     <i class="fas fa-trash me-1"></i> Clear Cart
                 </button>
             </div>
-
-
-            </div>            {% endif %}
-        </div>
+        {% endif %}
+    </div>
     </div>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

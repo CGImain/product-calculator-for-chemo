@@ -387,7 +387,7 @@
                              data-bar-type="{{ item.bar_type|default('') }}"
                          {% elif item.type == 'mpack' %}
                              data-unit-price="{{ item.unit_price|default(0) }}"
-                         endif %}
+                         {% endif %}
                          data-item-hash="{{ [item.type, item.name, item.machine|default(''), item.thickness|default('')]|join('_')|lower|replace({' ': '_'}) }}">
                     <div class="card h-100">
                         <div class="card-body">

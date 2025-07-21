@@ -1534,13 +1534,11 @@ def load_companies_data():
     """Load companies data from MongoDB or fall back to JSON file."""
     try:
         if MONGO_AVAILABLE and USE_MONGO and mongo_db is not None:
-            # Get companies from MongoDB with specific fields
+            # Get companies from MongoDB with only the fields we need
             projection = {
                 '_id': 1,
                 'Company Name': 1,
                 'EmailID': 1,
-                'name': 1,
-                'email': 1,
                 'created_at': 1,
                 'created_by': 1
             }
@@ -1554,17 +1552,17 @@ def load_companies_data():
                 try:
                     company_id = str(company.pop('_id'))
                     
-                    # Use the standard field names with fallbacks
-                    name = company.get('Company Name') or company.get('name')
-                    email = company.get('EmailID') or company.get('email', '')
+                    # Get company data (we only store one set of fields now)
+                    name = company.get('Company Name')
+                    email = company.get('EmailID', '')
                     
                     # Skip if we don't have a valid name
                     if not name:
                         app.logger.warning(f"Skipping company with missing name: {company_id}")
                         continue
                         
-                    # Ensure email is a string and lowercase
-                    email = str(email).lower().strip() if email else ''
+                    # Ensure email is a string and properly formatted
+                    email = str(email).strip() if email else ''
                     
                     mapped_companies.append({
                         'id': company_id,
@@ -2272,11 +2270,11 @@ def api_add_company():
         # Check for existing company with same name or email
         if MONGO_AVAILABLE and USE_MONGO and mongo_db is not None:
             try:
-                # Check for existing company in MongoDB
+                # Check for existing company in MongoDB (case-insensitive)
                 existing_company = mongo_db.companies.find_one({
                     '$or': [
-                        {'Company Name': name},
-                        {'EmailID': email}
+                        {'Company Name': {'$regex': f'^{name}$', '$options': 'i'}},
+                        {'EmailID': {'$regex': f'^{email}$', '$options': 'i'}}
                     ]
                 })
                 
@@ -2286,12 +2284,10 @@ def api_add_company():
                         'message': 'A company with this name or email already exists.'
                     }), 400
                     
-                # Insert new company with consistent field names
+                # Insert new company with consistent field names (only one set of fields)
                 company_data = {
-                    'Company Name': name, 
-                    'EmailID': email,
-                    'name': name,  # Lowercase version for compatibility
-                    'email': email.lower(),  # Ensure email is always lowercase
+                    'Company Name': name.strip(),
+                    'EmailID': email.lower().strip(),
                     'created_at': datetime.utcnow(),
                     'created_by': str(current_user.id)
                 }

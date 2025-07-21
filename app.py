@@ -2424,7 +2424,6 @@ def api_add_company():
             'message': f'Failed to add company: {error_message}'
         }), 500
 
-
 @app.route('/api/add_machine', methods=['POST'])
 @login_required
 def api_add_machine():

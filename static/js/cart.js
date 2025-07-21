@@ -1492,100 +1492,87 @@ function handleChangeItem(e) {
     
     console.log('Item ID to edit:', itemId);
     
-    console.log(`🔍 Change button clicked for item with ID: ${itemId}`);
-    
     // Get the cart data with proper error handling
-    let cart = { products: [] };
-    let cartData;
+    const cart = getCart();
+    if (!cart || !cart.products || !Array.isArray(cart.products)) {
+        console.error('❌ Invalid cart data');
+        showToast('Error', 'Invalid cart data', 'error');
+        return;
+    }
+    
+    console.log('🛒 Cart loaded with', cart.products.length, 'items');
+    
+    // Get item type from the cart item element
+    const itemType = cartItemElement.getAttribute('data-type');
+    if (!itemType) {
+        console.error('❌ Could not determine item type');
+        showToast('Error', 'Could not determine item type', 'error');
+        return;
+    }
+    
+    // Try to find the item in the cart
+    let item = null;
+    
+    // First try exact match with item.id or item._id
+    item = cart.products.find(cartItem => {
+        if (!cartItem) return false;
+        const cartItemId = cartItem.id || cartItem._id || '';
+        return String(cartItemId) === String(itemId);
+    });
+    
+    // If not found, try to find by name and type (as a fallback)
+    if (!item) {
+        console.log('Item not found by ID, trying to find by name and type...');
+        const itemName = cartItemElement.getAttribute('data-name');
+        
+        if (itemName) {
+            item = cart.products.find(cartItem => {
+                return cartItem && 
+                       cartItem.type === itemType && 
+                       cartItem.name === itemName;
+            });
+            
+            if (item) {
+                console.log('Found item by name and type:', item);
+                // Update the itemId to the one from the found item
+                itemId = item.id || item._id || itemId;
+            }
+        }
+    }
+    
+    if (!item) {
+        console.error('❌ Could not find item in cart with ID:', itemId);
+        console.log('Available items in cart:', cart.products.map((i, idx) => ({
+            index: idx,
+            id: i?.id || i?._id,
+            type: i?.type,
+            name: i?.name,
+            machine: i?.machine,
+            rawItem: i
+        })));
+        showToast('Error', 'Item not found in cart', 'error');
+        return;
+    }
+    
+    console.log('✅ Found item:', item);
+    
+    // Determine the redirect URL based on item type
+    let redirectUrl = '/' + itemType + 's'; // e.g., /blankets or /mpacks
     
     try {
-        cartData = localStorage.getItem('cart');
-        if (!cartData) {
-            throw new Error('No cart data found in localStorage');
-        }
-        
-        const parsed = JSON.parse(cartData);
-        cart = Array.isArray(parsed) ? { products: parsed } : parsed;
-        
-        if (!Array.isArray(cart.products)) {
-            console.warn('Cart products is not an array, initializing empty cart');
-            cart.products = [];
-        }
-        
-        console.log('🛒 Cart loaded with', cart.products.length, 'items');
-        
-        // Find the item by ID, handling both string and ObjectId formats
-        console.log('Searching for item with ID:', itemId);
-        console.log('Available items:', cart.products);
-        
-        const item = cart.products.find(cartItem => {
-            if (!cartItem) return false;
-            
-            // Get the ID, handling both id and _id fields
-            const cartItemId = cartItem.id || cartItem._id;
-            if (!cartItemId) return false;
-            
-            // Convert both to string and compare
-            const match = String(cartItemId) === String(itemId);
-            console.log(`Comparing ${cartItemId} (${typeof cartItemId}) with ${itemId} (${typeof itemId}):`, match);
-            return match;
-        });
-        
-        if (!item) {
-            console.error('❌ Could not find item in cart with ID:', itemId);
-            console.log('Available item IDs:', cart.products.map(i => ({
-                id: i?.id || i?._id,
-                type: i?.type,
-                name: i?.name
-            })));
-            showToast('Error', 'Item not found in cart', 'error');
-            return;
-        }
-        
-        console.log('✅ Found item:', item);
-        
-        // Determine the redirect URL based on item type
-        let redirectUrl = '/';
-        const itemType = item.type || cartItemElement.getAttribute('data-type');
-        
-        if (itemType === 'blanket') {
-            redirectUrl = '/blankets';
-        } else if (itemType === 'mpack') {
-            redirectUrl = '/mpacks';
-        } else {
-            console.error('❌ Unknown item type:', itemType);
-            showToast('Error', `Unknown item type: ${itemType}`, 'error');
-            return;
-        }
-        
         // Add query parameters
         const urlParams = new URLSearchParams();
         urlParams.append('edit', 'true');
         urlParams.append('item_id', itemId);
         urlParams.append('type', itemType);
         
-        // Add item-specific parameters
-        if (itemType === 'blanket') {
-            // Add all blanket properties as query parameters
-            const blanketProps = [
-                'name', 'machine', 'thickness', 'length', 'width', 'unit', 
-                'bar_type', 'quantity', 'base_price', 'bar_price', 
-                'discount_percent', 'gst_percent', 'blanket_type'
-            ];
-
-            blanketProps.forEach(prop => {
-                if (item[prop] !== undefined && item[prop] !== null) {
-                    urlParams.append(prop, item[prop]);
-                }
-            });
-        } else if (itemType === 'mpack') {
-            // Add all mpack properties as query parameters
-            Object.keys(item).forEach(key => {
-                if (item[key] !== undefined && item[key] !== null && key !== 'id' && key !== '_id') {
-                    urlParams.append(key, item[key]);
-                }
-            });
-        }
+        // Add item properties as query parameters
+        Object.keys(item).forEach(key => {
+            if (item[key] !== undefined && item[key] !== null && 
+                key !== 'id' && key !== '_id' && key !== 'calculations') {
+                urlParams.append(key, item[key]);
+            }
+        });
         
         // Add query parameters to URL
         const queryString = urlParams.toString();
@@ -1690,15 +1677,14 @@ function removeFromCart(event, itemId) {
         console.error('Error finding item in cart:', error);
     }
     
+    // Send the remove request
     fetch('/remove_from_cart', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken
         },
-        body: JSON.stringify({
-            item_id: itemId
-        })
+        body: JSON.stringify({ item_id: itemId })
     })
     .then(response => response.json())
     .then(data => {

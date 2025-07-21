@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, make_response
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
@@ -22,6 +21,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
 import socket  # Added for socket.timeout and socket.gaierror
+import logging
 
 # Import MongoDB users module
 try:
@@ -1532,62 +1532,86 @@ def get_cart_count():
 
 def load_companies_data():
     """Load companies data from MongoDB or fall back to JSON file."""
+    global mongo_db, USE_MONGO
+    
     try:
+        # Log MongoDB status
+        app.logger.info(f"Loading companies - MongoDB status: Available={MONGO_AVAILABLE}, Using={USE_MONGO}, Connected={'Yes' if mongo_db is not None else 'No'}")
+        
         if MONGO_AVAILABLE and USE_MONGO and mongo_db is not None:
-            # Get companies from MongoDB with only the fields we need
-            projection = {
-                '_id': 1,
-                'Company Name': 1,
-                'EmailID': 1,
-                'created_at': 1,
-                'created_by': 1
-            }
-            
-            # Find all companies and sort by name for consistent ordering
-            companies_cursor = mongo_db.companies.find({}, projection).sort('Company Name', 1)
-            companies = list(companies_cursor)
-            
-            mapped_companies = []
-            for company in companies:
-                try:
-                    company_id = str(company.pop('_id'))
-                    
-                    # Get company data (we only store one set of fields now)
-                    name = company.get('Company Name')
-                    email = company.get('EmailID', '')
-                    
-                    # Skip if we don't have a valid name
-                    if not name:
-                        app.logger.warning(f"Skipping company with missing name: {company_id}")
+            try:
+                # Test the connection first
+                mongo_db.command('ping')
+                
+                # Get companies from MongoDB with only the fields we need
+                projection = {
+                    '_id': 1,
+                    'Company Name': 1,
+                    'EmailID': 1,
+                    'created_at': 1,
+                    'created_by': 1
+                }
+                
+                # Find all companies and sort by name for consistent ordering
+                companies_cursor = mongo_db.companies.find({}, projection).sort('Company Name', 1)
+                companies = list(companies_cursor)
+                
+                mapped_companies = []
+                for company in companies:
+                    try:
+                        company_id = str(company.pop('_id'))
+                        
+                        # Get company data (we only store one set of fields now)
+                        name = company.get('Company Name')
+                        email = company.get('EmailID', '')
+                        
+                        # Skip if we don't have a valid name
+                        if not name:
+                            app.logger.warning(f"Skipping company with missing name: {company_id}")
+                            continue
+                            
+                        # Ensure email is a string and properly formatted
+                        email = str(email).strip() if email else ''
+                        
+                        mapped_companies.append({
+                            'id': company_id,
+                            'name': name,
+                            'email': email,
+                            'created_at': company.get('created_at'),
+                            'created_by': company.get('created_by')
+                        })
+                        
+                    except Exception as e:
+                        app.logger.error(f"Error processing company {company.get('_id')}: {str(e)}")
                         continue
                         
-                    # Ensure email is a string and properly formatted
-                    email = str(email).strip() if email else ''
-                    
-                    mapped_companies.append({
-                        'id': company_id,
-                        'name': name,
-                        'email': email,
-                        'created_at': company.get('created_at'),
-                        'created_by': company.get('created_by')
-                    })
-                    
-                except Exception as e:
-                    app.logger.error(f"Error processing company {company.get('_id')}: {str(e)}")
-                    continue
-                    
-            app.logger.info(f"Successfully loaded {len(mapped_companies)} companies from MongoDB")
-            return mapped_companies
-        else:
-            # Fall back to JSON file
-            companies_file = os.path.join('static', 'data', 'companies.json')
-            if os.path.exists(companies_file):
+                app.logger.info(f"Successfully loaded {len(mapped_companies)} companies from MongoDB")
+                return mapped_companies
+                
+            except Exception as db_error:
+                app.logger.error(f"MongoDB error in load_companies_data: {str(db_error)}")
+                # Fall through to JSON fallback
+                USE_MONGO = False
+                
+        # Fall back to JSON file if MongoDB is not available or there was an error
+        companies_file = os.path.join(app.root_path, 'static', 'data', 'companies.json')
+        app.logger.info(f"Falling back to loading companies from: {companies_file}")
+        
+        if os.path.exists(companies_file):
+            try:
                 with open(companies_file, 'r', encoding='utf-8') as f:
                     companies_data = json.load(f)
-                    return companies_data.get('companies', [])
-            return []
+                    companies = companies_data.get('companies', [])
+                    app.logger.info(f"Loaded {len(companies)} companies from JSON file")
+                    return companies
+            except Exception as e:
+                app.logger.error(f"Error reading companies JSON file: {str(e)}")
+        
+        app.logger.warning("No companies data found in MongoDB or JSON file")
+        return []
+        
     except Exception as e:
-        app.logger.error(f"Error loading companies: {str(e)}")
+        app.logger.error(f"Unexpected error in load_companies_data: {str(e)}", exc_info=True)
         return []
 
 @app.route('/')
@@ -2262,13 +2286,32 @@ def api_add_company():
     data = request.get_json()
     name = data.get('name', '').strip()
     email = data.get('email', '').strip().lower()
+    app.logger.info(f"Received request to add company: {name} <{email}>")
 
     if not name or not email:
+        app.logger.warning("Missing name or email in request")
         return jsonify({'success': False, 'message': 'Name and email are required.'}), 400
 
     try:
-        # Check for existing company with same name or email
+        # Use the global mongo_db connection
+        global mongo_db, USE_MONGO
+        
+        # Log MongoDB connection status
+        app.logger.info(f"MongoDB status - Available: {MONGO_AVAILABLE}, Using: {USE_MONGO}, Connection: {'Yes' if mongo_db is not None else 'No'}")
+        
+        # Check MongoDB connection
         if MONGO_AVAILABLE and USE_MONGO and mongo_db is not None:
+            try:
+                # Test the connection
+                mongo_db.command('ping')
+                app.logger.info("Successfully pinged MongoDB")
+            except Exception as e:
+                app.logger.error(f"MongoDB ping failed: {str(e)}")
+                USE_MONGO = False
+                mongo_db = None
+
+        # Check for existing company with same name or email
+        if mongo_db is not None:
             try:
                 # Check for existing company in MongoDB (case-insensitive)
                 existing_company = mongo_db.companies.find_one({

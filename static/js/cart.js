@@ -1470,13 +1470,27 @@ function handleChangeItem(e) {
         return;
     }
     
-    // Get the item ID from the data attribute
-    const itemId = cartItemElement.getAttribute('data-item-id');
+    // Get the item ID from the button's data attribute first, then fall back to the cart item element
+    let itemId = button.getAttribute('data-item-id');
     if (!itemId) {
-        console.error('❌ Could not find item ID in cart item element');
+        itemId = cartItemElement.getAttribute('data-item-id');
+    }
+    
+    if (!itemId) {
+        console.error('❌ Could not find item ID in cart item element or button');
+        console.log('Button attributes:', Array.from(button.attributes).map(attr => ({
+            name: attr.name,
+            value: attr.value
+        })));
+        console.log('Cart item attributes:', Array.from(cartItemElement.attributes).map(attr => ({
+            name: attr.name,
+            value: attr.value
+        })));
         showToast('Error', 'Could not identify item to edit', 'error');
         return;
     }
+    
+    console.log('Item ID to edit:', itemId);
     
     console.log(`🔍 Change button clicked for item with ID: ${itemId}`);
     

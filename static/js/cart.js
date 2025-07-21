@@ -1462,6 +1462,7 @@ function handleChangeItem(e) {
         console.error('❌ Invalid change button or missing data-index attribute');
         console.log('Button element:', button);
         console.log('Button dataset:', button ? button.dataset : 'No button');
+        return;
     }
     
     // Get the UI index from the button's data attribute
@@ -1516,38 +1517,108 @@ function handleChangeItem(e) {
         cart.products = [];
     }
     
-    // Get the item type from the button's data attribute first, then fall back to cart item element
-    let itemType = button.getAttribute('data-item-type');
+    // Get the cart item element and its data
     const cartItemElement = button.closest('.cart-item');
+    if (!cartItemElement) {
+        console.error('❌ Could not find cart item element');
+        return;
+    }
     
-    // If not found in button, try to get from cart item element
-    if (!itemType && cartItemElement) {
-        itemType = cartItemElement.dataset.type;
+    // Get item type from data attribute or element
+    const itemType = button.getAttribute('data-item-type') || cartItemElement.getAttribute('data-type');
+    if (!itemType) {
+        console.error('❌ Could not determine item type');
+        return;
     }
     
     console.log('📌 Cart item element:', cartItemElement);
-    console.log('📌 Item type from data attribute:', itemType);
-    console.log('📌 Button dataset:', button.dataset);
+    console.log('📌 Item type:', itemType);
     
-    // Find the item in the cart
-    let item = null;
-    let itemIndex = -1;
+    // Get the item ID or index for updating
+    const itemId = cartItemElement.getAttribute('data-item-id') || 
+                  cartItemElement.getAttribute('data-index') || 
+                  uiIndex.toString();
     
-    console.log('🔍 Looking for item at UI index:', uiIndex);
-    console.log('🔍 Cart data:', cart);
-    console.log('🔍 Total items in cart data:', cart.products.length);
-    console.log('🔍 Cart items in DOM:', document.querySelectorAll('.cart-item').length);
+    // Get company ID from the page or session
+    const companyId = document.querySelector('input[name="company_id"]')?.value || 
+                     new URLSearchParams(window.location.search).get('company_id');
     
-    // Get all cart items from the DOM
-    const cartItems = document.querySelectorAll('.cart-item');
+    // Build the base URL based on item type
+    let redirectUrl = `/${itemType === 'mpack' ? 'mpacks' : 'blankets'}`;
+    const params = new URLSearchParams();
     
-    if (uiIndex >= 0 && uiIndex < cartItems.length) {
-        const targetItem = cartItems[uiIndex];
-        const itemId = targetItem.getAttribute('data-item-id') || 
-                      targetItem.querySelector('[data-item-id]')?.getAttribute('data-item-id');
-        const itemName = targetItem.getAttribute('data-name') || 
-                        targetItem.querySelector('.item-name')?.textContent?.trim() || '';
-        const itemType = targetItem.getAttribute('data-type');
+    // Add common parameters
+    if (companyId) params.append('company_id', companyId);
+    params.append('edit_item', 'true');
+    params.append('item_id', itemId);
+    
+    // Get all data attributes from the cart item
+    const itemData = {};
+    const dataAttrs = cartItemElement.querySelectorAll('[data-attr]');
+    dataAttrs.forEach(attr => {
+        const key = attr.getAttribute('data-attr');
+        const value = attr.getAttribute('data-value') || attr.textContent.trim();
+        if (key && value) itemData[key] = value;
+    });
+    
+    // Add item-specific parameters
+    if (itemType === 'blanket') {
+        // Add blanket-specific parameters
+        const length = cartItemElement.getAttribute('data-length') || '';
+        const width = cartItemElement.getAttribute('data-width') || '';
+        const thickness = cartItemElement.getAttribute('data-thickness') || '';
+        const barType = cartItemElement.getAttribute('data-bar-type') || '';
+        const unit = cartItemElement.getAttribute('data-unit') || 'mm';
+        
+        if (length) params.append('length', length);
+        if (width) params.append('width', width);
+        if (thickness) params.append('thickness', thickness);
+        if (barType) params.append('bar_type', barType);
+        if (unit) params.append('unit', unit);
+        
+    } else if (itemType === 'mpack') {
+        // Add mpack-specific parameters
+        const machine = cartItemElement.getAttribute('data-machine') || '';
+        const thickness = cartItemElement.getAttribute('data-thickness') || '';
+        const size = cartItemElement.getAttribute('data-size') || '';
+        const underpackingType = cartItemElement.getAttribute('data-underpacking-type') || '';
+        
+        if (machine) params.append('machine', machine);
+        if (thickness) params.append('thickness', thickness);
+        if (size) params.append('size', size);
+        if (underpackingType) params.append('underpacking_type', underpackingType);
+    }
+    
+    // Add any additional item data as URL parameters
+    Object.entries(itemData).forEach(([key, value]) => {
+        if (value && !params.has(key)) {
+            params.append(key, value);
+        }
+    });
+    
+    // Add the query parameters to the URL
+    redirectUrl += `?${params.toString()}`;
+    
+    console.log('🔗 Redirecting to:', redirectUrl);
+    
+    // Store the current item in sessionStorage for editing
+    try {
+        const currentCart = get_user_cart();
+        const products = currentCart.products || [];
+        const itemToEdit = products[uiIndex];
+        
+        if (itemToEdit) {
+            // Add the UI index to the item for reference
+            itemToEdit._uiIndex = uiIndex;
+            sessionStorage.setItem('editingCartItem', JSON.stringify(itemToEdit));
+            console.log('💾 Stored item for editing:', itemToEdit);
+        }
+    } catch (error) {
+        console.error('Error storing item for editing:', error);
+    }
+    
+    // Redirect to the product page
+    window.location.href = redirectUrl;
         
         console.log(`🔍 Looking for item with UI index: ${uiIndex}, itemId: ${itemId}, name: ${itemName}, type: ${itemType}`);
         
@@ -1752,6 +1823,18 @@ function handleChangeItem(e) {
     
     // Redirection is already handled above
     return;
+}
+}
+
+// Function to get user cart
+function get_user_cart() {
+    const cartData = localStorage.getItem('cart');
+    try {
+        return cartData ? JSON.parse(cartData) : { products: [] };
+    } catch (e) {
+        console.error('Error parsing cart data:', e);
+        return { products: [] };
+    }
 }
 
 // Function to set up remove handlers using event delegation

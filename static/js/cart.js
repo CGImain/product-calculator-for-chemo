@@ -1458,24 +1458,27 @@ function handleChangeItem(e) {
     e.stopPropagation();
     
     const button = e.target.closest('.change-item-btn');
-    if (!button || !button.dataset || !button.dataset.index) {
-        console.error('❌ Invalid change button or missing data-index attribute');
-        console.log('Button element:', button);
-        console.log('Button dataset:', button ? button.dataset : 'No button');
+    if (!button) {
+        console.error('❌ Invalid change button');
         return;
     }
     
-    // Get the UI index from the button's data attribute
-    const uiIndex = parseInt(button.getAttribute('data-index'));
-    
-    if (isNaN(uiIndex) || uiIndex < 0) {
-        console.error('❌ Invalid item index:', button.dataset.index);
-        console.log('Button element:', button);
-        console.log('Button dataset:', button.dataset);
+    // Get the cart item element that contains this button
+    const cartItemElement = button.closest('.cart-item');
+    if (!cartItemElement) {
+        console.error('❌ Could not find parent cart item element');
         return;
     }
     
-    console.log(`🔍 Change button clicked for item at UI index: ${uiIndex}`);
+    // Get the item ID from the data attribute
+    const itemId = cartItemElement.getAttribute('data-item-id');
+    if (!itemId) {
+        console.error('❌ Could not find item ID in cart item element');
+        showToast('Error', 'Could not identify item to edit', 'error');
+        return;
+    }
+    
+    console.log(`🔍 Change button clicked for item with ID: ${itemId}`);
     
     // Get the cart data with proper error handling
     let cart = { products: [] };
@@ -1483,357 +1486,85 @@ function handleChangeItem(e) {
     
     try {
         cartData = localStorage.getItem('cart');
-        console.log('📦 Raw cart data from localStorage:', cartData);
-        
-        if (cartData) {
-            const parsed = JSON.parse(cartData);
-            console.log('🔍 Parsed cart data:', parsed);
-            
-            // Check different possible cart structures
-            if (Array.isArray(parsed)) {
-                console.log('ℹ️ Cart is an array, converting to products format');
-                cart = { products: parsed };
-            } else if (parsed && Array.isArray(parsed.products)) {
-                console.log('ℹ️ Cart has products array');
-                cart = parsed;
-            } else if (parsed && !parsed.products) {
-                console.log('ℹ️ Cart exists but has no products array, initializing');
-                cart.products = [];
-            }
+        if (!cartData) {
+            throw new Error('No cart data found in localStorage');
         }
         
-        console.log('🛒 Final cart structure:', cart);
-        console.log('📊 Number of items in cart:', cart.products.length);
+        const parsed = JSON.parse(cartData);
+        cart = Array.isArray(parsed) ? { products: parsed } : parsed;
         
-    } catch (error) {
-        console.error('❌ Error parsing cart data:', error);
-        console.error('Raw cart data that caused error:', cartData);
-        alert('Error loading cart data. Please refresh the page and try again.');
-        return;
-    }
-    
-    if (!Array.isArray(cart.products)) {
-        console.error('❌ Invalid cart products format, initializing empty cart');
-        cart.products = [];
-    }
-    
-    // Get the cart item element and its data
-    const cartItemElement = button.closest('.cart-item');
-    if (!cartItemElement) {
-        console.error('❌ Could not find cart item element');
-        return;
-    }
-    
-    // Get item type from data attribute or element
-    const itemType = button.getAttribute('data-item-type') || cartItemElement.getAttribute('data-type');
-    if (!itemType) {
-        console.error('❌ Could not determine item type');
-        return;
-    }
-    
-    console.log('📌 Cart item element:', cartItemElement);
-    console.log('📌 Item type:', itemType);
-    
-    // Get the item ID or index for updating
-    const itemId = cartItemElement.getAttribute('data-item-id') || 
-                  cartItemElement.getAttribute('data-index') || 
-                  uiIndex.toString();
-    
-    // Get company ID from the page or session
-    const companyId = document.querySelector('input[name="company_id"]')?.value || 
-                     new URLSearchParams(window.location.search).get('company_id');
-    
-    // Build the base URL based on item type
-    let redirectUrl = `/${itemType === 'mpack' ? 'mpacks' : 'blankets'}`;
-    const params = new URLSearchParams();
-    
-    // Add common parameters
-    if (companyId) params.append('company_id', companyId);
-    params.append('edit_item', 'true');
-    params.append('item_id', itemId);
-    
-    // Get all data attributes from the cart item
-    const itemData = {};
-    const dataAttrs = cartItemElement.querySelectorAll('[data-attr]');
-    dataAttrs.forEach(attr => {
-        const key = attr.getAttribute('data-attr');
-        const value = attr.getAttribute('data-value') || attr.textContent.trim();
-        if (key && value) itemData[key] = value;
-    });
-    
-    // Add item-specific parameters
-    if (itemType === 'blanket') {
-        // Add blanket-specific parameters
-        const length = cartItemElement.getAttribute('data-length') || '';
-        const width = cartItemElement.getAttribute('data-width') || '';
-        const thickness = cartItemElement.getAttribute('data-thickness') || '';
-        const barType = cartItemElement.getAttribute('data-bar-type') || '';
-        const unit = cartItemElement.getAttribute('data-unit') || 'mm';
-        
-        if (length) params.append('length', length);
-        if (width) params.append('width', width);
-        if (thickness) params.append('thickness', thickness);
-        if (barType) params.append('bar_type', barType);
-        if (unit) params.append('unit', unit);
-        
-    } else if (itemType === 'mpack') {
-        // Add mpack-specific parameters
-        const machine = cartItemElement.getAttribute('data-machine') || '';
-        const thickness = cartItemElement.getAttribute('data-thickness') || '';
-        const size = cartItemElement.getAttribute('data-size') || '';
-        const underpackingType = cartItemElement.getAttribute('data-underpacking-type') || '';
-        
-        if (machine) params.append('machine', machine);
-        if (thickness) params.append('thickness', thickness);
-        if (size) params.append('size', size);
-        if (underpackingType) params.append('underpacking_type', underpackingType);
-    }
-    
-    // Add any additional item data as URL parameters
-    Object.entries(itemData).forEach(([key, value]) => {
-        if (value && !params.has(key)) {
-            params.append(key, value);
-        }
-    });
-    
-    // Add the query parameters to the URL
-    redirectUrl += `?${params.toString()}`;
-    
-    console.log('🔗 Redirecting to:', redirectUrl);
-    
-    // Store the current item in sessionStorage for editing
-    try {
-        const currentCart = get_user_cart();
-        const products = currentCart.products || [];
-        const itemToEdit = products[uiIndex];
-        
-        if (itemToEdit) {
-            // Add the UI index to the item for reference
-            itemToEdit._uiIndex = uiIndex;
-            sessionStorage.setItem('editingCartItem', JSON.stringify(itemToEdit));
-            console.log('💾 Stored item for editing:', itemToEdit);
-        }
-    } catch (error) {
-        console.error('Error storing item for editing:', error);
-    }
-    
-    // Redirect to the product page
-    window.location.href = redirectUrl;
-        
-        console.log(`🔍 Looking for item with UI index: ${uiIndex}, itemId: ${itemId}, name: ${itemName}, type: ${itemType}`);
-        
-        // First, try to find by exact UI index if it exists in cart data
-        if (uiIndex < cart.products.length) {
-            const candidate = cart.products[uiIndex];
-            // If the item at this index matches the clicked item's type, use it
-            if (candidate && candidate.type === itemType) {
-                item = candidate;
-                itemIndex = uiIndex;
-                console.log(`✅ Found item at exact cart data index: ${uiIndex}`);
-            }
+        if (!Array.isArray(cart.products)) {
+            console.warn('Cart products is not an array, initializing empty cart');
+            cart.products = [];
         }
         
-        // If not found by exact index, try to find by ID
-        if (!item && itemId && itemId !== 'undefined') {
-            const foundById = cart.products.find((p, idx) => {
-                if (!p) return false;
-                const itemIdToCompare = p.id || p._id;
-                if (itemIdToCompare && itemIdToCompare.toString() === itemId.toString()) {
-                    itemIndex = idx;
-                    return true;
-                }
-                return false;
-            });
-            
-            if (foundById) {
-                item = foundById;
-                console.log(`✅ Found item by ID at index ${itemIndex}`);
-            }
+        console.log('🛒 Cart loaded with', cart.products.length, 'items');
+        
+        // Find the item in the cart by ID
+        const item = cart.products.find(item => item && (item.id === itemId || item._id === itemId));
+        if (!item) {
+            console.error('❌ Could not find item in cart with ID:', itemId);
+            showToast('Error', 'Item not found in cart', 'error');
+            return;
         }
         
-        // If still not found, try to match by name and type
-        if (!item && itemName && itemType) {
-            const foundByName = cart.products.find((p, idx) => {
-                if (!p || p.type !== itemType) return false;
-                
-                const productName = p.name || '';
-                if (productName.toLowerCase() === itemName.toLowerCase()) {
-                    itemIndex = idx;
-                    return true;
-                }
-                return false;
-            });
-            
-            if (foundByName) {
-                item = foundByName;
-                console.log(`✅ Found item by name and type at index ${itemIndex}`);
-            }
-        }
+        console.log('✅ Found item to edit:', item);
         
-        // If we have items but still no match, try to find any item with matching type
-        if (!item && itemType && cart.products.length > 0) {
-            const foundByType = cart.products.find((p, idx) => {
-                if (p && p.type === itemType) {
-                    itemIndex = idx;
-                    return true;
-                }
-                return false;
-            });
-            
-            if (foundByType) {
-                item = foundByType;
-                console.log(`✅ Found item by type at index ${itemIndex}`);
-            }
-        }
-        
-        // Last resort: if we still don't have an item but have a valid index, use it
-        if (!item && uiIndex < cart.products.length) {
-            console.warn('⚠️ Using fallback: selecting item by index without verification');
-            item = cart.products[uiIndex];
-            itemIndex = uiIndex;
-        }
-    }
-    
-    // If still not found, try to find by name and type as last resort
-    if (!item && itemType) {
-        console.warn('⚠️ Item not found by index or DOM data, trying to find by name and type...');
-        
-        const itemName = cartItemElement ? 
-            (cartItemElement.dataset.name || cartItemElement.querySelector('.item-name')?.textContent?.trim()) : '';
-            
-        if (itemName) {
-            const matchingItem = cart.products.find((product, idx) => {
-                if (!product || product.type !== itemType) return false;
-                
-                // Check if names match (case insensitive)
-                const productName = product.name || '';
-                if (productName.toLowerCase() === itemName.toLowerCase()) {
-                    itemIndex = idx;
-                    return true;
-                }
-                
-                return false;
-            });
-            
-            if (matchingItem) {
-                console.log(`✅ Found matching item at index ${itemIndex} by name and type`);
-                item = matchingItem;
-            }
-        }
-    }
-    
-    // If still no item found, show error
-    if (!item) {
-        const errorMsg = `❌ Could not find item in cart. UI Index: ${uiIndex}, Found items: ${cart.products.length}`;
-        console.error(errorMsg);
-        console.error('Cart items:', cart.products);
-        alert('This item could not be found in your cart. Please refresh the page and try again.');
-        return;
-    }
-    
-    console.log('Found item to edit:', item);
-    
-    // Store the item data and index in session storage
-    try {
-        const editingData = {
-            index: itemIndex,
-            item: item
-        };
-        
-        console.log('Storing editing data in sessionStorage:', editingData);
-        sessionStorage.setItem('editingCartItem', JSON.stringify(editingData));
-        
-        // Get the current company information from the page or session
-        let companyId = '';
-        try {
-            // Try to get company ID from the page data
-            const companyInfoElement = document.querySelector('[data-company-id]');
-            if (companyInfoElement) {
-                companyId = companyInfoElement.getAttribute('data-company-id');
-            } else {
-                // Fallback to session storage
-                const storedCompany = sessionStorage.getItem('selected_company');
-                if (storedCompany) {
-                    const company = JSON.parse(storedCompany);
-                    companyId = company.id || '';
-                }
-            }
-        } catch (error) {
-            console.warn('Could not get company information:', error);
-        }
-        
-                // Determine the redirect URL based on item type
+        // Determine the redirect URL based on item type
         let redirectUrl = '/';
-        let urlParams = new URLSearchParams();
+        const itemType = item.type || cartItemElement.getAttribute('data-type');
         
-        // Add company ID to URL if available
-        if (companyId) {
-            urlParams.append('company_id', companyId);
+        if (itemType === 'blanket') {
+            redirectUrl = '/blankets';
+        } else if (itemType === 'mpack') {
+            redirectUrl = '/mpacks';
+        } else {
+            console.error('❌ Unknown item type:', itemType);
+            showToast('Error', `Unknown item type: ${itemType}`, 'error');
+            return;
         }
         
-        // Add item type to URL parameters
-        if (item.type) {
-            urlParams.append('edit_item', 'true');
-            
-            // Add item ID if available
-            if (item.id) {
-                urlParams.append('item_id', item.id);
-            } else if (item._id) {
-                urlParams.append('item_id', item._id);
-            }
-            
-            // Set the base URL based on item type
-            if (item.type === 'mpack') {
-                redirectUrl = '/mpacks';
-                // Add mpack specific parameters
-                if (item.thickness) {
-                    urlParams.append('thickness', item.thickness);
+        // Add query parameters
+        const urlParams = new URLSearchParams();
+        urlParams.append('edit', 'true');
+        urlParams.append('item_id', itemId);
+        urlParams.append('type', itemType);
+        
+        // Add item-specific parameters
+        if (itemType === 'blanket') {
+            // Add all blanket properties as query parameters
+            const blanketProps = [
+                'name', 'machine', 'thickness', 'length', 'width', 'unit', 
+                'bar_type', 'quantity', 'base_price', 'bar_price', 
+                'discount_percent', 'gst_percent', 'blanket_type'
+            ];
+
+            blanketProps.forEach(prop => {
+                if (item[prop] !== undefined && item[prop] !== null) {
+                    urlParams.append(prop, item[prop]);
                 }
-            } else if (item.type === 'blanket') {
-                redirectUrl = '/blankets';
-                // Add blanket specific parameters
-                if (item.blanket_type) {
-                    urlParams.append('type', item.blanket_type);
+            });
+        } else if (itemType === 'mpack') {
+            // Add all mpack properties as query parameters
+            Object.keys(item).forEach(key => {
+                if (item[key] !== undefined && item[key] !== null && key !== 'id' && key !== '_id') {
+                    urlParams.append(key, item[key]);
                 }
-                if (item.machine) {
-                    urlParams.append('machine', item.machine);
-                }
-                if (item.thickness) {
-                    urlParams.append('thickness', item.thickness);
-                }
-                if (item.bar_type) {
-                    urlParams.append('bar_type', item.bar_type);
-                }
-            }
+            });
         }
         
-        // Add query parameters if any exist
+        // Add query parameters to URL
         const queryString = urlParams.toString();
         if (queryString) {
             redirectUrl += `?${queryString}`;
         }
         
-        console.log('Redirecting to:', redirectUrl);
+        console.log('🔗 Redirecting to:', redirectUrl);
         window.location.href = redirectUrl;
         
     } catch (error) {
-        console.error('Error preparing item for editing:', error);
-        alert('An error occurred while preparing the item for editing. Please try again.');
-    }
-    
-    // Redirection is already handled above
-    return;
-}
-}
-
-// Function to get user cart
-function get_user_cart() {
-    const cartData = localStorage.getItem('cart');
-    try {
-        return cartData ? JSON.parse(cartData) : { products: [] };
-    } catch (e) {
-        console.error('Error parsing cart data:', e);
-        return { products: [] };
+        console.error('❌ Error preparing item for editing:', error);
+        showToast('Error', 'An error occurred while preparing the item for editing', 'error');
     }
 }
 
@@ -1856,19 +1587,21 @@ function handleRemoveClick(e) {
     
     e.preventDefault();
     
-    // Get the index from the button's data attribute or its parent form
-    const form = removeBtn.closest('form');
-    const index = removeBtn.dataset.index || (form ? form.dataset.index : null);
+    // Get the item ID from the button's data attribute or its parent form
+    const itemElement = removeBtn.closest('.cart-item');
+    const itemId = itemElement ? itemElement.dataset.itemId : null;
     
-    if (index !== null && index !== undefined) {
-        removeFromCart(e, index);
+    if (itemId) {
+        removeFromCart(e, itemId);
+    } else {
+        console.error('Could not find item ID for removal');
+        showToast('Error', 'Could not identify item to remove', 'error');
     }
 }
 
-// Function to remove item from cart
-function removeFromCart(event, index) {
-    // Update empty state after removing item
-    updateCartEmptyState();
+// Function to remove item from cart using item ID
+function removeFromCart(event, itemId) {
+    // Prevent default form submission if called from a form
     event.preventDefault();
     
     if (!confirm('Are you sure you want to remove this item from your cart?')) {
@@ -1893,14 +1626,14 @@ function removeFromCart(event, index) {
             'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
-            index: parseInt(index)
+            item_id: itemId
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Remove the item from the DOM
-            const itemElement = document.querySelector(`.cart-item[data-index="${index}"]`);
+            // Remove the item from the DOM using the item ID
+            const itemElement = document.querySelector(`.cart-item[data-item-id="${itemId}"]`);
             if (itemElement) {
                 itemElement.remove();
             }
@@ -1908,6 +1641,7 @@ function removeFromCart(event, index) {
             // Update cart totals and count
             updateCartTotals();
             updateCartCount();
+            updateCartEmptyState();
             
             // Check if cart is empty
             const cartItems = document.querySelectorAll('.cart-item');
@@ -1917,7 +1651,7 @@ function removeFromCart(event, index) {
                 showToast('Success', 'Item removed from cart', 'success');
             }
         } else {
-            showToast('Error', data.message || 'Failed to remove item from cart', 'error');
+            showToast('Error', data.error || 'Failed to remove item from cart', 'error');
         }
     })
     .catch(error => {

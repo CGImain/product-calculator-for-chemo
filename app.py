@@ -1124,7 +1124,9 @@ def add_to_cart():
                 area_sq_m = (length * 0.0254) * (width * 0.0254)
             
             # Create product with all details
+            import uuid
             product = {
+                'id': str(uuid.uuid4()),  # Add unique ID
                 'type': 'blanket',
                 'name': data.get('name', 'Custom Blanket'),
                 'machine': data.get('machine', 'Unknown Machine'),
@@ -1157,7 +1159,9 @@ def add_to_cart():
             }
         else:
             # Handle other product types (mpack, etc.)
+            import uuid
             product = {
+                'id': str(uuid.uuid4()),  # Add unique ID
                 'type': data.get('type'),
                 'name': data.get('name'),
                 'unit_price': float(data.get('unit_price', 0)),
@@ -1168,7 +1172,8 @@ def add_to_cart():
                 'machine': data.get('machine', ''),
                 'thickness': data.get('thickness', ''),
                 'size': data.get('size', ''),
-                'underpacking_type': data.get('underpacking_type', '')  # Add underpacking type
+                'underpacking_type': data.get('underpacking_type', ''),  # Add underpacking type
+                'added_at': datetime.utcnow().isoformat()  # Add timestamp for sorting
             }
             
             # Calculate prices for other product types if needed
@@ -1214,43 +1219,62 @@ def add_to_cart():
             if 'products' not in cart:
                 cart['products'] = []
             
-            # Check for duplicate products with same dimensions if force_add is not True
-            if not data.get('force_add'):
-                duplicate_index = -1
-                product_type = product.get('type')
+            # Check if this is an update to an existing item
+            item_id = data.get('item_id')
+            if item_id:
+                # Find and update the existing item
+                item_updated = False
+                for idx, item in enumerate(cart['products']):
+                    if str(item.get('_id', '')) == str(item_id) or str(item.get('id', '')) == str(item_id):
+                        # Update all fields from the new product data
+                        cart['products'][idx].update(product)
+                        item_updated = True
+                        break
                 
-                if product_type == 'blanket':
-                    for idx, item in enumerate(cart['products']):
-                        if (item.get('type') == 'blanket' and 
-                            abs(float(item.get('length', 0)) - float(product.get('length', 0))) < 0.01 and 
-                            abs(float(item.get('width', 0)) - float(product.get('width', 0))) < 0.01 and 
-                            item.get('thickness') == product.get('thickness') and
-                            item.get('bar_type') == product.get('bar_type')):
-                            duplicate_index = idx
-                            break
-                
-                # Check for duplicate MPacks with same specifications
-                elif product_type == 'mpack':
-                    for idx, item in enumerate(cart['products']):
-                        if (item.get('type') == 'mpack' and 
-                            item.get('machine') == product.get('machine') and
-                            item.get('thickness') == product.get('thickness') and
-                            item.get('size') == product.get('size') and
-                            item.get('underpacking_type') == product.get('underpacking_type')):
-                            duplicate_index = idx
-                            break
-                
-                if duplicate_index >= 0:
-                    # Return info about duplicate product
+                if not item_updated:
                     return jsonify({
                         'success': False,
-                        'is_duplicate': True,
-                        'duplicate_index': duplicate_index,
-                        'message': 'A product with the same dimensions already exists in your cart.'
-                    })
+                        'error': 'Item not found in cart',
+                        'message': 'The item you are trying to update was not found in your cart.'
+                    }), 404
+            else:
+                # Check for duplicate products with same dimensions if force_add is not True
+                if not data.get('force_add'):
+                    duplicate_index = -1
+                    product_type = product.get('type')
+                    
+                    if product_type == 'blanket':
+                        for idx, item in enumerate(cart['products']):
+                            if (item.get('type') == 'blanket' and 
+                                abs(float(item.get('length', 0)) - float(product.get('length', 0))) < 0.01 and 
+                                abs(float(item.get('width', 0)) - float(product.get('width', 0))) < 0.01 and 
+                                item.get('thickness') == product.get('thickness') and
+                                item.get('bar_type') == product.get('bar_type')):
+                                duplicate_index = idx
+                                break
+                    
+                    # Check for duplicate MPacks with same specifications
+                    elif product_type == 'mpack':
+                        for idx, item in enumerate(cart['products']):
+                            if (item.get('type') == 'mpack' and 
+                                item.get('machine') == product.get('machine') and
+                                item.get('thickness') == product.get('thickness') and
+                                item.get('size') == product.get('size') and
+                                item.get('underpacking_type') == product.get('underpacking_type')):
+                                duplicate_index = idx
+                                break
+                    
+                    if duplicate_index >= 0:
+                        # Return info about duplicate product
+                        return jsonify({
+                            'success': False,
+                            'is_duplicate': True,
+                            'duplicate_index': duplicate_index,
+                            'message': 'A product with the same dimensions already exists in your cart.'
+                        })
                 
-            # If no duplicate found, add the product to cart
-            cart['products'].append(product)
+                # If no duplicate found and not an update, add the product to cart
+                cart['products'].append(product)
             
             # Save updated cart
             save_user_cart(cart)
@@ -1293,29 +1317,43 @@ def get_cart():
 @app.route('/remove_from_cart', methods=['POST'])
 @login_required
 def remove_from_cart():
-    """Remove the product at `index` from the user's cart."""
+    """Remove the product with the given ID from the user's cart."""
     data = request.get_json() or {}
-    try:
-        idx = int(data.get('index'))
-    except (TypeError, ValueError):
-        return jsonify({'error': 'invalid index'}), 400
+    item_id = data.get('item_id')
+    
+    if not item_id:
+        return jsonify({'error': 'Missing item_id'}), 400
 
     try:
         cart = get_user_cart()
         products = cart.get('products', [])
         
-        if 0 <= idx < len(products):
-            products.pop(idx)
+        # Find the item by ID
+        initial_count = len(products)
+        products = [p for p in products if p.get('id') != item_id]
+        
+        if len(products) < initial_count:
+            # Item was found and removed
             save_user_cart({'products': products})
             return jsonify({
                 'success': True,
-                'cart_count': len(products)
+                'cart_count': len(products),
+                'message': 'Item removed from cart'
             })
             
-        return jsonify({'error': 'invalid index'}), 400
+        return jsonify({
+            'success': False,
+            'error': 'Item not found in cart',
+            'cart_count': len(products)
+        }), 404
+        
     except Exception as e:
-        print(f"Error in remove_from_cart: {e}")
-        return jsonify({'error': 'Failed to remove item from cart'}), 500
+        app.logger.error(f'Error in remove_from_cart: {e}')
+        return jsonify({
+            'success': False,
+            'error': 'Failed to remove item from cart',
+            'details': str(e)
+        }), 500
 
 
 @app.route('/update_cart_quantity', methods=['POST'])
@@ -1330,7 +1368,7 @@ def update_cart_quantity():
                 'message': 'No data provided'
             }), 400
             
-        index = int(data.get('index'))
+        item_id = data.get('item_id')
         quantity = int(data.get('quantity', 1))
         
         # Validate quantity
@@ -1339,49 +1377,61 @@ def update_cart_quantity():
                 'success': False,
                 'message': 'Quantity must be at least 1'
             }), 400
+            
+        if not item_id:
+            return jsonify({
+                'success': False,
+                'message': 'Item ID is required'
+            }), 400
         
         # Get current cart
         cart = get_user_cart()
         products = cart.get('products', [])
         
-        # Check if index is valid
-        if 0 <= index < len(products):
-            # Update the quantity
-            products[index]['quantity'] = quantity
-            
-            # Recalculate prices if needed (for blankets)
-            if products[index].get('type') == 'blanket':
-                # Recalculate blanket prices
-                base_price = products[index].get('base_price', 0)
-                bar_price = products[index].get('bar_price', 0)
-                discount_percent = products[index].get('discount_percent', 0)
-                gst_percent = products[index].get('gst_percent', 18)
+        # Find the item by ID
+        item_updated = False
+        updated_item = None
+        
+        for item in products:
+            if str(item.get('id')) == str(item_id):
+                # Update the quantity
+                item['quantity'] = quantity
                 
-                # Recalculate all values
-                price_per_unit = base_price + bar_price
-                subtotal = price_per_unit * quantity
-                discount_amount = subtotal * (discount_percent / 100)
-                discounted_subtotal = subtotal - discount_amount
-                gst_amount = (discounted_subtotal * gst_percent) / 100
-                final_total = discounted_subtotal + gst_amount
+                # Recalculate prices if needed (for blankets)
+                if item.get('type') == 'blanket':
+                    # Recalculate blanket prices
+                    base_price = item.get('base_price', 0)
+                    bar_price = item.get('bar_price', 0)
+                    discount_percent = item.get('discount_percent', 0)
+                    gst_percent = item.get('gst_percent', 18)
+                    
+                    # Recalculate all values
+                    price_per_unit = base_price + bar_price
+                    subtotal = price_per_unit * quantity
+                    discount_amount = subtotal * (discount_percent / 100)
+                    discounted_subtotal = subtotal - discount_amount
+                    gst_amount = (discounted_subtotal * gst_percent) / 100
+                    final_total = discounted_subtotal + gst_amount
+                    
+                    # Update all price fields
+                    item.update({
+                        'unit_price': round(price_per_unit, 2),
+                        'total_price': round(final_total, 2),
+                        'calculations': {
+                            **item.get('calculations', {}),
+                            'subtotal': round(subtotal, 2),
+                            'discount_amount': round(discount_amount, 2),
+                            'discounted_subtotal': round(discounted_subtotal, 2),
+                            'gst_amount': round(gst_amount, 2),
+                            'final_price': round(final_total, 2)
+                        }
+                    })
                 
-                # Update all price fields
-                products[index].update({
-                    'unit_price': round(price_per_unit, 2),
-                    'total_price': round(final_total, 2),
-                    'calculations': {
-                        **products[index].get('calculations', {}),
-                        'subtotal': round(subtotal, 2),
-                        'discount_amount': round(discount_amount, 2),
-                        'discounted_subtotal': round(discounted_subtotal, 2),
-                        'gst_amount': round(gst_amount, 2),
-                        'final_price': round(final_total, 2)
-                    }
-                })
-            
-            # Get the updated item
-            updated_item = products[index]
-            
+                updated_item = item
+                item_updated = True
+                break
+        
+        if item_updated:
             # Save the updated cart
             save_user_cart({'products': products})
             
@@ -1394,9 +1444,9 @@ def update_cart_quantity():
         else:
             return jsonify({
                 'success': False,
-                'message': 'Invalid item index',
+                'message': 'Item not found in cart',
                 'cart_count': len(products)
-            }), 400
+            }), 404
     except Exception as e:
         app.logger.error(f'Error updating cart quantity: {str(e)}')
         return jsonify({
@@ -1418,7 +1468,7 @@ def update_cart_discount():
                 'message': 'No data provided'
             }), 400
             
-        index = int(data.get('index'))
+        item_id = data.get('item_id')
         discount_percent = float(data.get('discount_percent', 0))
         
         # Validate discount percentage
@@ -1427,72 +1477,84 @@ def update_cart_discount():
                 'success': False,
                 'message': 'Discount percentage must be between 0 and 100'
             }), 400
+            
+        if not item_id:
+            return jsonify({
+                'success': False,
+                'message': 'Item ID is required'
+            }), 400
         
         # Get current cart
         cart = get_user_cart()
         products = cart.get('products', [])
         
-        # Check if index is valid
-        if 0 <= index < len(products):
-            # Update the discount percentage
-            products[index]['discount_percent'] = discount_percent
-            
-            # Recalculate prices based on product type
-            if products[index].get('type') == 'blanket':
-                # Recalculate blanket prices
-                base_price = products[index].get('base_price', 0)
-                bar_price = products[index].get('bar_price', 0)
-                quantity = products[index].get('quantity', 1)
-                gst_percent = products[index].get('gst_percent', 18)
+        # Find the item by ID
+        item_updated = False
+        updated_item = None
+        
+        for item in products:
+            if str(item.get('id')) == str(item_id):
+                # Update the discount percentage
+                item['discount_percent'] = discount_percent
                 
-                price_per_unit = base_price + bar_price
-                subtotal = price_per_unit * quantity
-                discount_amount = subtotal * (discount_percent / 100)
-                discounted_subtotal = subtotal - discount_amount
-                gst_amount = (discounted_subtotal * gst_percent) / 100
-                final_total = discounted_subtotal + gst_amount
+                # Recalculate prices based on product type
+                if item.get('type') == 'blanket':
+                    # Recalculate blanket prices
+                    base_price = item.get('base_price', 0)
+                    bar_price = item.get('bar_price', 0)
+                    quantity = item.get('quantity', 1)
+                    gst_percent = item.get('gst_percent', 18)
+                    
+                    price_per_unit = base_price + bar_price
+                    subtotal = price_per_unit * quantity
+                    discount_amount = subtotal * (discount_percent / 100)
+                    discounted_subtotal = subtotal - discount_amount
+                    gst_amount = (discounted_subtotal * gst_percent) / 100
+                    final_total = discounted_subtotal + gst_amount
+                    
+                    # Update all price fields
+                    item.update({
+                        'unit_price': round(price_per_unit, 2),
+                        'total_price': round(final_total, 2),
+                        'calculations': {
+                            **item.get('calculations', {}),
+                            'subtotal': round(subtotal, 2),
+                            'discount_amount': round(discount_amount, 2),
+                            'discounted_subtotal': round(discounted_subtotal, 2),
+                            'gst_amount': round(gst_amount, 2),
+                            'final_price': round(final_total, 2)
+                        }
+                    })
+                else:
+                    # For mpacks and other product types
+                    unit_price = item.get('unit_price', 0)
+                    quantity = item.get('quantity', 1)
+                    gst_percent = item.get('gst_percent', 18)
+                    
+                    subtotal = unit_price * quantity
+                    discount_amount = subtotal * (discount_percent / 100)
+                    discounted_subtotal = subtotal - discount_amount
+                    gst_amount = (discounted_subtotal * gst_percent) / 100
+                    final_total = discounted_subtotal + gst_amount
+                    
+                    # Update all price fields
+                    item.update({
+                        'total_price': round(final_total, 2),
+                        'calculations': {
+                            **item.get('calculations', {}),
+                            'subtotal': round(subtotal, 2),
+                            'discount_amount': round(discount_amount, 2),
+                            'discounted_subtotal': round(discounted_subtotal, 2),
+                            'gst_amount': round(gst_amount, 2),
+                            'final_price': round(final_total, 2)
+                        }
+                    })
                 
-                # Update all price fields
-                products[index].update({
-                    'unit_price': round(price_per_unit, 2),
-                    'total_price': round(final_total, 2),
-                    'calculations': {
-                        **products[index].get('calculations', {}),
-                        'subtotal': round(subtotal, 2),
-                        'discount_amount': round(discount_amount, 2),
-                        'discounted_subtotal': round(discounted_subtotal, 2),
-                        'gst_amount': round(gst_amount, 2),
-                        'final_price': round(final_total, 2)
-                    }
-                })
-            else:
-                # For mpacks and other product types
-                unit_price = products[index].get('unit_price', 0)
-                quantity = products[index].get('quantity', 1)
-                gst_percent = products[index].get('gst_percent', 18)
-                
-                subtotal = unit_price * quantity
-                discount_amount = subtotal * (discount_percent / 100)
-                discounted_subtotal = subtotal - discount_amount
-                gst_amount = (discounted_subtotal * gst_percent) / 100
-                final_total = discounted_subtotal + gst_amount
-                
-                # Update all price fields
-                products[index].update({
-                    'total_price': round(final_total, 2),
-                    'calculations': {
-                        **products[index].get('calculations', {}),
-                        'subtotal': round(subtotal, 2),
-                        'discount_amount': round(discount_amount, 2),
-                        'discounted_subtotal': round(discounted_subtotal, 2),
-                        'gst_amount': round(gst_amount, 2),
-                        'final_price': round(final_total, 2)
-                    }
-                })
-            
-            # Get the updated item
-            updated_item = products[index]
-            
+                updated_item = item
+                item_updated = True
+                break
+        
+        if item_updated:
             # Save the updated cart
             save_user_cart({'products': products})
             
@@ -1505,9 +1567,9 @@ def update_cart_discount():
         else:
             return jsonify({
                 'success': False,
-                'message': 'Invalid item index',
+                'message': 'Item not found in cart',
                 'cart_count': len(products)
-            }), 400
+            }), 404
     except Exception as e:
         app.logger.error(f'Error updating cart discount: {str(e)}')
         return jsonify({

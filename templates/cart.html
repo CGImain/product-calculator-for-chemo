@@ -370,8 +370,7 @@
                 <div class="col-12 col-lg-10 mx-auto">
                     <div class="cart-item mb-4" 
                          data-type="{{ item.type }}" 
-                         data-index="{{ loop.index0 }}" 
-                         data-item-id="{{ item.id or item._id or '' }}"
+                         data-item-id="{{ item.id or item._id }}"
                          data-name="{{ item.name }}"
                          {% if item.type == 'blanket' %}
                              data-base-price="{{ item.base_price|default(0) }}" 
@@ -517,15 +516,14 @@
                                         </div>
                                     </div>
                                     <div class="mt-3 pt-3 border-top d-flex justify-content-end gap-2">
-                                        <button type="button" class="btn btn-outline-primary btn-sm change-item-btn" 
-                                                data-index="{{ loop.index0 }}" 
-                                                data-item-type="{{ item.type }}"
-                                                data-item-id="{{ item.id or item._id or '' }}"
-                                                title="Edit this item">
+                                        <button type="button" 
+                                                class="btn btn-outline-primary btn-sm change-item-btn" 
+                                                data-item-id="{{ item.id or item._id }}" 
+                                                data-type="{{ item.type }}">
                                             <i class="fas fa-edit me-1"></i> Change
                                         </button>
-                                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                                            <i class="fas fa-trash"></i> Remove
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-item-btn">
+                                            <i class="fas fa-trash-alt me-1"></i> Remove
                                         </button>
                                     </div>
                                 </div>

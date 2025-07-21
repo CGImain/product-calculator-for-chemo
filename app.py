@@ -2283,8 +2283,8 @@ def api_add_company():
             # Check for existing company in MongoDB
             existing_company = mongo_db.companies.find_one({
                 '$or': [
-                    {'name': name},
-                    {'email': email}
+                    {'Company Name': name},
+                    {'EmailID': email}
                 ]
             })
             
@@ -2296,8 +2296,8 @@ def api_add_company():
                 
             # Insert new company
             result = mongo_db.companies.insert_one({
-                'name': name, 
-                'email': email,
+                'Company Name': name, 
+                'EmailID': email,
                 'created_at': datetime.utcnow(),
                 'created_by': str(current_user.id)
             })

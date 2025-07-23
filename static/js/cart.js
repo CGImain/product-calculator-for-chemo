@@ -1262,19 +1262,35 @@ function handleDiscountKeyDown(event) {
 
 // Function to update cart item discount
 function updateCartItemDiscount(index, discountPercent) {
+    updateCartEmptyState();
     const csrfToken = getCSRFToken();
-    const cartItem = document.querySelector(`.cart-item[data-index="${index}"]`);
     
+    // Try to find the cart item in the DOM
+    let cartItem = document.querySelector(`.cart-item[data-index="${index}"]`);
+    
+    // If not found, try to find any cart item with the index
     if (!cartItem) {
-        console.error('Cart item not found in DOM');
-        return;
+        const allCartItems = document.querySelectorAll('.cart-item');
+        for (const item of allCartItems) {
+            if (item.getAttribute('data-index') === index) {
+                cartItem = item;
+                break;
+            }
+        }
     }
     
-    // Show loading state
-    const updateButton = cartItem.querySelector('.update-discount-btn');
-    const originalHtml = updateButton.innerHTML;
-    updateButton.disabled = true;
-    updateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    if (!cartItem) {
+        console.warn('Cart item not found in DOM, but will still update server-side');
+        // Continue with the update even if we can't find the DOM element
+    }
+    
+    const updateButton = cartItem ? cartItem.querySelector('.update-discount-btn') : null;
+    const originalHtml = updateButton ? updateButton.innerHTML : '';
+    
+    if (updateButton) {
+        updateButton.disabled = true;
+        updateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+    }
     
     fetch('/update_cart_discount', {
         method: 'POST',
@@ -1313,8 +1329,10 @@ function updateCartItemDiscount(index, discountPercent) {
         showToast('Error', error.message || 'An error occurred while updating discount', 'error');
     })
     .finally(() => {
-        updateButton.disabled = false;
-        updateButton.innerHTML = originalHtml;
+        if (updateButton) {
+            updateButton.disabled = false;
+            updateButton.innerHTML = originalHtml;
+        }
     });
 }
 
@@ -1339,24 +1357,42 @@ function handleQuantityChange(event) {
     updateCartItemQuantity(index, newQuantity);
 }
 
-
-
 // Function to update cart item quantity
-function updateCartItemQuantity(index, newQuantity) {
+function updateCartItemQuantity(index, newQuantity, type) {
     // Update empty state after quantity changes
     updateCartEmptyState();
     const csrfToken = getCSRFToken();
-    const cartItem = document.querySelector(`.cart-item[data-index="${index}"]`);
     
-    if (!cartItem) {
-        console.error('Cart item not found in DOM');
-        return;
+    // Try to find the cart item in the DOM
+    let cartItem = document.querySelector(`.cart-item[data-index="${index}"]`);
+    
+    // If not found, try to find by type and index
+    if (!cartItem && type) {
+        cartItem = document.querySelector(`.cart-item[data-type="${type}"][data-index="${index}"]`);
     }
     
-    // Show loading state
-    const quantityInput = cartItem.querySelector('.quantity-input');
-    const originalValue = quantityInput.value;
-    quantityInput.disabled = true;
+    // If still not found, try to find any cart item with the index
+    if (!cartItem) {
+        const allCartItems = document.querySelectorAll('.cart-item');
+        for (const item of allCartItems) {
+            if (item.getAttribute('data-index') === index) {
+                cartItem = item;
+                break;
+            }
+        }
+    }
+    
+    if (!cartItem) {
+        console.warn('Cart item not found in DOM, but will still update server-side');
+        // Continue with the update even if we can't find the DOM element
+    }
+    
+    const quantityInput = cartItem ? cartItem.querySelector('.quantity-input') : null;
+    const originalValue = quantityInput ? quantityInput.value : '';
+    
+    if (quantityInput) {
+        quantityInput.disabled = true;
+    }
     
     fetch('/update_cart_quantity', {
         method: 'POST',
@@ -1384,11 +1420,10 @@ function updateCartItemQuantity(index, newQuantity) {
 
                 // Ensure type present for updateItemDisplay (fallback to DOM dataset)
                 if (!itemData.type) {
-                    itemData.type = cartItem.getAttribute('data-type');
+                    itemData.type = cartItem ? cartItem.getAttribute('data-type') : '';
                 }
 
                 // Sync the quantity input first
-                const quantityInput = cartItem.querySelector('.quantity-input');
                 if (quantityInput) {
                     quantityInput.value = itemData.quantity || 1;
                 }
@@ -1413,118 +1448,44 @@ function updateCartItemQuantity(index, newQuantity) {
     .catch(error => {
         console.error('Error updating quantity:', error);
         // Revert to original value on error
-        quantityInput.value = originalValue;
+        if (quantityInput) {
+            quantityInput.value = originalValue;
+        }
         showToast('Error', error.message || 'An error occurred while updating quantity', 'error');
     })
     .finally(() => {
-        quantityInput.disabled = false;
-    });
-}
-
-// Function to set up quantity handlers
-function setupQuantityHandlers() {
-    // Remove any existing event listeners to prevent duplicates
-    document.removeEventListener('click', handleQuantityButtonClick);
-    document.removeEventListener('change', handleQuantityInputChange);
-    document.removeEventListener('keydown', handleQuantityKeyDown);
-    
-    // Add event delegation for quantity buttons
-    document.addEventListener('click', handleQuantityButtonClick);
-    
-    // Add event listener for manual input changes
-    document.addEventListener('change', handleQuantityInputChange);
-    
-    // Add event listener for keyboard input
-    document.addEventListener('keydown', handleQuantityKeyDown);
-}
-
-// Handle quantity button clicks (increase/decrease)
-function handleQuantityButtonClick(event) {
-    // Check if the click was on a quantity button using the correct class names
-    const increaseBtn = event.target.closest('.quantity-increase');
-    const decreaseBtn = event.target.closest('.quantity-decrease');
-    
-    if (!increaseBtn && !decreaseBtn) {
-        // Also check for data-action attributes as fallback
-        const actionBtn = event.target.closest('[data-action]');
-        if (!actionBtn) return;
-        
-        const action = actionBtn.getAttribute('data-action');
-        if (action !== 'increase' && action !== 'decrease') return;
-        
-        event.preventDefault();
-        event.stopPropagation();
-        
-        const itemCard = actionBtn.closest('.cart-item');
-        if (!itemCard) return;
-        
-        const index = itemCard.getAttribute('data-index');
-        const type = itemCard.getAttribute('data-type');
-        const quantityInput = itemCard.querySelector('.quantity-input');
-        
-        if (!quantityInput) return;
-        
-        let quantity = parseInt(quantityInput.value) || 1;
-        
-        if (action === 'increase') {
-            quantity += 1;
-        } else if (action === 'decrease' && quantity > 1) {
-            quantity -= 1;
+        if (quantityInput) {
+            quantityInput.disabled = false;
         }
-        
-        // Update the input value
-        quantityInput.value = quantity;
-        
-        // Update the cart
-        updateCartItemQuantity(index, quantity, type);
-        return;
-    }
-    
-    // Original button handling
-    event.preventDefault();
-    event.stopPropagation();
-    
-    const button = increaseBtn || decreaseBtn;
-    const itemCard = button.closest('.cart-item');
-    if (!itemCard) return;
-    
-    const index = itemCard.getAttribute('data-index');
-    const type = itemCard.getAttribute('data-type');
-    const quantityInput = itemCard.querySelector('.quantity-input');
-    
-    if (!quantityInput) return;
-    
-    let quantity = parseInt(quantityInput.value) || 1;
-    
-    if (increaseBtn) {
-        quantity += 1;
-    } else if (decreaseBtn && quantity > 1) {
-        quantity -= 1;
-    }
-    
-    // Update the input value
-    quantityInput.value = quantity;
-    
-    // Update the cart
-    updateCartItemQuantity(index, quantity, type);
+    });
 }
 
 // Handle manual input changes
 function handleQuantityInputChange(event) {
-    if (event.target.classList.contains('quantity-input')) {
-        const input = event.target;
-        const container = input.closest('.cart-item');
-        const index = container ? container.dataset.index : null;
-        
-        if (index !== null) {
-            let newQuantity = parseInt(input.value);
-            if (isNaN(newQuantity) || newQuantity < 1) {
-                newQuantity = 1;
-                input.value = 1;
-            }
-            updateCartItemQuantity(index, newQuantity);
-        }
+    const input = event.target;
+    if (!input.classList.contains('quantity-input')) return;
+    
+    const container = input.closest('.cart-item');
+    if (!container) {
+        console.warn('Could not find cart item container for quantity input');
+        return;
     }
+    
+    const index = container.getAttribute('data-index');
+    const type = container.getAttribute('data-type');
+    
+    if (!index) {
+        console.warn('Cart item is missing data-index attribute');
+        return;
+    }
+    
+    let newQuantity = parseInt(input.value);
+    if (isNaN(newQuantity) || newQuantity < 1) {
+        newQuantity = 1;
+        input.value = 1;
+    }
+    
+    updateCartItemQuantity(index, newQuantity, type);
 }
 
 // Handle keyboard input for quantity fields

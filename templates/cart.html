@@ -588,6 +588,16 @@
     </div>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Server-rendered cart data -->
+    <script id="serverCartData" type="application/json">
+    {% if cart and cart.products %}
+        {{ cart.products|tojson|safe }}
+    {% else %}
+        []
+    {% endif %}
+    </script>
+    
     <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 
 {% endblock %}

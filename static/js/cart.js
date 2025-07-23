@@ -707,7 +707,24 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing cart...');
     
     try {
-        // Sync cart from server to localStorage first
+        // Get server-rendered cart data if available
+        const serverCartData = document.getElementById('serverCartData');
+        if (serverCartData) {
+            try {
+                const serverCart = JSON.parse(serverCartData.textContent);
+                if (Array.isArray(serverCart) && serverCart.length > 0) {
+                    console.log('Found server-rendered cart with', serverCart.length, 'items');
+                    // Update localStorage with server cart data
+                    const currentCart = getCart();
+                    currentCart.products = serverCart;
+                    localStorage.setItem('cart', JSON.stringify(currentCart));
+                }
+            } catch (e) {
+                console.error('Error parsing server cart data:', e);
+            }
+        }
+        
+        // Sync cart from server to localStorage
         syncCartFromServer();
         
         // Initial empty state check
@@ -1495,38 +1512,71 @@ function handleChangeItem(e) {
     const itemName = cartItemElement.getAttribute('data-name');
     const itemMachine = cartItemElement.getAttribute('data-machine');
     
-    console.log('Item to edit:', { itemId, itemType, itemName, itemMachine });
-    
-    if (!itemId || !itemType) {
-        console.error('❌ Missing required item details');
-        showToast('Error', 'Could not identify item to edit', 'error');
-        return;
-    }
+    console.log('🔄 Handling change item request');
+    console.log('Item ID to edit:', itemId);
+    console.log('Item details from DOM:', { itemType, itemName, itemMachine });
     
     // Get the cart data
     const cart = getCart();
-    if (!cart?.products?.length) {
-        console.error('❌ Cart is empty');
-        showToast('Error', 'Cart is empty', 'error');
+    console.log(`🛒 Cart loaded with ${cart.products ? cart.products.length : 0} items`);
+    
+    if (!cart.products || !Array.isArray(cart.products)) {
+        console.error('❌ Invalid cart data structure:', cart);
+        showToast('Error', 'Invalid cart data', 'error');
         return;
     }
     
-    console.log('🛒 Cart items:', cart.products.map(item => ({
-        id: item.id || item._id,
-        type: item.type,
-        name: item.name,
-        machine: item.machine
-    })));
+    // Try to find the item using multiple strategies
+    let item = null;
     
-    // Find the item in the cart
-    const item = cart.products.find(cartItem => {
-        const cartItemId = cartItem.id || cartItem._id;
-        return String(cartItemId) === String(itemId);
-    });
+    // 1. First try exact ID match
+    if (itemId) {
+        item = cart.products.find(cartItem => {
+            const cartItemId = cartItem.id || cartItem._id;
+            return String(cartItemId) === String(itemId);
+        });
+        
+        if (item) {
+            console.log('✅ Found item by ID match');
+        }
+    }
+    
+    // 2. If not found, try matching by name, type, and machine (for blankets)
+    if (!item && itemName && itemType) {
+        console.log('🔍 Trying to find item by name, type, and machine...');
+        item = cart.products.find(cartItem => {
+            const nameMatch = cartItem.name === itemName;
+            const typeMatch = cartItem.type === itemType;
+            const machineMatch = !itemMachine || cartItem.machine === itemMachine;
+            return nameMatch && typeMatch && machineMatch;
+        });
+        
+        if (item) {
+            console.log('✅ Found item by name/type/machine match');
+        } else {
+            console.log('❌ No match found with name/type/machine strategy');
+        }
+    }
+    
+    // 3. Last resort: try matching by name and type only
+    if (!item && itemName && itemType) {
+        console.log('🔍 Trying to find item by name and type only...');
+        item = cart.products.find(cartItem => {
+            return cartItem.name === itemName && cartItem.type === itemType;
+        });
+        
+        if (item) {
+            console.log('✅ Found item by name/type match');
+        } else {
+            console.log('❌ No match found with any strategy');
+        }
+    }
     
     if (!item) {
-        console.error('❌ Item not found in cart');
-        showToast('Error', 'Item not found in cart', 'error');
+        console.error('❌ Could not find item in cart');
+        console.log('Searched with:', { itemId, itemName, itemType, itemMachine });
+        console.log('Available items in cart:', cart.products);
+        showToast('Error', 'Could not find item in cart', 'error');
         return;
     }
     
@@ -1534,20 +1584,20 @@ function handleChangeItem(e) {
     
     try {
         // Prepare the redirect URL based on item type
-        const baseUrl = `/${itemType}s?edit=true`;
+        const baseUrl = `/${item.type}s?edit=true`;
         
         // Add item details as query parameters
         const params = new URLSearchParams();
         
         // Add basic item properties
-        params.append('item_id', itemId);
-        params.append('type', itemType);
+        params.append('item_id', item.id || item._id);
+        params.append('type', item.type);
         
-        // Add all item properties as query parameters
-        Object.entries(item).forEach(([key, value]) => {
-            if (value !== null && value !== undefined && 
-                key !== 'id' && key !== '_id' && key !== 'calculations' && 
-                key !== 'createdAt' && key !== 'updatedAt' && key !== '__v') {
+        // Add all item properties as query parameters, excluding internal fields
+        const excludeFields = ['id', '_id', 'calculations', 'createdAt', 'updatedAt', '__v'];
+        
+        for (const [key, value] of Object.entries(item)) {
+            if (value !== null && value !== undefined && !excludeFields.includes(key)) {
                 try {
                     const paramValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
                     params.append(key, paramValue);
@@ -1555,10 +1605,10 @@ function handleChangeItem(e) {
                     console.warn(`Could not stringify property ${key}:`, err);
                 }
             }
-        });
+        }
         
         // Build the final URL
-        const finalUrl = `${baseUrl}&${params.toString()}`;
+        const finalUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}${params.toString()}`;
         
         console.log('🔗 Redirecting to:', finalUrl);
         window.location.href = finalUrl;

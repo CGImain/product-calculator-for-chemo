@@ -347,10 +347,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   logElementStatus("sheetInput");
   logElementStatus("discountSelect");
 
+  // Set up the add to cart button
+  const addToCartBtn = document.getElementById('addToCartBtn');
+  if (addToCartBtn) {
+    addToCartBtn.onclick = async function(e) {
+      e.preventDefault();
+      try {
+        if (editingItem) {
+          await updateCartItem(this, editingItem.id);
+        } else {
+          await addMpackToCart();
+        }
+      } catch (error) {
+        console.error('Error processing cart action:', error);
+        showToast('Error', 'Failed to process your request. Please try again.', 'error');
+      }
+    };
+  }
+
   // Safely add event listener to machine select
   const machineSelect = document.getElementById("machineSelect");
   const mpackSection = document.getElementById("mpackSection");
-  
+
   if (!machineSelect) {
     console.error("machineSelect element not found!");
   }

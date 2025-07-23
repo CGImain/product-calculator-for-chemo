@@ -185,15 +185,32 @@ function checkForEditingItem() {
             
             // Try to parse JSON values
             try {
-                item[key] = JSON.parse(value);
+                item[key] = JSON.parse(decodeURIComponent(value));
             } catch (e) {
                 item[key] = value;
             }
         });
         
-        // Add ID and type
-        item.id = itemId;
+        // Add ID and type - ensure these are set correctly
+        item.id = itemId.toString(); // Ensure ID is a string
         item.type = urlParams.get('type') || 'blanket';
+        
+        // Make sure we have the required calculations object
+        if (!item.calculations) {
+            item.calculations = {
+                areaSqM: 0,
+                ratePerSqMt: 0,
+                basePrice: 0,
+                pricePerUnit: 0,
+                subtotal: 0,
+                discount_percent: 0,
+                discount_amount: 0,
+                discounted_subtotal: 0,
+                gst_percent: 0,
+                gst_amount: 0,
+                final_price: 0
+            };
+        }
         
         console.log('Editing item from URL:', item);
         return item;
@@ -687,8 +704,9 @@ window.onload = () => {
       
       try {
         if (editingItem) {
-          // If editing an existing item, update it
-          await updateCartItem(button, editingItem.index);
+          console.log('Updating item with ID:', editingItem.id);
+          // If editing an existing item, update it using the item's ID
+          await updateCartItem(button, editingItem.id);
         } else {
           // Otherwise, add a new item
           await addBlanketToCart();

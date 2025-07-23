@@ -362,9 +362,22 @@ function initializeCart() {
         input.setAttribute('data-original-quantity', input.value);
     });
     
-        // Set up event handlers first
+    // Set up quantity change handlers
     console.log('Setting up quantity handlers...');
-    setupQuantityHandlers();
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', handleQuantityInputChange);
+        input.addEventListener('keydown', handleQuantityKeyDown);
+    });
+    
+    // Set up discount update handlers
+    document.querySelectorAll('.update-discount-btn').forEach(button => {
+        button.addEventListener('click', handleDiscountUpdate);
+    });
+    
+    // Set up discount input handlers
+    document.querySelectorAll('.discount-input').forEach(input => {
+        input.addEventListener('keydown', handleDiscountKeyDown);
+    });
     
     console.log('Setting up remove handlers...');
     setupRemoveHandlers();
@@ -1250,7 +1263,8 @@ function handleDiscountUpdate(event) {
     discountInput.value = discountPercent;
     
     // Update the cart item discount
-    updateCartItemDiscount(index, discountPercent);
+    const itemId = cartItem.getAttribute('data-item-id');
+    updateCartItemDiscount(index, discountPercent, itemId);
 }
 
 // Function to handle discount input keydown (Enter key)
@@ -1261,7 +1275,7 @@ function handleDiscountKeyDown(event) {
 }
 
 // Function to update cart item discount
-function updateCartItemDiscount(index, discountPercent) {
+function updateCartItemDiscount(index, discountPercent, itemId) {
     updateCartEmptyState();
     const csrfToken = getCSRFToken();
     
@@ -1300,6 +1314,7 @@ function updateCartItemDiscount(index, discountPercent) {
         },
         body: JSON.stringify({
             index: parseInt(index),
+            item_id: itemId,
             discount_percent: parseFloat(discountPercent)
         })
     })

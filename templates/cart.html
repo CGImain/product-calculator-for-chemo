@@ -502,13 +502,14 @@
                                                 <div class="d-flex align-items-center">
                                                     <div class="input-group" style="width: 120px;">
                                                         <input type="number" 
-                                                               class="form-control discount-input" 
+                                                               class="form-control discount-input text-center" 
                                                                value="{{ item.discount_percent|default(0) }}" 
                                                                min="0" 
                                                                max="100"
                                                                step="0.1"
                                                                data-index="{{ loop.index0 }}"
-                                                               data-item-id="{{ item.id or item._id }}">r-right: 0; padding: 0.25rem;">
+                                                               data-item-id="{{ item.id or item._id }}"
+                                                               style="padding: 0.25rem;">
                                                         <span class="input-group-text">%</span>
                                                     </div>
                                                     <button class="btn btn-sm btn-outline-success update-discount-btn ms-2" 

@@ -424,22 +424,23 @@ window.createProductTypeModal = function() {
 // Function to handle continue shopping
 function handleContinueShopping() {
     try {
-        const modalElement = document.getElementById('productTypeModal');
-        let modal;
+        // Get company info from localStorage
+        const companyInfo = JSON.parse(localStorage.getItem('selectedCompany') || '{}');
         
-        if (modalElement) {
-            // If modal already exists, get the Bootstrap instance
-            modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-        } else {
-            // Otherwise create a new one
-            modal = createProductTypeModal();
+        // Create URL with company info
+        let url = '/product-selection';
+        const params = new URLSearchParams();
+        
+        if (companyInfo.id) params.append('company_id', companyInfo.id);
+        if (companyInfo.name) params.append('company_name', encodeURIComponent(companyInfo.name));
+        if (companyInfo.email) params.append('company_email', encodeURIComponent(companyInfo.email));
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
         }
         
-        if (modal) {
-            modal.show();
-        } else {
-            throw new Error('Failed to create product type modal');
-        }
+        // Navigate to the product selection page with company info
+        window.location.href = url;
     } catch (error) {
         console.error('Error showing product type modal:', error);
         // Fallback in case modal fails to initialize

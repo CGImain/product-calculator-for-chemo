@@ -66,7 +66,15 @@ function prefillFormWithItem(item) {
     const addToCartBtn = document.getElementById('addToCartBtn');
     if (addToCartBtn) {
       addToCartBtn.textContent = 'Update Item';
-      addToCartBtn.onclick = function() { updateMpackInCart(item.item_index); };
+      addToCartBtn.onclick = async function(e) { 
+        e.preventDefault();
+        try {
+          await updateCartItem(this, item.id);
+        } catch (error) {
+          console.error('Error updating cart item:', error);
+          showToast('Error', 'Failed to update item. Please try again.', 'error');
+        }
+      };
     }
     
     // Set underpacking type
@@ -161,8 +169,8 @@ function prefillFormWithItem(item) {
 }
 
 // Function to update an existing cart item
-async function updateMpackInCart(itemIndex) {
-  const addToCartBtn = document.getElementById('addToCartBtn');
+async function updateCartItem(button, itemId) {
+  const addToCartBtn = button || document.getElementById('addToCartBtn');
   if (!addToCartBtn) return;
   
   // Show loading state
@@ -174,8 +182,8 @@ async function updateMpackInCart(itemIndex) {
     // Get the current form data
     const formData = getFormData();
     
-    // Add the item index to the form data for server-side processing
-    formData.item_index = itemIndex;
+    // Add the item ID to the form data for server-side processing
+    formData.item_id = itemId;
     
     // Send the update request to the server
     const response = await fetch('/update_cart_item', {
@@ -185,6 +193,8 @@ async function updateMpackInCart(itemIndex) {
     });
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server response:', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
@@ -293,9 +303,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           const addToCartBtn = document.getElementById('addToCartBtn');
           if (addToCartBtn) {
             addToCartBtn.textContent = 'Update Item';
-            // Update the onclick handler to use updateMpackInCart
-            addToCartBtn.onclick = function() { 
-              updateMpackInCart(editingItem.index); 
+            // Update the onclick handler to use updateCartItem with both button and itemId
+            addToCartBtn.onclick = async function(e) { 
+              e.preventDefault();
+              try {
+                await updateCartItem(this, editingItem.id);
+              } catch (error) {
+                console.error('Error updating cart item:', error);
+                showToast('Error', 'Failed to update item. Please try again.', 'error');
+              }
             };
           }
           
@@ -879,53 +895,7 @@ function applyDiscount() {
   }
 }
 
-// Function to update an existing cart item
-async function updateCartItem(button, itemId) {
-    button.disabled = true;
-    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
-    
-    try {
-        // Get the current form data
-        const formData = getFormData();
-        
-        // Add the item ID to the form data for server-side processing
-        formData.item_id = itemId;
-        
-        // Send update request to the server
-        const response = await fetch('/update_cart_item', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Update the cart count
-            if (typeof updateCartCount === 'function') {
-                updateCartCount();
-            }
-            
-            // Show success message and redirect back to cart
-            showToast('Success', 'Item updated in cart!', 'success');
-            setTimeout(() => {
-                window.location.href = '/cart';
-            }, 1000);
-        } else {
-            throw new Error(data.error || 'Failed to update item');
-        }
-    } catch (error) {
-        console.error('Error updating cart item:', error);
-        showToast('Error', 'Failed to update item. Please try again.', 'error');
-        button.disabled = false;
-        button.textContent = 'Update Item';
-        throw error; // Re-throw the error to be caught by the caller
-    }
-}
+
 
 async function addMpackToCart() {
   // Check if we're in edit mode
@@ -1004,6 +974,11 @@ async function addMpackToCart() {
   // Handle edit mode
   if (isEditMode && itemId) {
     try {
+      // Prepare the form data for update
+      const formData = getFormData();
+      formData.item_id = itemId;
+      
+      // Call updateCartItem with the button and item ID
       await updateCartItem(addToCartBtn, itemId);
       return; // Exit after update
     } catch (error) {

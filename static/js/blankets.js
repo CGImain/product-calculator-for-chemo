@@ -12,21 +12,39 @@ async function updateCartItem(button, itemId) {
         // Get the current form data
         const formData = getFormData();
         
-        // Add the item ID to the form data for server-side processing
-        formData.item_id = itemId;
+        // Create the payload with the expected structure
+        const payload = {
+            item_id: itemId,
+            quantity: formData.quantity,
+            length: formData.length,
+            width: formData.width,
+            thickness: formData.thickness,
+            machine: formData.machine,
+            bar_type: formData.bar_type,
+            discount_percent: formData.discount_percent,
+            gst_percent: formData.gst_percent,
+            unit_price: formData.unit_price,
+            name: formData.name,
+            type: formData.type
+        };
+        
+        console.log('Sending update request with payload:', payload);
         
         // Send update request to the server
         const response = await fetch('/update_cart_item', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(payload)
         });
         
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server responded with:', errorText);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('Update response:', data);
         
         if (data.success) {
             // Update the cart count

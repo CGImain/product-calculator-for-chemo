@@ -400,6 +400,7 @@
                              data-quantity="{{ item.quantity|default(1) }}" 
                              data-discount-percent="{{ item.discount_percent|default(0) }}" 
                              data-gst-percent="{{ item.gst_percent|default(18) }}"
+                             data-rate-per-sqmt="{{ item.rate_per_sqmt|default(0) }}"
                              {% if item.machine %}data-machine="{{ item.machine }}"{% endif %}
                              {% if item.thickness %}data-thickness="{{ item.thickness }}"{% endif %}
                          {% elif item.type == 'mpack' %}
@@ -452,8 +453,8 @@
                                             {% if item.size %}
                                                 <p class="mb-1"><strong>Size:</strong> {{ item.size }}</p>
                                             {% elif item.length and item.width %}
-                                                <p class="mb-1"><strong>Dimensions:</strong> {{ item.length }}m x {{ item.width }}m</p>
-                                                <p class="mb-1"><strong>Area:</strong> {{ "%.2f"|format((item.length|float * item.width|float)) }} mm²</p>
+                                                <p class="mb-1"><strong>Dimensions:</strong> {{ item.length }}mm x {{ item.width }}mm ({{ "%.2f"|format((item.length|float / 1000)) }}m x {{ "%.2f"|format((item.width|float / 1000)) }}m)</p>
+                                                <p class="mb-1"><strong>Area:</strong> {{ "%.2f"|format((item.length|float * item.width|float) / 1000000) }} m² ({{ "%.2f"|format((item.length|float * item.width|float)) }} mm²)</p>
                                             {% endif %}
                                             
                                             {% if item.bar_type %}

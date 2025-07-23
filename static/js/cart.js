@@ -1037,42 +1037,42 @@ function calculateBlanketPrices(item) {
     const discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
     const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 12);
     
-    // Convert dimensions to meters
-    const lengthM = convertToMeters(length, unit);
-    const widthM = convertToMeters(width, unit);
+    // Convert dimensions from mm to meters (1m = 1000mm)
+    const lengthM = parseFloat(length) / 1000;
+    const widthM = parseFloat(width) / 1000;
     const areaSqM = lengthM * widthM;
     
-    // Calculate base price (area × rate per sq.m)
-    const basePrice = areaSqM * ratePerSqMt;
+    // Calculate base price (area in sq.m × rate per sq.m)
+    const effectiveRate = ratePerSqMt > 0 ? ratePerSqMt : (parseFloat(item.getAttribute('data-unit-price') || 0) / areaSqM);
+    const unitPrice = areaSqM * effectiveRate;
     
-    // Calculate net price per piece (base price + barring)
-    const netPricePerPiece = basePrice + barPrice;
+    // Calculate net price per piece (unit price + barring)
+    const netPricePerPiece = unitPrice + barPrice;
     
-    // Calculate base total (net price × quantity)
-    const baseTotal = netPricePerPiece * quantity;
+    // Calculate subtotal (net price per piece × quantity)
+    const subtotal = netPricePerPiece * quantity;
     
-    // Calculate discount amount and discounted total
+    // Calculate discount amount and total before GST
     let discountAmount = 0;
-    let discountedTotal = baseTotal;
+    let totalBeforeGst = subtotal;
     
     if (discountPercent > 0) {
-        discountAmount = (baseTotal * discountPercent) / 100;
-        discountedTotal = baseTotal - discountAmount;
+        discountAmount = (subtotal * discountPercent) / 100;
+        totalBeforeGst = subtotal - discountAmount;
     }
     
-    // Calculate GST on the discounted total
-    const gstAmount = (discountedTotal * gstPercent) / 100;
-    const total = discountedTotal + gstAmount;
+    // Calculate GST on the total before GST
+    const gstAmount = (totalBeforeGst * gstPercent) / 100;
+    const total = totalBeforeGst + gstAmount;
     
     return {
-        baseSubtotal: round(basePrice * quantity, 2),
-        barSubtotal: round(barPrice * quantity, 2),
-        subtotal: round(baseTotal, 2),
+        unitPrice: round(unitPrice, 2),
+        netPricePerPiece: round(netPricePerPiece, 2),
+        subtotal: round(subtotal, 2),
         discountAmount: round(discountAmount, 2),
-        discountedSubtotal: round(discountedTotal, 2),
+        totalBeforeGst: round(totalBeforeGst, 2),
         gstAmount: round(gstAmount, 2),
-        total: round(total, 2),
-        netPricePerPiece: round(netPricePerPiece, 2)
+        total: round(total, 2)
     };
 }
 
@@ -1843,83 +1843,47 @@ function updateItemDisplay(item, data) {
     
     // Update the price displays
     if (data.type === 'blanket') {
+        // Get dimensions and rates
+        const length = parseFloat(item.getAttribute('data-length') || 0) / 1000; // Convert mm to m
+        const width = parseFloat(item.getAttribute('data-width') || 0) / 1000; // Convert mm to m
+        const areaSqM = length * width;
+        const ratePerSqMt = parseFloat(item.getAttribute('data-rate-per-sqmt') || 0);
+        
         // Update unit price display
         const unitPriceElement = item.querySelector('.unit-price');
         if (unitPriceElement) {
-            unitPriceElement.textContent = `₹${parseFloat(data.base_price || 0).toFixed(2)}`;
+            unitPriceElement.textContent = `₹${data.unitPrice.toFixed(2)} (${areaSqM.toFixed(4)}m² × ₹${ratePerSqMt.toFixed(2)})`;
         }
         
-        // Update bar price display if it exists
-        const barPriceElement = item.querySelector('.bar-price');
-        if (barPriceElement) {
-            if (data.bar_price && data.bar_price > 0) {
-                barPriceElement.textContent = `+₹${parseFloat(data.bar_price).toFixed(2)}`;
-                barPriceElement.closest('.price-row').style.display = 'flex';
-            } else {
-                barPriceElement.closest('.price-row').style.display = 'none';
-            }
+        // Update net price per piece
+        const netPriceElement = item.querySelector('.net-price');
+        if (netPriceElement) {
+            netPriceElement.textContent = `₹${data.netPricePerPiece.toFixed(2)}`;
         }
         
-        // Use the same calculation as in calculateBlanketPrices
-        const prices = calculateBlanketPrices(item);
-        const {
-            baseSubtotal,
-            barSubtotal,
-            subtotal,
-            discountAmount,
-            discountedSubtotal,
-            gstAmount,
-            total
-        } = prices;
+        // Update quantity display
+        const quantityElement = item.querySelector('.quantity-display');
+        if (quantityElement) {
+            quantityElement.textContent = data.quantity || 1;
+        }
         
-        // Update the data attributes to match the calculated values
-        const discountPercent = parseFloat(data.discount_percent || 0);
-        const gstPercent = parseFloat(data.gst_percent || 18);
-        const taxableAmount = discountedSubtotal;
-        
-        // Update subtotal display
-        const subtotalElement = item.querySelector('.subtotal-value');
+        // Update subtotal (net price × quantity)
+        const subtotalElement = item.querySelector('.subtotal');
         if (subtotalElement) {
-            subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+            subtotalElement.textContent = `₹${data.subtotal.toFixed(2)}`;
         }
         
-        // Update discount row if it exists
-        const discountRow = item.querySelector('.discount-row');
-        if (discountRow) {
-            if (discountPercent > 0) {
-                discountRow.style.display = 'flex';
-                const discountAmountElement = discountRow.querySelector('.discount-amount') || 
-                                          discountRow.querySelector('span:last-child');
-                if (discountAmountElement) {
-                    discountAmountElement.textContent = `-₹${discountAmount.toFixed(2)}`;
-                }
-                const discountPercentElement = discountRow.querySelector('.discount-percent');
-                if (discountPercentElement) {
-                    discountPercentElement.textContent = `${discountPercent}%`;
-                }
-            } else {
-                discountRow.style.display = 'none';
-            }
+        // Update discount
+        const discountElement = item.querySelector('.discount-amount');
+        if (discountElement) {
+            const discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
+            discountElement.textContent = `-₹${data.discountAmount.toFixed(2)} (${discountPercent}%)`;
         }
         
-        // Update GST row if it exists
-        const gstRow = item.querySelector('.gst-row');
-        if (gstRow) {
-            const gstAmountElement = gstRow.querySelector('.gst-amount') || 
-                                   gstRow.querySelector('span:last-child');
-            if (gstAmountElement) {
-                gstAmountElement.textContent = `₹${gstAmount.toFixed(2)}`;
-            }
-            const gstPercentElement = gstRow.querySelector('.gst-percent');
-            if (gstPercentElement) {
-                gstPercentElement.textContent = `${gstPercent}%`;
-            }
-        }
-        
-        // Update pre-GST total
-        const preGstTotalElement = item.querySelector('.pre-gst-total .pre-gst-amount');
-        if (preGstTotalElement) {
-            preGstTotalElement.textContent = `₹${taxableAmount.toFixed(2)}`;
+        // Update total before GST
+        const totalBeforeGstElement = item.querySelector('.total-before-gst');
+        if (totalBeforeGstElement) {
+            totalBeforeGstElement.textContent = `₹${data.totalBeforeGst.toFixed(2)}`;
         }
         
         // Update total

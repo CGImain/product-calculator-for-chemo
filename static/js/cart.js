@@ -1849,55 +1849,60 @@ function updateItemDisplay(item, data) {
         const areaSqM = length * width;
         const ratePerSqMt = parseFloat(item.getAttribute('data-rate-per-sqmt') || 0);
         
+        // Calculate unit price if not provided in data
+        const unitPrice = data.unitPrice || (areaSqM * ratePerSqMt);
+        
         // Update unit price display
         const unitPriceElement = item.querySelector('.unit-price');
         if (unitPriceElement) {
-            unitPriceElement.textContent = `₹${data.unitPrice.toFixed(2)} (${areaSqM.toFixed(4)}m² × ₹${ratePerSqMt.toFixed(2)})`;
+            unitPriceElement.textContent = `₹${unitPrice.toFixed(2)} (${areaSqM.toFixed(4)}m² × ₹${ratePerSqMt.toFixed(2)})`;
         }
+        
+        // Calculate net price per piece if not provided in data
+        const netPricePerPiece = data.netPricePerPiece || (unitPrice + parseFloat(item.getAttribute('data-bar-price') || 0));
         
         // Update net price per piece
         const netPriceElement = item.querySelector('.net-price');
         if (netPriceElement) {
-            netPriceElement.textContent = `₹${data.netPricePerPiece.toFixed(2)}`;
+            netPriceElement.textContent = `₹${netPricePerPiece.toFixed(2)}`;
         }
         
         // Update quantity display
         const quantityElement = item.querySelector('.quantity-display');
         if (quantityElement) {
-            quantityElement.textContent = data.quantity || 1;
+            quantityElement.textContent = quantity;
         }
         
         // Update subtotal (net price × quantity)
         const subtotalElement = item.querySelector('.subtotal');
         if (subtotalElement) {
-            subtotalElement.textContent = `₹${data.subtotal.toFixed(2)}`;
+            subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
         }
         
         // Update discount
         const discountElement = item.querySelector('.discount-amount');
         if (discountElement) {
-            const discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
-            discountElement.textContent = `-₹${data.discountAmount.toFixed(2)} (${discountPercent}%)`;
+            discountElement.textContent = `-₹${discountAmount.toFixed(2)} (${discountPercent}%)`;
         }
         
         // Update total before GST
         const totalBeforeGstElement = item.querySelector('.total-before-gst');
         if (totalBeforeGstElement) {
-            totalBeforeGstElement.textContent = `₹${data.totalBeforeGst.toFixed(2)}`;
+            totalBeforeGstElement.textContent = `₹${totalBeforeGst.toFixed(2)}`;
+        }
+        
+        // Update GST
+        const gstElement = item.querySelector('.gst-amount');
+        if (gstElement) {
+            gstElement.textContent = `₹${gstAmount.toFixed(2)} (${gstPercent}%)`;
         }
         
         // Update total
-        const totalElement = item.querySelector('.total-value');
+        const totalElement = item.querySelector('.item-total') || item.querySelector('.total-value');
         if (totalElement) {
             totalElement.textContent = `₹${total.toFixed(2)}`;
         }
     } else if (data.type === 'mpack') {
-        // Similar updates for MPack items
-        const unitPriceElement = item.querySelector('.unit-price');
-        if (unitPriceElement) {
-            unitPriceElement.textContent = `₹${parseFloat(data.unit_price || 0).toFixed(2)}`;
-        }
-        
         // Calculate values
         const unitPrice = parseFloat(data.unit_price || 0);
         const quantity = parseInt(data.quantity || 1);

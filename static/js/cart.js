@@ -706,6 +706,9 @@ function syncCartFromServer() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing cart...');
     
+    // Initialize company info first
+    initCompanyInfo();
+    
     try {
         // Get server-rendered cart data if available
         const serverCartData = document.getElementById('serverCartData');
@@ -744,6 +747,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (continueShoppingBtnBottom) {
             continueShoppingBtnBottom.addEventListener('click', handleContinueShopping);
         }
+        
+        // Re-initialize company info after cart is loaded to ensure it's displayed
+        setTimeout(initCompanyInfo, 500);
         
         // Initialize cart calculations
         initializeCartCalculations();

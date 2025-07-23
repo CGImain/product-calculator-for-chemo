@@ -1476,31 +1476,33 @@ function handleChangeItem(e) {
         console.error('❌ Invalid change button');
         return;
     }
-    
-    // Get the cart item element that contains this button
     const cartItemElement = button.closest('.cart-item');
-    if (!cartItemElement) {
-        console.error('❌ Could not find parent cart item element');
-        return;
+    
+    // First try to get from button's data attributes
+    let itemId = button.getAttribute('data-item-id');
+    let itemName = button.getAttribute('data-item-name');
+    let itemType = button.getAttribute('data-item-type');
+    let itemMachine = button.getAttribute('data-item-machine');
+    
+    // If not found on button, try to get from cart item element
+    if (!itemId && cartItemElement) {
+        itemId = cartItemElement.getAttribute('data-item-id');
+        itemName = cartItemElement.getAttribute('data-name');
+        itemType = cartItemElement.getAttribute('data-type');
+        itemMachine = cartItemElement.getAttribute('data-machine');
     }
     
-    // Get all possible identifiers from the DOM
-    let itemId = button.getAttribute('data-item-id') || cartItemElement.getAttribute('data-item-id');
-    const originalItemId = itemId; // Store the original ID for reference
-    const itemName = cartItemElement.getAttribute('data-name');
-    const itemType = cartItemElement.getAttribute('data-type');
-    const itemMachine = cartItemElement.getAttribute('data-machine');
+    console.log('Item ID to edit:', itemId);
+    console.log('Item details:', { itemId, itemName, itemType, itemMachine });
     
     if (!itemId && !itemName) {
-        console.error('❌ Could not find item ID or name in cart item element or button');
-        console.log('Button attributes:', Array.from(button.attributes).map(attr => ({
-            name: attr.name,
-            value: attr.value
-        })));
-        console.log('Cart item attributes:', Array.from(cartItemElement.attributes).map(attr => ({
-            name: attr.name,
-            value: attr.value
-        })));
+        console.error('❌ Could not identify item to edit');
+        if (cartItemElement) {
+            console.log('Cart item attributes:', Array.from(cartItemElement.attributes).map(attr => ({
+                name: attr.name,
+                value: attr.value
+            })));
+        }
         showToast('Error', 'Could not identify item to edit', 'error');
         return;
     }
@@ -1545,12 +1547,16 @@ function handleChangeItem(e) {
         item = cart.products.find(cartItem => {
             if (!cartItem) return false;
             const cartItemId = cartItem.id || cartItem._id || '';
-            return String(cartItemId) === String(itemId);
+            const match = String(cartItemId) === String(itemId);
+            if (match) {
+                console.log('✅ Found item by exact ID match:', { 
+                    cartItemId, 
+                    itemId,
+                    item: cartItem 
+                });
+            }
+            return match;
         });
-        
-        if (item) {
-            console.log('✅ Found item by exact ID match:', item);
-        }
     }
     
     // Strategy 2: Match by name, type, and machine (for blankets)
@@ -1562,19 +1568,26 @@ function handleChangeItem(e) {
             const nameMatch = cartItem.name === itemName;
             const typeMatch = cartItem.type === itemType;
             
-            // For blankets, also match by machine
-            if (itemType === 'blanket') {
+            if (!nameMatch || !typeMatch) return false;
+            
+            // For blankets, also match by machine if available
+            if (itemType === 'blanket' && itemMachine) {
                 const machineMatch = cartItem.machine === itemMachine;
-                return nameMatch && typeMatch && machineMatch;
+                if (machineMatch) {
+                    console.log('✅ Found blanket by name/type/machine match:', cartItem);
+                }
+                return machineMatch;
             }
             
-            return nameMatch && typeMatch;
+            console.log('✅ Found item by name/type match (non-blanket):', cartItem);
+            return true;
         });
         
         if (item) {
-            console.log('✅ Found item by name/type/machine match:', item);
             // Update the itemId to the one from the found item
             itemId = item.id || item._id || itemId;
+        } else {
+            console.log('❌ No match found with name/type/machine strategy');
         }
     }
     
@@ -1582,15 +1595,24 @@ function handleChangeItem(e) {
     if (!item && itemName && itemType) {
         console.log('🔍 Trying to find item by name and type only...');
         item = cart.products.find(cartItem => {
-            return cartItem && 
-                   cartItem.type === itemType && 
-                   cartItem.name === itemName;
+            if (!cartItem) return false;
+            
+            const nameMatch = cartItem.name === itemName;
+            const typeMatch = cartItem.type === itemType;
+            
+            if (nameMatch && typeMatch) {
+                console.log('✅ Found item by name/type match (fallback):', cartItem);
+                return true;
+            }
+            
+            return false;
         });
         
         if (item) {
-            console.log('✅ Found item by name/type match:', item);
             // Update the itemId to the one from the found item
             itemId = item.id || item._id || itemId;
+        } else {
+            console.log('❌ No match found with any strategy');
         }
     }
     

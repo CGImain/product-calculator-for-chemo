@@ -530,7 +530,11 @@
                                         <button type="button" 
                                                 class="btn btn-outline-primary btn-sm change-item-btn" 
                                                 data-item-id="{{ item.id or item._id }}" 
-                                                data-type="{{ item.type }}">
+                                                data-item-name="{{ item.name }}"
+                                                data-item-type="{{ item.type }}"
+                                                {% if item.type == 'blanket' and item.machine %}
+                                                data-item-machine="{{ item.machine }}"
+                                                {% endif %}>
                                             <i class="fas fa-edit me-1"></i> Change
                                         </button>
                                         <button type="button" class="btn btn-outline-danger btn-sm remove-item-btn">

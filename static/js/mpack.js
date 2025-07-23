@@ -2,6 +2,7 @@ let priceMap = {};
 let currentNetPrice = 0;
 let currentDiscount = 0; // Track current discount percentage
 let currentThickness = ''; // Track current thickness
+let editingItem = null; // Track the item being edited
 
 // Debug function to log element status
 function logElementStatus(id) {
@@ -19,36 +20,36 @@ function checkForEditingItem() {
   
   if (editMode && itemId) {
     // Get item details from URL parameters
-    const item = {};
+    editingItem = {};
     urlParams.forEach((value, key) => {
       // Skip internal parameters
       if (key === 'edit' || key === 'item_id' || key === 'type' || key === '_') return;
       
       // Try to parse JSON values
       try {
-        item[key] = JSON.parse(value);
+        editingItem[key] = JSON.parse(value);
       } catch (e) {
-        item[key] = value;
+        editingItem[key] = value;
       }
     });
     
     // Add ID and type
-    item.id = itemId;
-    item.type = urlParams.get('type') || 'mpack';
+    editingItem.id = itemId;
+    editingItem.type = urlParams.get('type') || 'mpack';
     
-    console.log('Editing mpack item from URL:', item);
-    return item;
+    console.log('Editing mpack item from URL:', editingItem);
+    return editingItem;
   }
   
   // Fall back to session storage if no URL parameters
-  const editingItem = sessionStorage.getItem('editingCartItem');
-  if (!editingItem) return null;
+  const storedItem = sessionStorage.getItem('editingCartItem');
+  if (!storedItem) return null;
   
   try {
-    const parsed = JSON.parse(editingItem);
+    editingItem = JSON.parse(storedItem);
     // Remove the item from session storage so it doesn't persist after refresh
     sessionStorage.removeItem('editingCartItem');
-    return parsed;
+    return editingItem;
   } catch (e) {
     console.error('Error parsing editing item:', e);
     return null;

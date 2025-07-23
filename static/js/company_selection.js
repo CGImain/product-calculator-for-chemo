@@ -1,3 +1,7 @@
+// Check if we're coming from a company change action
+const urlParams = new URLSearchParams(window.location.search);
+const fromChange = urlParams.get('from') === 'change';
+
 document.addEventListener('DOMContentLoaded', async function() {
     const searchInput = document.getElementById('companyInput');
     const searchResults = document.getElementById('searchResults');
@@ -7,6 +11,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     let companiesData = [];
     let selectedCompany = null;
+    
+    // If we're coming from a company change, clear any existing company selection
+    if (fromChange) {
+        localStorage.removeItem('selectedCompany');
+        sessionStorage.removeItem('selectedCompany');
+    }
 
     // Show loading indicator
     function showLoading() {

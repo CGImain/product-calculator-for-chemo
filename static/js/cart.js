@@ -235,16 +235,57 @@ function updateCompanyDisplay(name, email) {
     }
 }
 
-// Initialize company info from session storage
+// Initialize company info from URL parameters and storage
 function initCompanyInfo() {
-    const storedCompany = localStorage.getItem('selectedCompany');
-    if (storedCompany) {
-        try {
+    try {
+        // First check URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyName = urlParams.get('company_name');
+        const companyEmail = urlParams.get('company_email');
+        const companyId = urlParams.get('company_id');
+
+        if (companyName && companyEmail) {
+            // We have company info in URL
+            const companyInfo = {
+                name: decodeURIComponent(companyName),
+                email: decodeURIComponent(companyEmail),
+                id: companyId || ''
+            };
+
+            // Save to both localStorage and sessionStorage for consistency
+            const companyString = JSON.stringify(companyInfo);
+            localStorage.setItem('selectedCompany', companyString);
+            sessionStorage.setItem('selectedCompany', companyString);
+
+            updateCompanyDisplay(companyInfo.name, companyInfo.email);
+            updateNavCompanyDisplay(companyInfo.name);
+            return;
+        }
+
+        // If no URL params, check localStorage
+        const storedCompany = localStorage.getItem('selectedCompany');
+        if (storedCompany) {
             const company = JSON.parse(storedCompany);
             updateCompanyDisplay(company.name, company.email);
-        } catch (e) {
-            console.error('Error parsing stored company:', e);
+            updateNavCompanyDisplay(company.name);
+
+            // Ensure it's also in sessionStorage
+            sessionStorage.setItem('selectedCompany', storedCompany);
+            return;
         }
+
+        // Finally, check sessionStorage
+        const sessionCompany = sessionStorage.getItem('selectedCompany');
+        if (sessionCompany) {
+            const company = JSON.parse(sessionCompany);
+            updateCompanyDisplay(company.name, company.email);
+            updateNavCompanyDisplay(company.name);
+
+            // Save to localStorage for persistence
+            localStorage.setItem('selectedCompany', sessionCompany);
+        }
+    } catch (e) {
+        console.error('Error initializing company info:', e);
     }
 }
 
@@ -1592,17 +1633,43 @@ function handleChangeItem(e) {
             }
         }
         
-        // Add company information if available
+        // Add company information if available - check both localStorage and sessionStorage
+        let company = null;
+        
+        // First try localStorage
         const storedCompany = localStorage.getItem('selectedCompany');
         if (storedCompany) {
             try {
-                const company = JSON.parse(storedCompany);
-                urlParams.append('company_id', company.id || '');
-                urlParams.append('company_name', encodeURIComponent(company.name || ''));
-                urlParams.append('company_email', encodeURIComponent(company.email || ''));
+                company = JSON.parse(storedCompany);
+                console.log('Found company in localStorage:', company);
             } catch (e) {
-                console.warn('Could not parse company info:', e);
+                console.warn('Could not parse company info from localStorage:', e);
             }
+        }
+        
+        // If not found in localStorage, try sessionStorage
+        if (!company) {
+            const sessionCompany = sessionStorage.getItem('selectedCompany');
+            if (sessionCompany) {
+                try {
+                    company = JSON.parse(sessionCompany);
+                    console.log('Found company in sessionStorage:', company);
+                    // Save to localStorage for persistence
+                    localStorage.setItem('selectedCompany', sessionCompany);
+                } catch (e) {
+                    console.warn('Could not parse company info from sessionStorage:', e);
+                }
+            }
+        }
+        
+        // If we have company info, add it to the URL
+        if (company) {
+            urlParams.append('company_id', company.id || '');
+            urlParams.append('company_name', encodeURIComponent(company.name || ''));
+            urlParams.append('company_email', encodeURIComponent(company.email || ''));
+            console.log('Added company info to URL params');
+        } else {
+            console.warn('No company information found in storage');
         }
         
         // Add a timestamp to prevent caching

@@ -844,12 +844,17 @@ const ChemoApp = (function() {
             changeCompanyBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 // Clear the selected company from session storage
+                const companyInfo = JSON.parse(sessionStorage.getItem('selectedCompany') || '{}');
+                
+                // Clear all company-related storage
                 sessionStorage.removeItem('selectedCompany');
                 sessionStorage.removeItem('companyId');
                 sessionStorage.removeItem('companyName');
                 sessionStorage.removeItem('companyEmail');
-                // Reload the page to reset the state
-                window.location.href = window.location.href.split('?')[0];
+                localStorage.removeItem('selectedCompany');
+                
+                // Redirect to company selection with a flag to prevent auto-redirect
+                window.location.href = '/company_selection?from=change';
             });
         }
     }

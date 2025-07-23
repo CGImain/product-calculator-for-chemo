@@ -879,7 +879,55 @@ function applyDiscount() {
   }
 }
 
-function addMpackToCart() {
+// Function to update an existing cart item
+async function updateCartItem(button, itemId) {
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+    
+    try {
+        // Get the current form data
+        const formData = getFormData();
+        
+        // Add the item ID to the form data for server-side processing
+        formData.item_id = itemId;
+        
+        // Send update request to the server
+        const response = await fetch('/update_cart_item', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update the cart count
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+            // Show success message and redirect back to cart
+            showToast('Success', 'Item updated in cart!', 'success');
+            setTimeout(() => {
+                window.location.href = '/cart';
+            }, 1000);
+        } else {
+            throw new Error(data.error || 'Failed to update item');
+        }
+    } catch (error) {
+        console.error('Error updating cart item:', error);
+        showToast('Error', 'Failed to update item. Please try again.', 'error');
+        button.disabled = false;
+        button.textContent = 'Update Item';
+        throw error; // Re-throw the error to be caught by the caller
+    }
+}
+
+async function addMpackToCart() {
   // Check if we're in edit mode
   const urlParams = new URLSearchParams(window.location.search);
   const isEditMode = urlParams.get('edit') === 'true';
@@ -952,6 +1000,20 @@ function addMpackToCart() {
   const buttonText = isEditMode ? 'Updating...' : 'Adding...';
   addToCartBtn.disabled = true;
   addToCartBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${buttonText}`;
+  
+  // Handle edit mode
+  if (isEditMode && itemId) {
+    try {
+      await updateCartItem(addToCartBtn, itemId);
+      return; // Exit after update
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+      showToast('Error', 'Failed to update item. Please try again.', 'error');
+      addToCartBtn.disabled = false;
+      addToCartBtn.innerHTML = originalText;
+      return;
+    }
+  }
 
   // Prepare the payload
   const payload = {

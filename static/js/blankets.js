@@ -4,7 +4,7 @@ let currentDiscount = 0;
 let currentBarRate = 0;
 
 // Function to update an existing cart item
-async function updateCartItem(button, itemIndex) {
+async function updateCartItem(button, itemId) {
     button.disabled = true;
     button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
     
@@ -12,59 +12,23 @@ async function updateCartItem(button, itemIndex) {
         // Get the current form data
         const formData = getFormData();
         
-        // Add the item index to the form data for server-side processing
-        formData.item_index = itemIndex;
+        // Add the item ID to the form data for server-side processing
+        formData.item_id = itemId;
         
-        // First remove the old item from the cart
-        const removeResponse = await fetch('/remove_from_cart', {
+        // Send update request to the server
+        const response = await fetch('/update_cart_item', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ index: itemIndex })
+            body: JSON.stringify(formData)
         });
         
-        if (!removeResponse.ok) {
-            throw new Error(`Failed to remove old item: ${removeResponse.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // Then add the updated item to the cart
-        const addResponse = await fetch('/add_to_cart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...formData, force_add: true })
-        });
-        
-        if (!addResponse.ok) {
-            throw new Error(`HTTP error! status: ${addResponse.status}`);
-        }
-        
-        const data = await addResponse.json();
+        const data = await response.json();
         
         if (data.success) {
-            // Update the local cart
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            
-            // If we have a duplicate item, we need to handle it specially
-            if (data.is_duplicate) {
-                // Find the duplicate item
-                const duplicateIndex = data.duplicate_index;
-                if (duplicateIndex >= 0 && duplicateIndex < cart.length) {
-                    // Update the quantity of the existing item
-                    const quantity = formData.quantity || 1;
-                    const updateResponse = await fetch('/update_cart_quantity', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            index: duplicateIndex,
-                            quantity: quantity
-                        })
-                    });
-                    
-                    if (!updateResponse.ok) {
-                        throw new Error(`Failed to update quantity: ${updateResponse.status}`);
-                    }
-                }
-            }
-            
             // Update the cart count
             if (typeof updateCartCount === 'function') {
                 updateCartCount();
@@ -1026,8 +990,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-function addBlanketToCart() {
-  return new Promise((resolve, reject) => {
+async function addBlanketToCart() {
+  return new Promise(async (resolve, reject) => {
   // Get input elements
   const blanketSelect = document.getElementById('blanketSelect');
   const machineSelect = document.getElementById('machineSelect');
@@ -1149,23 +1113,21 @@ function addBlanketToCart() {
   
   // Handle edit mode
   if (isEditMode && itemId) {
-    // Find the index of the item to update
-    const itemIndex = cart.findIndex(item => (item.id === itemId) || (item._id === itemId));
-    if (itemIndex !== -1) {
-      // Update the existing item
-      cart[itemIndex] = product;
-      console.log(`Updated existing item at index ${itemIndex} with ID: ${itemId}`);
-    } else {
-      // If item not found, add as new (shouldn't happen in normal flow)
-      console.warn('Item to edit not found in cart, adding as new item');
-      cart.push(product);
+    try {
+      // Use the updateCartItem function for edit mode
+      await updateCartItem(event.target, itemId);
+      resolve(); // Resolve the promise when update is complete
+      return;
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+      showToast('Error', 'Failed to update item. Please try again.', 'error');
+      reject(error);
+      return;
     }
-  } else {
-    // Add new product to cart
-    cart.push(product);
   }
   
-  // Save updated cart
+  // Handle new item addition
+  cart.push(product);
   localStorage.setItem('cart', JSON.stringify(cart));
 
   // Prepare payload for server
@@ -1188,11 +1150,6 @@ function addBlanketToCart() {
       total_price: product.total_price,
       calculations: product.calculations
     };
-    
-    // Add item_id for edit mode
-    if (isEditMode && itemId) {
-      payload.item_id = itemId;
-    }
 
     fetch('/add_to_cart', {
       method: 'POST',

@@ -1356,10 +1356,100 @@ def remove_from_cart():
         }), 500
 
 
+@app.route('/update_cart_item', methods=['POST'])
+@login_required
+def update_cart_item():
+    """Update an existing cart item with new data."""
+    if not current_user.is_authenticated:
+        return jsonify({
+            'success': False,
+            'error': 'User not authenticated',
+            'redirect': url_for('login')
+        }), 401
+
+    data = request.get_json()
+    item_id = data.get('item_id')
+    
+    if not item_id:
+        return jsonify({
+            'success': False,
+            'error': 'Item ID is required',
+            'message': 'Please provide a valid item ID'
+        }), 400
+    
+    # Get the current cart
+    cart = get_user_cart()
+    products = cart.get('products', [])
+    
+    # Find the item to update
+    item_index = next((i for i, item in enumerate(products) 
+                      if str(item.get('id')) == str(item_id) or 
+                         str(item.get('_id')) == str(item_id)), None)
+    
+    if item_index is None:
+        return jsonify({
+            'success': False,
+            'error': 'Item not found in cart',
+            'message': 'The item you are trying to update was not found in your cart'
+        }), 404
+    
+    # Update the item with new data
+    item = products[item_index]
+    
+    # Update fields from the form data
+    for key in ['quantity', 'length', 'width', 'thickness', 'machine', 'bar_type', 
+               'discount_percent', 'gst_percent', 'unit_price', 'name', 'type']:
+        if key in data:
+            item[key] = data[key]
+    
+    # Recalculate any calculated fields
+    if 'quantity' in data or 'unit_price' in data or 'discount_percent' in data or 'gst_percent' in data:
+        quantity = item.get('quantity', 1)
+        unit_price = float(item.get('unit_price', 0))
+        discount_percent = float(item.get('discount_percent', 0))
+        gst_percent = float(item.get('gst_percent', 18))  # Default to 18% GST if not specified
+        
+        # Calculate prices
+        subtotal = unit_price * quantity
+        discount_amount = (subtotal * discount_percent) / 100
+        discounted_subtotal = subtotal - discount_amount
+        gst_amount = (discounted_subtotal * gst_percent) / 100
+        final_total = discounted_subtotal + gst_amount
+        
+        # Update calculations
+        item['calculations'] = {
+            'unit_price': unit_price,
+            'quantity': quantity,
+            'subtotal': subtotal,
+            'discount_percent': discount_percent,
+            'discount_amount': discount_amount,
+            'discounted_subtotal': discounted_subtotal,
+            'gst_percent': gst_percent,
+            'gst_amount': gst_amount,
+            'final_total': final_total
+        }
+    
+    # Save the updated cart
+    cart['products'][item_index] = item
+    save_user_cart(cart)
+    
+    return jsonify({
+        'success': True,
+        'message': 'Item updated successfully',
+        'cart': cart
+    })
+
 @app.route('/update_cart_quantity', methods=['POST'])
 @login_required
 def update_cart_quantity():
     """Update the quantity of a product in the user's cart."""
+    if not current_user.is_authenticated:
+        return jsonify({
+            'success': False,
+            'error': 'User not authenticated',
+            'redirect': url_for('login')
+        }), 401
+
     try:
         data = request.get_json()
         if not data:

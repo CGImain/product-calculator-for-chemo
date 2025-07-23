@@ -178,6 +178,35 @@ function getFormData() {
 
 // Function to check if we're editing an existing cart item
 function checkForEditingItem() {
+    // First check URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const editMode = urlParams.get('edit') === 'true';
+    const itemId = urlParams.get('item_id');
+    
+    if (editMode && itemId) {
+        // Get item details from URL parameters
+        const item = {};
+        urlParams.forEach((value, key) => {
+            // Skip internal parameters
+            if (key === 'edit' || key === 'item_id' || key === 'type' || key === '_') return;
+            
+            // Try to parse JSON values
+            try {
+                item[key] = JSON.parse(value);
+            } catch (e) {
+                item[key] = value;
+            }
+        });
+        
+        // Add ID and type
+        item.id = itemId;
+        item.type = urlParams.get('type') || 'blanket';
+        
+        console.log('Editing item from URL:', item);
+        return item;
+    }
+    
+    // Fall back to session storage if no URL parameters
     const editingItem = sessionStorage.getItem('editingCartItem');
     if (!editingItem) return null;
     
@@ -1009,6 +1038,11 @@ function addBlanketToCart() {
   const barSelect = document.getElementById('barSelect');
   const gstSelect = document.getElementById('gstSelect');
   
+  // Check if we're in edit mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEditMode = urlParams.get('edit') === 'true';
+  const itemId = urlParams.get('item_id');
+  
   // Get input values
   const quantity = parseInt(quantityInput.value) || 1;
   const length = parseFloat(lengthInput.value) || 0;
@@ -1057,7 +1091,7 @@ function addBlanketToCart() {
 
   // Create product object with all calculated values
   const product = {
-    id: 'blanket_' + Date.now(),
+    id: isEditMode ? itemId : 'blanket_' + Date.now(),
     type: 'blanket',
     name: selectedBlanket.name || 'Custom Blanket',
     blanket_name: selectedBlanket.name || 'Custom Blanket',
@@ -1098,7 +1132,7 @@ function addBlanketToCart() {
     
     // Other
     image: 'images/products/blanket-placeholder.jpg',
-    added_at: new Date().toISOString()
+    added_at: isEditMode ? new Date().toISOString() : new Date().toISOString()
   };
   
   console.log('Adding to cart with pre-calculated values:', JSON.stringify({
@@ -1113,13 +1147,28 @@ function addBlanketToCart() {
     cart = [];
   }
   
-  // Add product to cart
-  cart.push(product);
+  // Handle edit mode
+  if (isEditMode && itemId) {
+    // Find the index of the item to update
+    const itemIndex = cart.findIndex(item => (item.id === itemId) || (item._id === itemId));
+    if (itemIndex !== -1) {
+      // Update the existing item
+      cart[itemIndex] = product;
+      console.log(`Updated existing item at index ${itemIndex} with ID: ${itemId}`);
+    } else {
+      // If item not found, add as new (shouldn't happen in normal flow)
+      console.warn('Item to edit not found in cart, adding as new item');
+      cart.push(product);
+    }
+  } else {
+    // Add new product to cart
+    cart.push(product);
+  }
   
   // Save updated cart
   localStorage.setItem('cart', JSON.stringify(cart));
 
-  // --- NEW: persist to server cart as well ---
+  // Prepare payload for server
   try {
     const payload = {
       type: 'blanket',
@@ -1139,6 +1188,11 @@ function addBlanketToCart() {
       total_price: product.total_price,
       calculations: product.calculations
     };
+    
+    // Add item_id for edit mode
+    if (isEditMode && itemId) {
+      payload.item_id = itemId;
+    }
 
     fetch('/add_to_cart', {
       method: 'POST',
@@ -1153,11 +1207,18 @@ function addBlanketToCart() {
       })
       .then(data => {
         if (data.success) {
-          showToast('Success', 'Blanket added to cart!', 'success');
+          const message = isEditMode ? 'Blanket updated in cart!' : 'Blanket added to cart!';
+          showToast('Success', message, 'success');
           if (typeof updateCartCount === 'function') {
             updateCartCount();
           }
-          resolve(data); // Resolve the promise when item is successfully added
+          // If in edit mode, redirect back to cart
+          if (isEditMode) {
+            setTimeout(() => {
+              window.location.href = '/cart';
+            }, 1000);
+          }
+          resolve(data); // Resolve the promise when item is successfully added/updated
         } else if (data.is_duplicate) {
           // Show confirmation dialog for duplicate product
           if (confirm('A product with the same dimensions is already in your cart. Would you like to add it anyway?')) {

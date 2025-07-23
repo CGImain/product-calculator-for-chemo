@@ -1526,100 +1526,25 @@ function handleChangeItem(e) {
         return;
     }
     
-    // Try to find the item using multiple strategies
-    let item = null;
+    // Try to find the item by ID first
+    let item = cart.products.find(cartItem => {
+        const cartItemId = cartItem.id || cartItem._id;
+        return cartItemId && String(cartItemId) === String(itemId);
+    });
     
-    // 1. First try exact ID match
-    if (itemId) {
-        item = cart.products.find(cartItem => {
-            const cartItemId = cartItem.id || cartItem._id;
-            return String(cartItemId) === String(itemId);
-        });
-        
-        if (item) {
-            console.log('✅ Found item by ID match');
-        }
-    }
-    
-    // 2. If not found, try matching by name, type, and machine (for blankets)
-    if (!item && itemName && itemType) {
-        console.log('🔍 Trying to find item by name, type, and machine...');
+    if (!item) {
+        console.log('⚠️ Item not found by ID, trying fallback matching...');
+        // Fallback to matching by name, type, and machine
         item = cart.products.find(cartItem => {
             const nameMatch = cartItem.name === itemName;
             const typeMatch = cartItem.type === itemType;
             const machineMatch = !itemMachine || cartItem.machine === itemMachine;
             return nameMatch && typeMatch && machineMatch;
         });
-        
-        if (item) {
-            console.log('✅ Found item by name/type/machine match');
-        } else {
-            console.log('❌ No match found with name/type/machine strategy');
-        }
-    }
-    
-    // 3. Last resort: try matching by name and type only
-    if (!item && itemName && itemType) {
-        console.log('🔍 Trying to find item by name and type only...');
-        item = cart.products.find(cartItem => {
-            return cartItem.name === itemName && cartItem.type === itemType;
-        });
-        
-        if (item) {
-            console.log('✅ Found item by name/type match');
-        } else {
-            console.log('❌ No match found with any strategy');
-        }
     }
     
     if (!item) {
         console.error('❌ Could not find item in cart');
-        console.log('Searched with:', { itemId, itemName, itemType, itemMachine });
-        console.log('Available items in cart:', cart.products);
-        showToast('Error', 'Could not find item in cart', 'error');
-        return;
-    }
-    
-    console.log('✅ Found item for editing:', item);
-    
-    try {
-        // Prepare the redirect URL based on item type
-        const baseUrl = `/${item.type}s?edit=true`;
-        
-        // Add item details as query parameters
-        const params = new URLSearchParams();
-        
-        // Add basic item properties
-        params.append('item_id', item.id || item._id);
-        params.append('type', item.type);
-        
-        // Add all item properties as query parameters, excluding internal fields
-        const excludeFields = ['id', '_id', 'calculations', 'createdAt', 'updatedAt', '__v'];
-        
-        for (const [key, value] of Object.entries(item)) {
-            if (value !== null && value !== undefined && !excludeFields.includes(key)) {
-                try {
-                    const paramValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
-                    params.append(key, paramValue);
-                } catch (err) {
-                    console.warn(`Could not stringify property ${key}:`, err);
-                }
-            }
-        }
-        
-        // Build the final URL
-        const finalUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}${params.toString()}`;
-        
-        console.log('🔗 Redirecting to:', finalUrl);
-        window.location.href = finalUrl;
-        
-    } catch (error) {
-        console.error('❌ Error preparing item for editing:', error);
-        showToast('Error', 'Failed to prepare item for editing', 'error');
-    }
-    
-    if (!item) {
-        console.error('❌ Could not find matching item in cart');
         console.log('Searched with:', { itemId, itemName, itemType, itemMachine });
         console.log('Available items in cart:', cart.products.map((i, idx) => ({
             index: idx,
@@ -1635,44 +1560,43 @@ function handleChangeItem(e) {
     
     console.log('✅ Found item for editing:', item);
     
-    // Determine the redirect URL based on item type
-    let redirectUrl = '/' + itemType + 's'; // e.g., /blankets or /mpacks
-    
     try {
-        // Add query parameters
+        // Prepare the redirect URL based on item type
+        const baseUrl = `/${item.type}s`;
         const urlParams = new URLSearchParams();
+        
+        // Add edit mode and item ID
         urlParams.append('edit', 'true');
-        urlParams.append('item_id', itemId);
-        urlParams.append('type', itemType);
+        urlParams.append('item_id', item.id || item._id);
+        urlParams.append('type', item.type);
+        
+        // Add all item properties as query parameters, excluding internal fields
+        const excludeFields = ['id', '_id', 'calculations', 'createdAt', 'updatedAt', '__v'];
         
         // Add item properties as query parameters
-        Object.keys(item).forEach(key => {
-            if (item[key] !== undefined && item[key] !== null && 
-                key !== 'id' && key !== '_id' && key !== 'calculations') {
+        for (const [key, value] of Object.entries(item)) {
+            if (value !== null && value !== undefined && !excludeFields.includes(key)) {
                 try {
-                    // Convert to string and handle potential circular references
-                    const value = typeof item[key] === 'object' 
-                        ? JSON.stringify(item[key])
-                        : String(item[key]);
-                    urlParams.append(key, value);
-                } catch (error) {
-                    console.warn(`Could not stringify property ${key}:`, error);
+                    const paramValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                    urlParams.append(key, paramValue);
+                } catch (err) {
+                    console.warn(`Could not stringify property ${key}:`, err);
                 }
             }
-        });
-        
-        // Add query parameters to URL
-        const queryString = urlParams.toString();
-        if (queryString) {
-            redirectUrl += `?${queryString}`;
         }
         
-        console.log('🔗 Redirecting to:', redirectUrl);
-        window.location.href = redirectUrl;
+        // Add a timestamp to prevent caching
+        urlParams.append('_', Date.now());
+        
+        // Build the final URL
+        const finalUrl = `${baseUrl}?${urlParams.toString()}`;
+        
+        console.log('🔗 Redirecting to edit page:', finalUrl);
+        window.location.href = finalUrl;
         
     } catch (error) {
         console.error('❌ Error preparing item for editing:', error);
-        showToast('Error', 'An error occurred while preparing the item for editing', 'error');
+        showToast('Error', 'Failed to prepare item for editing', 'error');
     }
 }
 

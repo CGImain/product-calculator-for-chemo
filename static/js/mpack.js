@@ -12,6 +12,35 @@ function logElementStatus(id) {
 
 // Function to check if we're editing an existing cart item
 function checkForEditingItem() {
+  // First check URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const editMode = urlParams.get('edit') === 'true';
+  const itemId = urlParams.get('item_id');
+  
+  if (editMode && itemId) {
+    // Get item details from URL parameters
+    const item = {};
+    urlParams.forEach((value, key) => {
+      // Skip internal parameters
+      if (key === 'edit' || key === 'item_id' || key === 'type' || key === '_') return;
+      
+      // Try to parse JSON values
+      try {
+        item[key] = JSON.parse(value);
+      } catch (e) {
+        item[key] = value;
+      }
+    });
+    
+    // Add ID and type
+    item.id = itemId;
+    item.type = urlParams.get('type') || 'mpack';
+    
+    console.log('Editing mpack item from URL:', item);
+    return item;
+  }
+  
+  // Fall back to session storage if no URL parameters
   const editingItem = sessionStorage.getItem('editingCartItem');
   if (!editingItem) return null;
   
@@ -851,6 +880,11 @@ function applyDiscount() {
 }
 
 function addMpackToCart() {
+  // Check if we're in edit mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEditMode = urlParams.get('edit') === 'true';
+  const itemId = urlParams.get('item_id');
+  
   const machineSelect = document.getElementById('machineSelect');
   const thicknessSelect = document.getElementById('thicknessSelect');
   const sizeSelect = document.getElementById('sizeSelect');
@@ -887,7 +921,7 @@ function addMpackToCart() {
   const finalPrice = priceAfterDiscount + gstAmount;
 
   const product = {
-    id: 'mpack_' + Date.now(),
+    id: isEditMode ? itemId : 'mpack_' + Date.now(),
     type: 'mpack',
     name: underpackingTypeDisplay,
     machine: machineSelect.options[machineSelect.selectedIndex].text,
@@ -899,7 +933,7 @@ function addMpackToCart() {
     discount_percent: discount,
     gst_percent: 12,
     image: 'images/mpack-placeholder.jpg',
-    added_at: new Date().toISOString(),
+    added_at: isEditMode ? new Date().toISOString() : new Date().toISOString(),
     calculations: {
       unit_price: parseFloat(unitPrice.toFixed(2)),
       quantity: quantity,
@@ -915,18 +949,47 @@ function addMpackToCart() {
   // Show loading state
   const addToCartBtn = event.target;
   const originalText = addToCartBtn.innerHTML;
+  const buttonText = isEditMode ? 'Updating...' : 'Adding...';
   addToCartBtn.disabled = true;
-  addToCartBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
+  addToCartBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${buttonText}`;
+
+  // Prepare the payload
+  const payload = {
+    type: 'mpack',
+    name: underpackingTypeDisplay,
+    machine: machineSelect.options[machineSelect.selectedIndex].text,
+    thickness: thicknessSelect.value + ' micron',
+    size: sizeSelect.options[sizeSelect.selectedIndex].text,
+    underpacking_type: underpackingType,
+    quantity: quantity,
+    unit_price: parseFloat(unitPrice.toFixed(2)),
+    discount_percent: discount,
+    gst_percent: 12,
+    calculations: product.calculations
+  };
+
+  // Add item_id for edit mode
+  if (isEditMode && itemId) {
+    payload.item_id = itemId;
+  }
 
   fetch('/add_to_cart', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(product)
+    body: JSON.stringify(payload),
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      showToast('Success', 'Underpacking material added to cart!', 'success');
+      if (isEditMode) {
+        showToast('Success', 'Underpacking material updated in cart!', 'success');
+        // Redirect back to cart after a short delay
+        setTimeout(() => {
+          window.location.href = '/cart';
+        }, 1000);
+      } else {
+        showToast('Success', 'Underpacking material added to cart!', 'success');
+      }
       updateCartCount();
     } else if (data.is_duplicate) {
       // Show confirmation dialog for duplicate product

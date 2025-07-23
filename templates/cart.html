@@ -532,9 +532,21 @@
                                                 data-item-id="{{ item.id or item._id }}" 
                                                 data-item-name="{{ item.name }}"
                                                 data-item-type="{{ item.type }}"
-                                                {% if item.type == 'blanket' and item.machine %}
-                                                data-item-machine="{{ item.machine }}"
-                                                {% endif %}>
+                                                {% if item.type == 'blanket' %}
+                                                    {% if item.machine %}data-item-machine="{{ item.machine }}"{% endif %}
+                                                    {% if item.thickness %}data-item-thickness="{{ item.thickness }}"{% endif %}
+                                                    {% if item.length is defined %}data-item-length="{{ item.length }}"{% endif %}
+                                                    {% if item.width is defined %}data-item-width="{{ item.width }}"{% endif %}
+                                                    {% if item.unit %}data-item-unit="{{ item.unit }}"{% endif %}
+                                                    {% if item.bar_type %}data-item-bar-type="{{ item.bar_type }}"{% endif %}
+                                                {% elif item.type == 'mpack' %}
+                                                    {% if item.machine %}data-item-machine="{{ item.machine }}"{% endif %}
+                                                    {% if item.thickness %}data-item-thickness="{{ item.thickness.replace(' micron', '') }}"{% endif %}
+                                                    {% if item.size %}data-item-size="{{ item.size }}"{% endif %}
+                                                    {% if item.underpacking_type %}data-item-underpacking-type="{{ item.underpacking_type }}"{% endif %}
+                                                {% endif %}
+                                                {% if item.discount_percent is defined %}data-item-discount="{{ item.discount_percent }}"{% endif %}
+                                                {% if item.gst_percent is defined %}data-item-gst="{{ item.gst_percent }}"{% endif %}>
                                             <i class="fas fa-edit me-1"></i> Change
                                         </button>
                                         <button type="button" class="btn btn-outline-danger btn-sm remove-item-btn">

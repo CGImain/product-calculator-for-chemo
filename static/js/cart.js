@@ -1849,17 +1849,24 @@ function updateItemDisplay(item, data) {
         const areaSqM = length * width;
         const ratePerSqMt = parseFloat(item.getAttribute('data-rate-per-sqmt') || 0);
         
-        // Calculate unit price if not provided in data
+        // Calculate all required values
         const unitPrice = data.unitPrice || (areaSqM * ratePerSqMt);
+        const barPrice = parseFloat(item.getAttribute('data-bar-price') || 0);
+        const netPricePerPiece = data.netPricePerPiece || (unitPrice + barPrice);
+        const quantity = parseInt(data.quantity || 1);
+        const subtotal = netPricePerPiece * quantity;
+        const discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
+        const discountAmount = (subtotal * discountPercent) / 100;
+        const totalBeforeGst = subtotal - discountAmount;
+        const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 18);
+        const gstAmount = (totalBeforeGst * gstPercent) / 100;
+        const total = totalBeforeGst + gstAmount;
         
         // Update unit price display
         const unitPriceElement = item.querySelector('.unit-price');
         if (unitPriceElement) {
             unitPriceElement.textContent = `₹${unitPrice.toFixed(2)} (${areaSqM.toFixed(4)}m² × ₹${ratePerSqMt.toFixed(2)})`;
         }
-        
-        // Calculate net price per piece if not provided in data
-        const netPricePerPiece = data.netPricePerPiece || (unitPrice + parseFloat(item.getAttribute('data-bar-price') || 0));
         
         // Update net price per piece
         const netPriceElement = item.querySelector('.net-price');

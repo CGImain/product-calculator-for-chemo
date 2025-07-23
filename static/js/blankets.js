@@ -363,8 +363,37 @@ function prefillFormWithItem(item) {
     }
 }
 
+// Function to handle company info from URL parameters
+function handleCompanyFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const companyName = urlParams.get('company_name');
+    const companyEmail = urlParams.get('company_email');
+    const companyId = urlParams.get('company_id');
+    
+    if (companyName && companyEmail) {
+        const companyInfo = {
+            name: decodeURIComponent(companyName),
+            email: decodeURIComponent(companyEmail),
+            id: companyId || ''
+        };
+        
+        // Save to localStorage for persistence
+        localStorage.setItem('selectedCompany', JSON.stringify(companyInfo));
+        
+        // Update the UI if the elements exist
+        const companyNameEl = document.getElementById('companyNameDisplay');
+        const companyEmailEl = document.getElementById('companyEmailDisplay');
+        
+        if (companyNameEl) companyNameEl.textContent = companyInfo.name;
+        if (companyEmailEl) companyEmailEl.textContent = companyInfo.email;
+    }
+}
+
 window.onload = () => {
-  fetch("/api/machines")
+    // Handle company info from URL if present
+    handleCompanyFromUrl();
+    
+    fetch("/api/machines")
     .then(res => res.json())
     .then(data => {
       machineData = Array.isArray(data) ? data : data.machines;

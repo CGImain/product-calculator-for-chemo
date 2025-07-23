@@ -1591,6 +1591,19 @@ function handleChangeItem(e) {
             }
         }
         
+        // Add company information if available
+        const storedCompany = localStorage.getItem('selectedCompany');
+        if (storedCompany) {
+            try {
+                const company = JSON.parse(storedCompany);
+                urlParams.append('company_id', company.id || '');
+                urlParams.append('company_name', encodeURIComponent(company.name || ''));
+                urlParams.append('company_email', encodeURIComponent(company.email || ''));
+            } catch (e) {
+                console.warn('Could not parse company info:', e);
+            }
+        }
+        
         // Add a timestamp to prevent caching
         urlParams.append('_', Date.now());
         

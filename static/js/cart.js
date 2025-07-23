@@ -1027,52 +1027,64 @@ function calculateMPackPrices(item) {
 
 // Function to calculate blanket prices
 function calculateBlanketPrices(item) {
-    const basePrice = parseFloat(item.getAttribute('data-base-price') || 0);
+    // Get dimensions from data attributes
+    const length = parseFloat(item.getAttribute('data-length') || 0);
+    const width = parseFloat(item.getAttribute('data-width') || 0);
+    const unit = item.getAttribute('data-unit') || 'mm';
+    const ratePerSqMt = parseFloat(item.getAttribute('data-rate-per-sqmt') || 0);
     const barPrice = parseFloat(item.getAttribute('data-bar-price') || 0);
     const quantity = parseInt(item.querySelector('.quantity-input')?.value || 1);
     const discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
     const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 12);
     
-    // Get the selected size and calculate size factor
-    const sizeSelect = item.querySelector('.size-select');
-    let sizeFactor = 1.0;
-    if (sizeSelect) {
-        const selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
-        sizeFactor = parseFloat(selectedOption.getAttribute('data-factor') || 1.0);
+    // Convert dimensions to meters
+    const lengthM = convertToMeters(length, unit);
+    const widthM = convertToMeters(width, unit);
+    const areaSqM = lengthM * widthM;
+    
+    // Calculate base price (area × rate per sq.m)
+    const basePrice = areaSqM * ratePerSqMt;
+    
+    // Calculate net price per piece (base price + barring)
+    const netPricePerPiece = basePrice + barPrice;
+    
+    // Calculate base total (net price × quantity)
+    const baseTotal = netPricePerPiece * quantity;
+    
+    // Calculate discount amount and discounted total
+    let discountAmount = 0;
+    let discountedTotal = baseTotal;
+    
+    if (discountPercent > 0) {
+        discountAmount = (baseTotal * discountPercent) / 100;
+        discountedTotal = baseTotal - discountAmount;
     }
     
-    // Calculate prices
-    const baseSubtotal = basePrice * quantity * sizeFactor;
-    const barSubtotal = barPrice * quantity;
-    const subtotal = baseSubtotal + barSubtotal;
-    const discountAmount = subtotal * (discountPercent / 100);
-    const discountedSubtotal = subtotal - discountAmount;
-    const gstAmount = (discountedSubtotal * gstPercent) / 100;
-    const total = discountedSubtotal + gstAmount;
+    // Calculate GST on the discounted total
+    const gstAmount = (discountedTotal * gstPercent) / 100;
+    const total = discountedTotal + gstAmount;
     
     return {
-        baseSubtotal: round(baseSubtotal, 2),
-        barSubtotal: round(barSubtotal, 2),
-        subtotal: round(subtotal, 2),
+        baseSubtotal: round(basePrice * quantity, 2),
+        barSubtotal: round(barPrice * quantity, 2),
+        subtotal: round(baseTotal, 2),
         discountAmount: round(discountAmount, 2),
-        discountedSubtotal: round(discountedSubtotal, 2),
+        discountedSubtotal: round(discountedTotal, 2),
         gstAmount: round(gstAmount, 2),
         total: round(total, 2),
-        sizeFactor: sizeFactor
+        netPricePerPiece: round(netPricePerPiece, 2)
     };
 }
 
-// Function to calculate item prices based on type
-function calculateItemPrices(item) {
-    if (!item) return null;
-    
-    const type = item.getAttribute('data-type');
-    if (type === 'mpack') {
-        return calculateMPackPrices(item);
-    } else if (type === 'blanket') {
-        return calculateBlanketPrices(item);
-    }
-    return null;
+// Helper function to convert to meters (matching the one in blankets.js)
+function convertToMeters(value, unit) {
+    if (unit === 'mm') return value / 1000;
+    if (unit === 'cm') return value / 100;
+    if (unit === 'm') return value;
+    if (unit === 'inch') return value * 0.0254;
+    if (unit === 'feet') return value * 0.3048;
+    if (unit === 'yard') return value * 0.9144;
+    return value; // Default to meters if unit not recognized
 }
 
 function updateCartTotals() {
@@ -1848,27 +1860,22 @@ function updateItemDisplay(item, data) {
             }
         }
         
-        // Calculate values
-        const basePrice = parseFloat(data.base_price || 0);
-        const barPrice = parseFloat(data.bar_price || 0);
-        const quantity = parseInt(data.quantity || 1);
+        // Use the same calculation as in calculateBlanketPrices
+        const prices = calculateBlanketPrices(item);
+        const {
+            baseSubtotal,
+            barSubtotal,
+            subtotal,
+            discountAmount,
+            discountedSubtotal,
+            gstAmount,
+            total
+        } = prices;
+        
+        // Update the data attributes to match the calculated values
         const discountPercent = parseFloat(data.discount_percent || 0);
         const gstPercent = parseFloat(data.gst_percent || 18);
-        
-        // Calculate subtotal (before discount)
-        const subtotal = (basePrice + barPrice) * quantity;
-        
-        // Calculate discount amount
-        const discountAmount = subtotal * (discountPercent / 100);
-        
-        // Calculate taxable amount (after discount)
-        const taxableAmount = subtotal - discountAmount;
-        
-        // Calculate GST amount
-        const gstAmount = taxableAmount * (gstPercent / 100);
-        
-        // Calculate total (after discount + GST)
-        const total = taxableAmount + gstAmount;
+        const taxableAmount = discountedSubtotal;
         
         // Update subtotal display
         const subtotalElement = item.querySelector('.subtotal-value');

@@ -1409,6 +1409,9 @@ function updateCartItemQuantity(index, newQuantity, type) {
         quantityInput.disabled = true;
     }
     
+    // Get item ID from the cart item or use the index as fallback
+    const itemId = cartItem ? cartItem.getAttribute('data-item-id') : null;
+    
     fetch('/update_cart_quantity', {
         method: 'POST',
         headers: {
@@ -1416,8 +1419,10 @@ function updateCartItemQuantity(index, newQuantity, type) {
             'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
-            index: index,
-            quantity: newQuantity
+            index: parseInt(index),
+            item_id: itemId,
+            quantity: parseInt(newQuantity),
+            type: cartItem ? cartItem.getAttribute('data-type') : null
         })
     })
     .then(response => {
@@ -1462,9 +1467,10 @@ function updateCartItemQuantity(index, newQuantity, type) {
     })
     .catch(error => {
         console.error('Error updating quantity:', error);
-        // Revert to original value on error
+        // Revert to original value on error and re-enable input
         if (quantityInput) {
             quantityInput.value = originalValue;
+            quantityInput.disabled = false;
         }
         showToast('Error', error.message || 'An error occurred while updating quantity', 'error');
     })

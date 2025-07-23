@@ -14,19 +14,29 @@ async function updateCartItem(button, itemId) {
         
         // Create the payload with the expected structure
         const payload = {
-            item_id: itemId, // Make sure this is the correct item ID
+            item_id: itemId, // This must match the item ID in the cart
+            id: itemId, // Some endpoints might expect this as well
             quantity: formData.quantity || 1,
             length: formData.length || 0,
             width: formData.width || 0,
             thickness: formData.thickness || '',
             machine: formData.machine || '',
             bar_type: formData.bar_type || 'None',
+            bar_price: formData.bar_price || 0,
             discount_percent: formData.discount_percent || 0,
-            gst_percent: formData.gst_percent || 12, // Default to 12% GST if not specified
+            gst_percent: formData.gst_percent || 12,
             unit_price: formData.unit_price || 0,
+            base_price: formData.base_price || 0,
             name: formData.name || 'Custom Blanket',
-            type: formData.type || 'blanket'
+            type: 'blanket', // Explicitly set type
+            unit: formData.unit || 'mm',
+            calculations: formData.calculations || {}
         };
+        
+        // Include all calculations if they exist
+        if (formData.calculations) {
+            payload.calculations = formData.calculations;
+        }
         
         console.log('Sending update request with payload:', payload);
         

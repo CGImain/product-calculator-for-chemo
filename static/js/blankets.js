@@ -14,18 +14,18 @@ async function updateCartItem(button, itemId) {
         
         // Create the payload with the expected structure
         const payload = {
-            item_id: itemId,
-            quantity: formData.quantity,
-            length: formData.length,
-            width: formData.width,
-            thickness: formData.thickness,
-            machine: formData.machine,
-            bar_type: formData.bar_type,
-            discount_percent: formData.discount_percent,
-            gst_percent: formData.gst_percent,
-            unit_price: formData.unit_price,
-            name: formData.name,
-            type: formData.type
+            item_id: itemId, // Make sure this is the correct item ID
+            quantity: formData.quantity || 1,
+            length: formData.length || 0,
+            width: formData.width || 0,
+            thickness: formData.thickness || '',
+            machine: formData.machine || '',
+            bar_type: formData.bar_type || 'None',
+            discount_percent: formData.discount_percent || 0,
+            gst_percent: formData.gst_percent || 12, // Default to 12% GST if not specified
+            unit_price: formData.unit_price || 0,
+            name: formData.name || 'Custom Blanket',
+            type: formData.type || 'blanket'
         };
         
         console.log('Sending update request with payload:', payload);
@@ -34,7 +34,8 @@ async function updateCartItem(button, itemId) {
         const response = await fetch('/update_cart_item', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            credentials: 'same-origin' // Include cookies for session
         });
         
         if (!response.ok) {

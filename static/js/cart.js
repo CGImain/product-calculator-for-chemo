@@ -2105,89 +2105,90 @@ function updateItemDisplay(item, data) {
                 dataAttributes
             });
             
-            // Update the thickness display if it exists
+            // Update all display elements with the latest data
+            const updateElement = (selector, value, suffix = '') => {
+                const elements = item.querySelectorAll(selector);
+                elements.forEach(el => {
+                    if (el) el.textContent = value + (suffix ? ` ${suffix}` : '');
+                });
+            };
+
+            // Update all price displays
+            const updatePriceElement = (selector, value, prefix = '₹') => {
+                const elements = item.querySelectorAll(selector);
+                elements.forEach(el => {
+                    if (el) el.textContent = `${prefix}${value.toFixed(2)}`;
+                });
+            };
+
+            // Update thickness display
             const thickness = data.thickness || item.getAttribute('data-thickness');
             if (thickness) {
-                const thicknessElement = item.querySelector('.thickness-value');
-                if (thicknessElement) {
-                    thicknessElement.textContent = `${thickness} micron`;
-                }
+                updateElement('.thickness-value, .item-thickness', thickness, 'micron');
             }
             
-            // Update the size display if it exists
+            // Update size display
             const size = data.size || item.getAttribute('data-size');
             if (size) {
-                // Update the size in the main display
-                const sizeElement = item.querySelector('.size-value');
-                if (sizeElement) {
-                    sizeElement.textContent = size;
-                }
-                
-                // Also update any other size displays in the item
-                const allSizeElements = item.querySelectorAll('.size-value, .mpack-size, .item-size');
-                allSizeElements.forEach(el => {
-                    el.textContent = size;
-                });
-                
+                updateElement('.size-value, .mpack-size, .item-size', size);
                 console.log('Updated size display to:', size);
             }
+            
+            // Update machine display
+            const machine = data.machine || item.getAttribute('data-machine');
+            if (machine) {
+                updateElement('.machine-value, .item-machine', machine);
+            }
+            
+            // Update type display
+            const type = data.type || item.getAttribute('data-type');
+            if (type) {
+                updateElement('.type-value, .item-type', type);
+            }
+            
+            // Update quantity display
+            updateElement('.quantity-display, .item-quantity', quantity);
+            
+            // Update price displays
+            updatePriceElement('.unit-price, .item-unit-price', unitPrice);
+            updatePriceElement('.subtotal, .item-subtotal', subtotal);
+            updatePriceElement('.discount-amount, .item-discount', discountAmount);
+            updatePriceElement('.total-before-gst, .pre-gst-total, .item-total-before-gst', totalBeforeGst);
+            updatePriceElement('.gst-amount, .item-gst', gstAmount);
+            updatePriceElement('.total-amount, .item-total, .total-value', total);
+            
+            // Update hidden inputs
+            const hiddenGstInput = item.querySelector('input[name$="_gst_amount"]');
+            if (hiddenGstInput) {
+                hiddenGstInput.value = gstAmount.toFixed(2);
+            }
+            
+            const hiddenTotalInput = item.querySelector('input[name$="_total"]');
+            if (hiddenTotalInput) {
+                hiddenTotalInput.value = total.toFixed(2);
+            }
+            
+            // Debug log the final state
+            console.log('Updated MPack item display:', {
+                unitPrice,
+                quantity,
+                subtotal,
+                discountAmount,
+                totalBeforeGst,
+                gstAmount,
+                total,
+                size,
+                thickness,
+                machine,
+                type
+            });
+            
+            // Update cart totals after item updates
+            updateCartTotals();
         } catch (error) {
             console.error('Error updating MPack item display:', error);
             showToast('Error', 'Failed to update MPack item. Please refresh the page.', 'error');
             return; // Exit the function if there's an error
-        }
-        
-        // Update unit price display with final unit price (after discount)
-        const unitPriceElement = item.querySelector('.unit-price');
-        if (unitPriceElement) {
-            unitPriceElement.textContent = `₹${prices.finalUnitPrice.toFixed(2)}`;
-        }
-        
-        // Update barring price display
-        const barringElement = item.querySelector('.barring-price');
-        if (barringElement) {
-            barringElement.textContent = `+₹${barPrice.toFixed(2)}`;
-        }
-        
-        // Update subtotal (should be final unit price * quantity)
-        const subtotalElement = item.querySelector('.subtotal');
-        if (subtotalElement) {
-            subtotalElement.textContent = `₹${(prices.finalUnitPrice * quantity).toFixed(2)}`;
-        }
-        
-        // Update discount
-        const discountElement = item.querySelector('.discount-amount');
-        if (discountElement) {
-            discountElement.textContent = `₹${discountAmount.toFixed(2)}`;
-        }
-        
-        // Update total before GST
-        const totalBeforeGstElement = item.querySelector('.total-before-gst');
-        if (totalBeforeGstElement) {
-            totalBeforeGstElement.textContent = `₹${totalBeforeGst.toFixed(2)}`;
-        }
-        
-        // Update GST
-        const mpackGstElement = item.querySelector('.gst-amount');
-        if (mpackGstElement) {
-            mpackGstElement.textContent = `₹${gstAmount.toFixed(2)}`;
-        }
-        
-        // Update total
-        const mpackTotalElement = item.querySelector('.total-amount') || item.querySelector('.item-total') || item.querySelector('.total-value');
-        if (mpackTotalElement) {
-            mpackTotalElement.textContent = `₹${total.toFixed(2)}`;
-        }
-        
-        // Update hidden inputs
-        const hiddenGstInput = item.querySelector('input[name$="_gst_amount"]');
-        if (hiddenGstInput) {
-            hiddenGstInput.value = gstAmount.toFixed(2);
-        }
-        
-        const hiddenTotalInput = item.querySelector('input[name$="_total"]');
-        if (hiddenTotalInput) {
-            hiddenTotalInput.value = total.toFixed(2);
         }
         
         // Update quantity display if it exists

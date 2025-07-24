@@ -1104,8 +1104,8 @@ def add_to_cart():
             gst_percent = float(data.get('gst_percent', 18))
             
             # Calculate prices
-            price_per_unit = base_price + bar_price
-            subtotal = price_per_unit * quantity
+            unit_price = base_price + bar_price
+            subtotal = unit_price * quantity
             discount_amount = subtotal * (discount_percent / 100)
             discounted_subtotal = subtotal - discount_amount
             gst_amount = (discounted_subtotal * gst_percent) / 100
@@ -1140,13 +1140,13 @@ def add_to_cart():
                 'base_price': base_price,
                 'discount_percent': discount_percent,
                 'gst_percent': gst_percent,
-                'unit_price': round(price_per_unit, 2),
+                'unit_price': round(unit_price, 2),
                 'total_price': round(final_total, 2),
                 'calculations': {
                     'areaSqM': round(area_sq_m, 4),
                     'ratePerSqMt': round(base_price / area_sq_m, 2) if area_sq_m > 0 else 0,
                     'basePrice': round(base_price, 2),
-                    'pricePerUnit': round(price_per_unit, 2),
+                    'pricePerUnit': round(unit_price, 2),
                     'subtotal': round(subtotal, 2),
                     'discount_percent': discount_percent,
                     'discount_amount': round(discount_amount, 2),
@@ -1410,21 +1410,26 @@ def update_cart_item():
         
         # Handle blanket vs other product types differently
         if item.get('type') == 'blanket':
-            # For blankets: unit_price = base_price, bar_price is separate
+            # For blankets: keep base_price and bar_price separate for display
             base_price = float(item.get('base_price', 0)) or float(item.get('unit_price', 0))
             bar_price = float(item.get('bar_price', 0))
-            price_per_unit = base_price + bar_price
+            
+            # Calculate unit price (base + bar)
+            unit_price = base_price + bar_price
+            
+            # Calculate subtotal (unit_price * quantity)
+            subtotal = unit_price * quantity
             
             # Update the stored values
             item['base_price'] = base_price
             item['bar_price'] = bar_price
-            item['unit_price'] = price_per_unit
+            item['unit_price'] = unit_price
         else:
             # For other products (mpack, etc.)
-            price_per_unit = float(item.get('unit_price', 0))
+            unit_price = float(item.get('unit_price', 0))
+            subtotal = unit_price * quantity
         
-        # Calculate prices
-        subtotal = price_per_unit * quantity
+        # Calculate discount and final amounts
         discount_amount = (subtotal * discount_percent) / 100
         discounted_subtotal = subtotal - discount_amount
         gst_amount = (discounted_subtotal * gst_percent) / 100
@@ -1432,7 +1437,7 @@ def update_cart_item():
         
         # Update calculations
         item['calculations'] = {
-            'unit_price': price_per_unit,
+            'unit_price': unit_price,
             'quantity': quantity,
             'subtotal': subtotal,
             'discount_percent': discount_percent,

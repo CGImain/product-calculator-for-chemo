@@ -39,20 +39,34 @@ function calculateItemPrices(item) {
             const discountPercent = parseFloat(item.discount_percent) || 0;
             const gstPercent = parseFloat(item.gst_percent) || 18;
             
-            const pricePerUnit = basePrice + barPrice;
-            const subtotal = pricePerUnit * quantity;
+            // Calculate unit price (base + bar) - matches backend logic
+            const unitPrice = basePrice + barPrice;
+            
+            // Calculate subtotal (unit_price * quantity) - matches backend logic
+            const subtotal = unitPrice * quantity;
+            
+            // Calculate discount amount - matches backend logic
             const discountAmount = subtotal * (discountPercent / 100);
+            
+            // Calculate discounted subtotal - matches backend logic
             const discountedSubtotal = subtotal - discountAmount;
+            
+            // Calculate GST on discounted subtotal - matches backend logic
             const gstAmount = (discountedSubtotal * gstPercent) / 100;
+            
+            // Calculate final total - matches backend logic
             const finalTotal = discountedSubtotal + gstAmount;
             
             item.calculations = {
-                pricePerUnit: round(pricePerUnit, 2),
+                unit_price: round(unitPrice, 2),
+                quantity: quantity,
                 subtotal: round(subtotal, 2),
-                discountAmount: round(discountAmount, 2),
-                discountedSubtotal: round(discountedSubtotal, 2),
-                gstAmount: round(gstAmount, 2),
-                finalTotal: round(finalTotal, 2)
+                discount_percent: discountPercent,
+                discount_amount: round(discountAmount, 2),
+                discounted_subtotal: round(discountedSubtotal, 2),
+                gst_percent: gstPercent,
+                gst_amount: round(gstAmount, 2),
+                final_total: round(finalTotal, 2)
             };
         }
     }
@@ -1027,81 +1041,51 @@ function calculateMPackPrices(item) {
 
 // Function to calculate blanket prices
 function calculateBlanketPrices(item) {
-    // Get dimensions from data attributes
-    const length = parseFloat(item.getAttribute('data-length') || 0);
-    const width = parseFloat(item.getAttribute('data-width') || 0);
-    const unit = item.getAttribute('data-unit') || 'mm';
-    let ratePerSqMt = parseFloat(item.getAttribute('data-rate-per-sqmt') || 0);
+    // Get base price and bar price from data attributes
+    const basePrice = parseFloat(item.getAttribute('data-base-price') || 0);
     const barPrice = parseFloat(item.getAttribute('data-bar-price') || 0);
     const quantity = parseInt(item.querySelector('.quantity-input')?.value || 1);
-    const discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
-    const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 18); // Default to 18% GST
+    const discountPercent = parseFloat(item.querySelector('.discount-input')?.value || 0);
+    const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 18);
     
     console.log('Calculating blanket prices with:', {
-        length, width, unit, ratePerSqMt, barPrice, quantity, discountPercent, gstPercent
+        basePrice, barPrice, quantity, discountPercent, gstPercent
     });
     
-    // Convert dimensions to meters
-    const lengthM = unit === 'mm' ? length / 1000 : length;
-    const widthM = unit === 'mm' ? width / 1000 : width;
-    const areaSqM = lengthM * widthM;
+    // Calculate unit price (base + bar) - matches backend logic
+    const unitPrice = basePrice + barPrice;
     
-    console.log('Converted dimensions:', { lengthM, widthM, areaSqM });
+    // Calculate subtotal (unit_price * quantity) - matches backend logic
+    const subtotal = unitPrice * quantity;
     
-    // If rate is not provided, try to get it from unit price and area
-    if (ratePerSqMt <= 0) {
-        const unitPrice = parseFloat(item.getAttribute('data-unit-price') || 0);
-        ratePerSqMt = areaSqM > 0 ? unitPrice / areaSqM : 0;
-        console.log('Calculated rate per sq.m from unit price:', ratePerSqMt);
-    }
+    // Calculate discount amount - matches backend logic
+    const discountAmount = subtotal * (discountPercent / 100);
     
-    // Calculate base price (area in sq.m × rate per sq.m)
-    const unitPrice = areaSqM * ratePerSqMt;
+    // Calculate discounted subtotal - matches backend logic
+    const discountedSubtotal = subtotal - discountAmount;
     
-    // Calculate net price per piece (unit price + barring)
-    const netPricePerPiece = unitPrice + barPrice;
+    // Calculate GST on discounted subtotal - matches backend logic
+    const gstAmount = (discountedSubtotal * gstPercent) / 100;
     
-    // Calculate subtotal (net price per piece × quantity)
-    const subtotal = netPricePerPiece * quantity;
+    // Calculate final total - matches backend logic
+    const finalTotal = discountedSubtotal + gstAmount;
     
-    // Calculate discount amount (on unit price before barring)
-    const unitPriceDiscount = (unitPrice * discountPercent) / 100;
-    const discountedUnitPrice = unitPrice - unitPriceDiscount;
-    
-    // Calculate final unit price with barring after discount
-    const finalUnitPrice = discountedUnitPrice + barPrice;
-    
-    // Calculate total before GST (after discount but before GST)
-    const totalBeforeGst = finalUnitPrice * quantity;
-    
-    // Calculate total discount amount
-    const discountAmount = (unitPrice * discountPercent * quantity) / 100;
-    
-    // Calculate GST on the total before GST
-    const gstAmount = (totalBeforeGst * gstPercent) / 100;
-    const total = totalBeforeGst + gstAmount;
-    
-    console.log('Calculation results:', {
-        unitPrice: round(unitPrice, 2),
-        netPricePerPiece: round(netPricePerPiece, 2),
-        discountedUnitPrice: round(discountedUnitPrice, 2),
-        finalUnitPrice: round(finalUnitPrice, 2),
+    console.log('Blanket calculation (updated):', {
+        basePrice, barPrice, unitPrice, quantity, discountPercent,
         subtotal: round(subtotal, 2),
         discountAmount: round(discountAmount, 2),
-        totalBeforeGst: round(totalBeforeGst, 2),
+        discountedSubtotal: round(discountedSubtotal, 2),
         gstAmount: round(gstAmount, 2),
-        total: round(total, 2)
+        finalTotal: round(finalTotal, 2)
     });
     
     return {
         unitPrice: round(unitPrice, 2),
-        netPricePerPiece: round(netPricePerPiece, 2),
         subtotal: round(subtotal, 2),
         discountAmount: round(discountAmount, 2),
-        totalBeforeGst: round(totalBeforeGst, 2),
+        totalBeforeGst: round(discountedSubtotal, 2),
         gstAmount: round(gstAmount, 2),
-        total: round(total, 2),
-        finalUnitPrice: round(finalUnitPrice, 2)
+        total: round(finalTotal, 2)
     };
 }
 

@@ -2183,60 +2183,32 @@ function updateItemDisplay(item, data) {
                 type
             });
             
+            // Update discount row if it exists
+            const discountRow = item.querySelector('.discount-row');
+            if (discountRow) {
+                if (discountPercent > 0) {
+                    discountRow.style.display = 'flex';
+                    const discountAmountElement = discountRow.querySelector('.discount-amount') || 
+                                               discountRow.querySelector('.discount-value') ||
+                                               discountRow.querySelector('span:last-child');
+                    if (discountAmountElement) {
+                        discountAmountElement.textContent = `-₹${discountAmount.toFixed(2)}`;
+                    }
+                    const discountPercentElement = discountRow.querySelector('.discount-percent');
+                    if (discountPercentElement) {
+                        discountPercentElement.textContent = `${discountPercent}%`;
+                    }
+                } else {
+                    discountRow.style.display = 'none';
+                }
+            }
+            
             // Update cart totals after item updates
             updateCartTotals();
         } catch (error) {
             console.error('Error updating MPack item display:', error);
             showToast('Error', 'Failed to update MPack item. Please refresh the page.', 'error');
             return; // Exit the function if there's an error
-        }
-        
-        // Update quantity display if it exists
-        const itemQuantityElement = item.querySelector('.quantity-display');
-        if (itemQuantityElement) {
-            itemQuantityElement.textContent = quantity;
-        }
-        
-        // Update discount display
-        const itemDiscountElement = item.querySelector('.discount-amount');
-        if (itemDiscountElement) {
-            itemDiscountElement.textContent = `₹${discountAmount.toFixed(2)}`;
-        }
-        
-        // Update total before GST
-        const preGstElement = item.querySelector('.total-before-gst') || item.querySelector('.pre-gst-total .pre-gst-amount');
-        if (preGstElement) {
-            preGstElement.textContent = `₹${totalBeforeGst.toFixed(2)}`;
-        }
-        
-        // Update GST display
-        const gstElement = item.querySelector('.gst-amount') || item.querySelector('.gst-row span:last-child');
-        if (gstElement) {
-            gstElement.textContent = `₹${gstAmount.toFixed(2)}`;
-            // Also update any hidden GST input fields
-            const hiddenGstInput = item.querySelector('input[name$="_gst_amount"]');
-            if (hiddenGstInput) {
-                hiddenGstInput.value = gstAmount.toFixed(2);
-            }
-        }
-        
-        // Update discount row if it exists
-        const discountRow = item.querySelector('.discount-row');
-        if (discountRow) {
-            if (discountPercent > 0) {
-                discountRow.style.display = 'flex';
-                const discountAmountElement = discountRow.querySelector('.discount-amount') || 
-                                          discountRow.querySelector('span:last-child');
-                if (discountAmountElement) {
-                    discountAmountElement.textContent = `₹${discountAmount.toFixed(2)}`;
-                }
-                const discountPercentElement = discountRow.querySelector('.discount-percent');
-                if (discountPercentElement) {
-                    discountPercentElement.textContent = `${discountPercent}%`;
-                }
-            } else {
-                discountRow.style.display = 'none';
-            }
         }
         
         // Update GST row if it exists

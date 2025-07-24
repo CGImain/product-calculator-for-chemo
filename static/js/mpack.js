@@ -988,10 +988,14 @@ async function addMpackToCart() {
 
   // Get the selected size from the input field or the select dropdown
   const sizeInput = document.getElementById('sizeInput');
-  let selectedSize = sizeInput ? sizeInput.value.trim() : '';
+  let selectedSize = '';
   
+  // First try to get from the input field (user might have typed or searched)
+  if (sizeInput && sizeInput.value.trim()) {
+    selectedSize = sizeInput.value.trim();
+  } 
   // If no size from input, try to get it from the select dropdown
-  if (!selectedSize && sizeSelect && sizeSelect.options[sizeSelect.selectedIndex]) {
+  else if (sizeSelect && sizeSelect.options[sizeSelect.selectedIndex]) {
     selectedSize = sizeSelect.options[sizeSelect.selectedIndex].text.trim();
   }
   
@@ -1003,6 +1007,10 @@ async function addMpackToCart() {
     height = parseInt(sizeMatch[2].trim());
     // Ensure consistent format (e.g., '560 x 752')
     selectedSize = `${width} x ${height}`;
+  } else {
+    // If we couldn't parse the size, show an error
+    showToast('Error', 'Please select a valid size (e.g., 560x752)', 'error');
+    return;
   }
   
   const product = {
@@ -1012,6 +1020,8 @@ async function addMpackToCart() {
     machine: machineSelect.options[machineSelect.selectedIndex].text,
     thickness: thicknessSelect.value + ' micron',
     size: selectedSize,
+    width: width,
+    height: height,
     underpacking_type: underpackingType,
     quantity: quantity,
     unit_price: parseFloat(unitPrice.toFixed(2)),
@@ -1019,9 +1029,6 @@ async function addMpackToCart() {
     gst_percent: 12,
     image: 'images/mpack-placeholder.jpg',
     added_at: isEditMode ? new Date().toISOString() : new Date().toISOString(),
-    machine_model: machineSelect.options[machineSelect.selectedIndex].text,
-    thickness: thicknessSelect.value + ' micron',
-    underpacking_type: underpackingType,
     calculations: {
       unit_price: parseFloat(unitPrice.toFixed(2)),
       quantity: quantity,

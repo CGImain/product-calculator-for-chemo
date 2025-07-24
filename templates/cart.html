@@ -451,7 +451,7 @@
                                             {% endif %}
                                             
                                             {% if item.size %}
-                                                <p class="mb-1"><strong>Size:</strong> {{ item.size }}</p>
+                                                <p class="mb-1 size-display"><strong>Size:</strong> <span class="size-value">{{ item.size }}</span></p>
                                             {% elif item.length and item.width %}
                                                 <p class="mb-1"><strong>Dimensions:</strong> {{ item.length }}mm x {{ item.width }}mm ({{ "%.2f"|format((item.length|float / 1000)) }}m x {{ "%.2f"|format((item.width|float / 1000)) }}m)</p>
                                                 <p class="mb-1"><strong>Area:</strong> {{ "%.2f"|format((item.length|float * item.width|float) / 1000000) }} m² ({{ "%.2f"|format((item.length|float * item.width|float)) }} mm²)</p>

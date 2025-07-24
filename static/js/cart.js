@@ -2130,7 +2130,21 @@ function updateItemDisplay(item, data) {
             // Update size display
             const size = data.size || item.getAttribute('data-size');
             if (size) {
-                updateElement('.size-value, .mpack-size, .item-size', size);
+                // Update the data attribute
+                item.setAttribute('data-size', size);
+                
+                // Update all size displays in the item
+                const sizeDisplays = item.querySelectorAll('.size-value, .mpack-size, .item-size, .size-display .size-value');
+                sizeDisplays.forEach(display => {
+                    if (display.classList.contains('size-display')) {
+                        // If it's the container, update the span inside it
+                        const span = display.querySelector('span.size-value');
+                        if (span) span.textContent = size;
+                    } else {
+                        // Direct update for other elements
+                        display.textContent = size;
+                    }
+                });
                 console.log('Updated size display to:', size);
             }
             

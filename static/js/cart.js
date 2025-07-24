@@ -1294,25 +1294,26 @@ function updateCartItemDiscount(index, discountPercent, itemId) {
     // Try to find the cart item in the DOM
     let cartItem = document.querySelector(`.cart-item[data-index="${index}"]`);
     
-    // If not found, try to find any cart item with the index
+    // If not found, try to find any cart item with the index or item_id
     if (!cartItem) {
         const allCartItems = document.querySelectorAll('.cart-item');
         for (const item of allCartItems) {
-            if (item.getAttribute('data-index') === index) {
+            if (item.getAttribute('data-index') === index || item.getAttribute('data-item-id') === itemId) {
                 cartItem = item;
+                // Update the index in case we found by item_id
+                if (itemId && !cartItem.getAttribute('data-index')) {
+                    cartItem.setAttribute('data-index', index);
+                }
                 break;
             }
         }
     }
     
-    if (!cartItem) {
-        console.warn('Cart item not found in DOM, but will still update server-side');
-        // Continue with the update even if we can't find the DOM element
-    }
-    
+    // Get the update button before any async operations
     const updateButton = cartItem ? cartItem.querySelector('.update-discount-btn') : null;
     let originalHtml = '';
     
+    // Store the original button state
     if (updateButton) {
         originalHtml = updateButton.innerHTML;
         updateButton.disabled = true;
@@ -1361,15 +1362,34 @@ function updateCartItemDiscount(index, discountPercent, itemId) {
     .finally(() => {
         // Use a small timeout to ensure any pending UI updates are complete
         setTimeout(() => {
-            if (updateButton && updateButton.parentNode) {
-                try {
+            try {
+                // Check if the button still exists in the DOM
+                if (updateButton && document.body.contains(updateButton)) {
                     updateButton.disabled = false;
-                    // Only update the innerHTML if the button still exists in the DOM
-                    if (document.body.contains(updateButton)) {
-                        updateButton.innerHTML = originalHtml || 'Update';
+                    updateButton.innerHTML = originalHtml || 'Update';
+                } else if (updateButton && updateButton.parentNode) {
+                    // If the button is not in the main document but still has a parent
+                    // (might be in a removed but not yet garbage collected element)
+                    updateButton.disabled = false;
+                    updateButton.innerHTML = originalHtml || 'Update';
+                }
+                
+                // Force a reflow to ensure the button state is updated
+                if (updateButton) {
+                    updateButton.offsetHeight;
+                }
+            } catch (e) {
+                console.error('Error resetting update button:', e);
+                
+                // As a last resort, try to find the button again by its data attributes
+                try {
+                    const newButton = document.querySelector(`.update-discount-btn[data-item-id="${itemId}"]`);
+                    if (newButton && document.body.contains(newButton)) {
+                        newButton.disabled = false;
+                        newButton.innerHTML = originalHtml || 'Update';
                     }
-                } catch (e) {
-                    console.error('Error resetting update button:', e);
+                } catch (innerError) {
+                    console.error('Failed to recover button state:', innerError);
                 }
             }
         }, 100);
@@ -1999,16 +2019,34 @@ function updateItemDisplay(item, data) {
             hiddenTotalInput.value = total.toFixed(2);
         }
     } else if (data.type === 'mpack') {
-        // Handle mpack items
-        const unitPrice = parseFloat(data.unit_price || item.getAttribute('data-unit-price') || 0);
-        const quantity = parseInt(data.quantity || 1);
-        const subtotal = unitPrice * quantity;
-        const discountPercent = parseFloat(data.discount_percent || item.getAttribute('data-discount-percent') || 0);
-        const discountAmount = (subtotal * discountPercent) / 100;
-        const totalBeforeGst = subtotal - discountAmount;
-        const gstPercent = parseFloat(data.gst_percent || item.getAttribute('data-gst-percent') || 12);
-        gstAmount = (totalBeforeGst * gstPercent) / 100;
-        total = totalBeforeGst + gstAmount;
+        // Initialize variables at function scope
+        let unitPrice, quantity, subtotal, discountPercent, discountAmount, totalBeforeGst, gstPercent;
+        
+        try {
+            // Handle mpack items
+            unitPrice = parseFloat(data.unit_price || item.getAttribute('data-unit-price') || 0);
+            quantity = parseInt(data.quantity || 1);
+            subtotal = unitPrice * quantity;
+            discountPercent = parseFloat(data.discount_percent || item.getAttribute('data-discount-percent') || 0);
+            discountAmount = (subtotal * discountPercent) / 100;
+            totalBeforeGst = subtotal - discountAmount;
+            gstPercent = parseFloat(data.gst_percent || item.getAttribute('data-gst-percent') || 12);
+            gstAmount = (totalBeforeGst * gstPercent) / 100;
+            total = totalBeforeGst + gstAmount;
+            
+            // Update the item's data attributes for future reference
+            item.setAttribute('data-unit-price', unitPrice);
+            item.setAttribute('data-quantity', quantity);
+            item.setAttribute('data-discount-percent', discountPercent);
+            item.setAttribute('data-gst-percent', gstPercent);
+            
+            // Debug logging
+            console.log('MPack update:', { unitPrice, quantity, subtotal, discountPercent, discountAmount, totalBeforeGst, gstPercent, gstAmount, total });
+        } catch (error) {
+            console.error('Error updating MPack item display:', error);
+            showToast('Error', 'Failed to update MPack item. Please refresh the page.', 'error');
+            return; // Exit the function if there's an error
+        }
         
         // Update unit price display
         const unitPriceElement = item.querySelector('.unit-price');

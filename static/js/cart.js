@@ -1855,15 +1855,15 @@ function updateItemDisplay(item, data) {
         const ratePerSqMt = parseFloat(item.getAttribute('data-rate-per-sqmt') || 0);
         
         // Calculate all required values
-        const unitPrice = data.unitPrice || (areaSqM * ratePerSqMt);
-        const barPrice = parseFloat(item.getAttribute('data-bar-price') || 0);
-        const netPricePerPiece = data.netPricePerPiece || (unitPrice + barPrice);
+        const unitPrice = parseFloat(data.unit_price || data.base_price || (areaSqM * ratePerSqMt));
+        const barPrice = parseFloat(data.bar_price || item.getAttribute('data-bar-price') || 0);
+        const netPricePerPiece = parseFloat(data.net_price_per_piece || (unitPrice + barPrice));
         const quantity = parseInt(data.quantity || 1);
         const subtotal = netPricePerPiece * quantity;
-        discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
+        discountPercent = parseFloat(data.discount_percent || item.getAttribute('data-discount-percent') || 0);
         discountAmount = (subtotal * discountPercent) / 100;
         const totalBeforeGst = subtotal - discountAmount;
-        const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 18);
+        const gstPercent = parseFloat(data.gst_percent || item.getAttribute('data-gst-percent') || 18);
         const gstAmount = (totalBeforeGst * gstPercent) / 100;
         const total = totalBeforeGst + gstAmount;
         
@@ -1918,7 +1918,7 @@ function updateItemDisplay(item, data) {
         // Calculate values
         const unitPrice = parseFloat(data.unit_price || 0);
         const quantity = parseInt(data.quantity || 1);
-        discountPercent = parseFloat(data.discount_percent || 0);
+        discountPercent = parseFloat(data.discount_percent || data.discount_percentage || 0);
         const gstPercent = parseFloat(data.gst_percent || 12);
         
         // Calculate subtotal (before discount)

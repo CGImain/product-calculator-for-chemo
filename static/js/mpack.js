@@ -16,11 +16,16 @@ let editingItem = null; // Track the item being edited
  * If parsing fails, returns width/height = 0 but still passes the raw string.
  */
 function getSelectedSize() {
-  const sizeInputEl = document.getElementById('sizeInput');
-  if (!sizeInputEl) {
-    return { size: '', width: 0, height: 0 };
+  const sizeSelect = document.getElementById('sizeSelect');
+  let raw = '';
+  if (sizeSelect && sizeSelect.options[sizeSelect.selectedIndex] && sizeSelect.value) {
+    raw = sizeSelect.options[sizeSelect.selectedIndex].text.trim();
   }
-  const raw = sizeInputEl.value.trim();
+  // fallback to the input field
+  if (!raw) {
+    const sizeInputEl = document.getElementById('sizeInput');
+    raw = sizeInputEl ? sizeInputEl.value.trim() : '';
+  }
   if (!raw) {
     return { size: '', width: 0, height: 0 };
   }

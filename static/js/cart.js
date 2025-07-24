@@ -1031,20 +1031,32 @@ function calculateBlanketPrices(item) {
     const length = parseFloat(item.getAttribute('data-length') || 0);
     const width = parseFloat(item.getAttribute('data-width') || 0);
     const unit = item.getAttribute('data-unit') || 'mm';
-    const ratePerSqMt = parseFloat(item.getAttribute('data-rate-per-sqmt') || 0);
+    let ratePerSqMt = parseFloat(item.getAttribute('data-rate-per-sqmt') || 0);
     const barPrice = parseFloat(item.getAttribute('data-bar-price') || 0);
     const quantity = parseInt(item.querySelector('.quantity-input')?.value || 1);
     const discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
-    const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 12);
+    const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 18); // Default to 18% GST
     
-    // Convert dimensions from mm to meters (1m = 1000mm)
-    const lengthM = parseFloat(length) / 1000;
-    const widthM = parseFloat(width) / 1000;
+    console.log('Calculating blanket prices with:', {
+        length, width, unit, ratePerSqMt, barPrice, quantity, discountPercent, gstPercent
+    });
+    
+    // Convert dimensions to meters
+    const lengthM = unit === 'mm' ? length / 1000 : length;
+    const widthM = unit === 'mm' ? width / 1000 : width;
     const areaSqM = lengthM * widthM;
     
+    console.log('Converted dimensions:', { lengthM, widthM, areaSqM });
+    
+    // If rate is not provided, try to get it from unit price and area
+    if (ratePerSqMt <= 0) {
+        const unitPrice = parseFloat(item.getAttribute('data-unit-price') || 0);
+        ratePerSqMt = areaSqM > 0 ? unitPrice / areaSqM : 0;
+        console.log('Calculated rate per sq.m from unit price:', ratePerSqMt);
+    }
+    
     // Calculate base price (area in sq.m × rate per sq.m)
-    const effectiveRate = ratePerSqMt > 0 ? ratePerSqMt : (parseFloat(item.getAttribute('data-unit-price') || 0) / areaSqM);
-    const unitPrice = areaSqM * effectiveRate;
+    const unitPrice = areaSqM * ratePerSqMt;
     
     // Calculate net price per piece (unit price + barring)
     const netPricePerPiece = unitPrice + barPrice;
@@ -1052,18 +1064,34 @@ function calculateBlanketPrices(item) {
     // Calculate subtotal (net price per piece × quantity)
     const subtotal = netPricePerPiece * quantity;
     
-    // Calculate discount amount and total before GST
-    let discountAmount = 0;
-    let totalBeforeGst = subtotal;
+    // Calculate discount amount (on unit price before barring)
+    const unitPriceDiscount = (unitPrice * discountPercent) / 100;
+    const discountedUnitPrice = unitPrice - unitPriceDiscount;
     
-    if (discountPercent > 0) {
-        discountAmount = (subtotal * discountPercent) / 100;
-        totalBeforeGst = subtotal - discountAmount;
-    }
+    // Calculate final unit price with barring after discount
+    const finalUnitPrice = discountedUnitPrice + barPrice;
+    
+    // Calculate total before GST (after discount but before GST)
+    const totalBeforeGst = finalUnitPrice * quantity;
+    
+    // Calculate total discount amount
+    const discountAmount = (unitPrice * discountPercent * quantity) / 100;
     
     // Calculate GST on the total before GST
     const gstAmount = (totalBeforeGst * gstPercent) / 100;
     const total = totalBeforeGst + gstAmount;
+    
+    console.log('Calculation results:', {
+        unitPrice: round(unitPrice, 2),
+        netPricePerPiece: round(netPricePerPiece, 2),
+        discountedUnitPrice: round(discountedUnitPrice, 2),
+        finalUnitPrice: round(finalUnitPrice, 2),
+        subtotal: round(subtotal, 2),
+        discountAmount: round(discountAmount, 2),
+        totalBeforeGst: round(totalBeforeGst, 2),
+        gstAmount: round(gstAmount, 2),
+        total: round(total, 2)
+    });
     
     return {
         unitPrice: round(unitPrice, 2),
@@ -1072,7 +1100,8 @@ function calculateBlanketPrices(item) {
         discountAmount: round(discountAmount, 2),
         totalBeforeGst: round(totalBeforeGst, 2),
         gstAmount: round(gstAmount, 2),
-        total: round(total, 2)
+        total: round(total, 2),
+        finalUnitPrice: round(finalUnitPrice, 2)
     };
 }
 
@@ -2099,22 +2128,22 @@ function updateItemDisplay(item, data) {
             return; // Exit the function if there's an error
         }
         
-        // Update unit price display
+        // Update unit price display with final unit price (after discount)
         const unitPriceElement = item.querySelector('.unit-price');
         if (unitPriceElement) {
-            unitPriceElement.textContent = `₹${unitPrice.toFixed(2)}`;
+            unitPriceElement.textContent = `₹${prices.finalUnitPrice.toFixed(2)}`;
         }
         
-        // Update quantity display
-        const quantityElement = item.querySelector('.quantity-display');
-        if (quantityElement) {
-            quantityElement.textContent = quantity;
+        // Update barring price display
+        const barringElement = item.querySelector('.barring-price');
+        if (barringElement) {
+            barringElement.textContent = `+₹${barPrice.toFixed(2)}`;
         }
         
-        // Update subtotal
+        // Update subtotal (should be final unit price * quantity)
         const subtotalElement = item.querySelector('.subtotal');
         if (subtotalElement) {
-            subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+            subtotalElement.textContent = `₹${(prices.finalUnitPrice * quantity).toFixed(2)}`;
         }
         
         // Update discount

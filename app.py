@@ -1398,19 +1398,33 @@ def update_cart_item():
     
     # Update fields from the form data
     for key in ['quantity', 'length', 'width', 'thickness', 'size', 'machine', 'bar_type', 
-               'discount_percent', 'gst_percent', 'unit_price', 'name', 'type']:
+               'discount_percent', 'gst_percent', 'unit_price', 'base_price', 'bar_price', 'name', 'type']:
         if key in data:
             item[key] = data[key]
     
     # Recalculate any calculated fields
     if 'quantity' in data or 'unit_price' in data or 'discount_percent' in data or 'gst_percent' in data:
         quantity = item.get('quantity', 1)
-        unit_price = float(item.get('unit_price', 0))
         discount_percent = float(item.get('discount_percent', 0))
         gst_percent = float(item.get('gst_percent', 18))  # Default to 18% GST if not specified
         
+        # Handle blanket vs other product types differently
+        if item.get('type') == 'blanket':
+            # For blankets: unit_price = base_price, bar_price is separate
+            base_price = float(item.get('base_price', 0)) or float(item.get('unit_price', 0))
+            bar_price = float(item.get('bar_price', 0))
+            price_per_unit = base_price + bar_price
+            
+            # Update the stored values
+            item['base_price'] = base_price
+            item['bar_price'] = bar_price
+            item['unit_price'] = price_per_unit
+        else:
+            # For other products (mpack, etc.)
+            price_per_unit = float(item.get('unit_price', 0))
+        
         # Calculate prices
-        subtotal = unit_price * quantity
+        subtotal = price_per_unit * quantity
         discount_amount = (subtotal * discount_percent) / 100
         discounted_subtotal = subtotal - discount_amount
         gst_amount = (discounted_subtotal * gst_percent) / 100
@@ -1418,7 +1432,7 @@ def update_cart_item():
         
         # Update calculations
         item['calculations'] = {
-            'unit_price': unit_price,
+            'unit_price': price_per_unit,
             'quantity': quantity,
             'subtotal': subtotal,
             'discount_percent': discount_percent,
@@ -1428,6 +1442,9 @@ def update_cart_item():
             'gst_amount': gst_amount,
             'final_total': final_total
         }
+        
+        # Update the item's total_price field
+        item['total_price'] = final_total
     
     # Save the updated cart
     cart['products'][item_index] = item

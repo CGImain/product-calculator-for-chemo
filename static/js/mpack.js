@@ -986,13 +986,17 @@ async function addMpackToCart() {
   const gstAmount = priceAfterDiscount * gstRate;
   const finalPrice = priceAfterDiscount + gstAmount;
 
+  // Get the selected size from the input field or the select dropdown
+  const sizeInput = document.getElementById('sizeInput');
+  const selectedSize = sizeInput ? sizeInput.value : (sizeSelect.options[sizeSelect.selectedIndex]?.text || '');
+  
   const product = {
     id: isEditMode ? itemId : 'mpack_' + Date.now(),
     type: 'mpack',
     name: underpackingTypeDisplay,
     machine: machineSelect.options[machineSelect.selectedIndex].text,
     thickness: thicknessSelect.value + ' micron',
-    size: sizeSelect.options[sizeSelect.selectedIndex].text,
+    size: selectedSize,
     underpacking_type: underpackingType,
     quantity: quantity,
     unit_price: parseFloat(unitPrice.toFixed(2)),
@@ -1045,7 +1049,7 @@ async function addMpackToCart() {
     name: underpackingTypeDisplay,
     machine: machineSelect.options[machineSelect.selectedIndex].text,
     thickness: thicknessSelect.value + ' micron',
-    size: sizeSelect.options[sizeSelect.selectedIndex].text,
+    size: selectedSize,
     underpacking_type: underpackingType,
     quantity: quantity,
     unit_price: parseFloat(unitPrice.toFixed(2)),

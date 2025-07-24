@@ -1692,19 +1692,25 @@ function setupRemoveHandlers() {
 
 // Handle remove button clicks using event delegation
 function handleRemoveClick(e) {
-    // Find the closest remove button or form that was clicked
-    const removeBtn = e.target.closest('.remove-item-form') || 
-                     e.target.closest('.btn-danger');
-    
+    // Find the closest remove button that was clicked
+    const removeBtn = e.target.closest('.remove-item-btn');
     if (!removeBtn) return;
     
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Add loading state to the button
+    const originalHtml = removeBtn.innerHTML;
+    removeBtn.disabled = true;
+    removeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Removing...';
     
     // Get the item element and its ID
     const itemElement = removeBtn.closest('.cart-item');
     if (!itemElement) {
         console.error('Could not find cart item element');
         showToast('Error', 'Could not identify item to remove', 'error');
+        removeBtn.innerHTML = originalHtml;
+        removeBtn.disabled = false;
         return;
     }
     
@@ -1713,29 +1719,43 @@ function handleRemoveClick(e) {
     if (!itemId) {
         console.error('Item has no data-item-id attribute');
         showToast('Error', 'Could not identify item to remove', 'error');
+        removeBtn.innerHTML = originalHtml;
+        removeBtn.disabled = false;
         return;
     }
     
-    console.log('Removing item with ID:', itemId);
-    removeFromCart(e, itemId);
+    // Show confirmation dialog
+    const itemName = itemElement.getAttribute('data-name') || 'this item';
+    if (confirm(`Are you sure you want to remove ${itemName} from your cart?`)) {
+        console.log('Removing item with ID:', itemId);
+        removeFromCart(e, itemId, () => {
+            // Re-enable button after removal is complete
+            removeBtn.innerHTML = originalHtml;
+            removeBtn.disabled = false;
+        });
+    } else {
+        // Reset button if user cancels
+        removeBtn.innerHTML = originalHtml;
+        removeBtn.disabled = false;
+    }
 }
 
 // Function to remove item from cart using item ID
-function removeFromCart(event, itemId) {
+function removeFromCart(event, itemId, callback) {
     // Prevent default form submission if called from a form
-    event.preventDefault();
-    
-    if (!confirm('Are you sure you want to remove this item from your cart?')) {
-        return;
+    if (event && event.preventDefault) {
+        event.preventDefault();
     }
-
-    const button = event.target.closest('button');
+    
+    // Get the item element for better UX
+    const itemElement = event ? event.target.closest('.cart-item') : document.querySelector(`.cart-item[data-item-id="${itemId}"]`);
+    const button = event ? event.target.closest('button') : null;
     const originalHtml = button ? button.innerHTML : '';
     
     // Show loading state
     if (button) {
         button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Removing...';
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Removing...';
     }
     
     const csrfToken = getCSRFToken();
@@ -1769,7 +1789,7 @@ function removeFromCart(event, itemId) {
         console.error('Error finding item in cart:', error);
     }
     
-    // Send the remove request
+    // Make API call to remove item from cart
     fetch('/remove_from_cart', {
         method: 'POST',
         headers: {
@@ -1778,41 +1798,63 @@ function removeFromCart(event, itemId) {
         },
         body: JSON.stringify({ item_id: itemId })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            // Remove the item from the DOM using the item ID
-            // Try both the original itemId and the normalized version
-            const itemElement = document.querySelector(`.cart-item[data-item-id="${itemId}"]`) ||
-                              document.querySelector(`.cart-item[data-item-id^="${String(itemId).substring(0, 8)}"]`);
+            // Fade out the item
             if (itemElement) {
-                itemElement.remove();
-            }
-            
-            // Update cart totals and count
-            updateCartTotals();
-            updateCartCount();
-            updateCartEmptyState();
-            
-            // Check if cart is empty
-            const cartItems = document.querySelectorAll('.cart-item');
-            if (cartItems.length === 0) {
-                window.location.reload(); // Reload to show empty cart message
-            } else {
-                showToast('Success', 'Item removed from cart', 'success');
+                itemElement.style.opacity = '0.5';
+                itemElement.style.transition = 'opacity 0.3s ease';
+                
+                // Wait for the fade-out animation to complete before removing
+                setTimeout(() => {
+                    itemElement.remove();
+                    
+                    // Update cart count and total
+                    updateCartCount(data.cart_count || 0);
+                    
+                    // Show success message
+                    showToast('Success', 'Item removed from cart', 'success');
+                    
+                    // If no items left, show empty cart message
+                    const cartItems = document.querySelectorAll('.cart-item');
+                    if (cartItems.length === 0) {
+                        document.getElementById('cartItems').style.display = 'none';
+                        document.getElementById('emptyCartMessage').style.display = 'block';
+                    }
+                    
+                    // Call the callback if provided
+                    if (typeof callback === 'function') {
+                        callback();
+                    } else if (button) {
+                        // Reset button state
+                        button.innerHTML = originalHtml;
+                        button.disabled = false;
+                    }
+                }, 300);
             }
         } else {
-            showToast('Error', data.error || 'Failed to remove item from cart', 'error');
+            throw new Error(data.error || 'Failed to remove item from cart');
         }
     })
     .catch(error => {
-        console.error('Error removing from cart:', error);
-        showToast('Error', 'An error occurred while removing the item', 'error');
-    })
-    .finally(() => {
+        console.error('Error removing item from cart:', error);
+        showToast('Error', 'Failed to remove item from cart', 'error');
+        
+        // Reset button state on error
         if (button) {
-            button.disabled = false;
             button.innerHTML = originalHtml;
+            button.disabled = false;
+        }
+        
+        // Call the callback if provided
+        if (typeof callback === 'function') {
+            callback();
         }
     });
 }

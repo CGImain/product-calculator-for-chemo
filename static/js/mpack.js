@@ -16,15 +16,15 @@ let editingItem = null; // Track the item being edited
  * If parsing fails, returns width/height = 0 but still passes the raw string.
  */
 function getSelectedSize() {
-  const sizeSelect = document.getElementById('sizeSelect');
-  let raw = '';
-  if (sizeSelect && sizeSelect.options[sizeSelect.selectedIndex] && sizeSelect.value) {
-    raw = sizeSelect.options[sizeSelect.selectedIndex].text.trim();
-  }
-  // fallback to the input field
+  // Prefer the text inside the visible input first
+  const sizeInputEl = document.getElementById('sizeInput');
+  let raw = sizeInputEl ? sizeInputEl.value.trim() : '';
+  // If input is empty, fall back to the hidden select (clicked suggestion)
   if (!raw) {
-    const sizeInputEl = document.getElementById('sizeInput');
-    raw = sizeInputEl ? sizeInputEl.value.trim() : '';
+    const sizeSelect = document.getElementById('sizeSelect');
+    if (sizeSelect && sizeSelect.options[sizeSelect.selectedIndex] && sizeSelect.value) {
+      raw = sizeSelect.options[sizeSelect.selectedIndex].text.trim();
+    }
   }
   if (!raw) {
     return { size: '', width: 0, height: 0 };

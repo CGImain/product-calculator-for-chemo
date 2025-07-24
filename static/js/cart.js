@@ -1937,19 +1937,24 @@ function updateItemDisplay(item, data) {
         // Update discount
         const discountElement = item.querySelector('.discount-amount');
         if (discountElement) {
-            discountElement.textContent = `-₹${discountAmount.toFixed(2)} (${discountPercent}%)`;
+            discountElement.textContent = `₹${discountAmount.toFixed(2)}`;
         }
         
         // Update total before GST
         const totalBeforeGstElement = item.querySelector('.total-before-gst');
         if (totalBeforeGstElement) {
             totalBeforeGstElement.textContent = `₹${totalBeforeGst.toFixed(2)}`;
+            // Also update any other elements that might be showing the pre-GST total
+            const preGstElements = item.querySelectorAll('.pre-gst-total, .total-before-gst');
+            preGstElements.forEach(el => {
+                el.textContent = `₹${totalBeforeGst.toFixed(2)}`;
+            });
         }
         
         // Update GST
         const gstElement = item.querySelector('.gst-amount');
         if (gstElement) {
-            gstElement.textContent = `₹${gstAmount.toFixed(2)} (${gstPercent}%)`;
+            gstElement.textContent = `₹${gstAmount.toFixed(2)}`;
         }
         
         // Update total
@@ -2000,7 +2005,7 @@ function updateItemDisplay(item, data) {
         // Update discount display
         const discountElement = item.querySelector('.discount-amount');
         if (discountElement) {
-            discountElement.textContent = `-₹${discountAmount.toFixed(2)} (${discountPercent}%)`;
+            discountElement.textContent = `₹${discountAmount.toFixed(2)}`;
         }
         
         // Update total before GST
@@ -2012,7 +2017,7 @@ function updateItemDisplay(item, data) {
         // Update GST display
         const gstElement = item.querySelector('.gst-amount') || item.querySelector('.gst-row span:last-child');
         if (gstElement) {
-            gstElement.textContent = `₹${gstAmount.toFixed(2)} (${gstPercent}%)`;
+            gstElement.textContent = `₹${gstAmount.toFixed(2)}`;
         }
         
         // Update discount row if it exists
@@ -2023,7 +2028,7 @@ function updateItemDisplay(item, data) {
                 const discountAmountElement = discountRow.querySelector('.discount-amount') || 
                                           discountRow.querySelector('span:last-child');
                 if (discountAmountElement) {
-                    discountAmountElement.textContent = `-₹${discountAmount.toFixed(2)}`;
+                    discountAmountElement.textContent = `₹${discountAmount.toFixed(2)}`;
                 }
                 const discountPercentElement = discountRow.querySelector('.discount-percent');
                 if (discountPercentElement) {

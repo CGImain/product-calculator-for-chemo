@@ -1821,6 +1821,11 @@ function removeFromCart(event, itemId) {
 function updateItemDisplay(item, data) {
     if (!item || !data) return;
     
+    // Initialize variables to avoid reference errors
+    let discountAmount = 0;
+    let discountPercent = 0;
+    let quantity = 1;
+    
     // Update the data attributes with the latest values
     if (data.type === 'blanket') {
         item.dataset.basePrice = data.base_price || 0;
@@ -1855,8 +1860,8 @@ function updateItemDisplay(item, data) {
         const netPricePerPiece = data.netPricePerPiece || (unitPrice + barPrice);
         const quantity = parseInt(data.quantity || 1);
         const subtotal = netPricePerPiece * quantity;
-        const discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
-        const discountAmount = (subtotal * discountPercent) / 100;
+        discountPercent = parseFloat(item.getAttribute('data-discount-percent') || 0);
+        discountAmount = (subtotal * discountPercent) / 100;
         const totalBeforeGst = subtotal - discountAmount;
         const gstPercent = parseFloat(item.getAttribute('data-gst-percent') || 18);
         const gstAmount = (totalBeforeGst * gstPercent) / 100;
@@ -1913,14 +1918,14 @@ function updateItemDisplay(item, data) {
         // Calculate values
         const unitPrice = parseFloat(data.unit_price || 0);
         const quantity = parseInt(data.quantity || 1);
-        const discountPercent = parseFloat(data.discount_percent || 0);
+        discountPercent = parseFloat(data.discount_percent || 0);
         const gstPercent = parseFloat(data.gst_percent || 12);
         
         // Calculate subtotal (before discount)
         const subtotal = unitPrice * quantity;
         
         // Calculate discount amount
-        const discountAmount = subtotal * (discountPercent / 100);
+        discountAmount = subtotal * (discountPercent / 100);
         
         // Calculate taxable amount (after discount)
         const taxableAmount = subtotal - discountAmount;

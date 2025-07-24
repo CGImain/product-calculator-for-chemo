@@ -1868,10 +1868,10 @@ function updateItemDisplay(item, data) {
         const gstAmount = (totalBeforeGst * gstPercent) / 100;
         const total = totalBeforeGst + gstAmount;
         
-        // Update unit price display (show base price and calculation without brackets)
+        // Update unit price display (show only the base price)
         const unitPriceElement = item.querySelector('.unit-price');
         if (unitPriceElement) {
-            unitPriceElement.textContent = `₹${basePrice.toFixed(2)} = ${areaSqM.toFixed(4)}m² × ₹${ratePerSqMt.toFixed(2)}`;
+            unitPriceElement.textContent = `₹${basePrice.toFixed(2)}`;
         }
         
         // Update net price per piece (base + bar price)

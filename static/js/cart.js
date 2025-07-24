@@ -2117,10 +2117,19 @@ function updateItemDisplay(item, data) {
             // Update the size display if it exists
             const size = data.size || item.getAttribute('data-size');
             if (size) {
+                // Update the size in the main display
                 const sizeElement = item.querySelector('.size-value');
                 if (sizeElement) {
                     sizeElement.textContent = size;
                 }
+                
+                // Also update any other size displays in the item
+                const allSizeElements = item.querySelectorAll('.size-value, .mpack-size, .item-size');
+                allSizeElements.forEach(el => {
+                    el.textContent = size;
+                });
+                
+                console.log('Updated size display to:', size);
             }
         } catch (error) {
             console.error('Error updating MPack item display:', error);

@@ -249,13 +249,41 @@ function getFormData() {
   const gstAmount = priceAfterDiscount * gstRate;
   const finalPrice = priceAfterDiscount + gstAmount;
   
+  // Get the selected size from the input field or the select dropdown
+  const sizeInput = document.getElementById('sizeInput');
+  let selectedSize = '';
+  
+  // First try to get from the input field (user might have typed or searched)
+  if (sizeInput && sizeInput.value.trim()) {
+    selectedSize = sizeInput.value.trim();
+  } 
+  // If no size from input, try to get it from the select dropdown
+  else if (sizeSelect && sizeSelect.options[sizeSelect.selectedIndex]) {
+    selectedSize = sizeSelect.options[sizeSelect.selectedIndex].text.trim();
+  }
+  
+  // Parse width and height from the selected size
+  let width = 0, height = 0;
+  const sizeMatch = selectedSize.match(/(\d+)\s*[xX×]\s*(\d+)/);
+  if (sizeMatch && sizeMatch.length >= 3) {
+    width = parseInt(sizeMatch[1].trim());
+    height = parseInt(sizeMatch[2].trim());
+    // Ensure consistent format (e.g., '560 x 752')
+    selectedSize = `${width} x ${height}`;
+  } else {
+    // If we couldn't parse the size, use the raw value
+    console.warn('Could not parse size:', selectedSize);
+  }
+
   return {
     id: 'mpack_' + Date.now(),
     type: 'mpack',
     name: underpackingTypeDisplay,
     machine: machineSelect.options[machineSelect.selectedIndex].text,
     thickness: thicknessSelect.value + ' micron',
-    size: sizeSelect.options[sizeSelect.selectedIndex].text,
+    size: selectedSize,
+    width: width,
+    height: height,
     underpacking_type: underpackingType,
     quantity: quantity,
     unit_price: parseFloat(unitPrice.toFixed(2)),

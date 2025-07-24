@@ -4,42 +4,6 @@ let currentDiscount = 0; // Track current discount percentage
 let currentThickness = ''; // Track current thickness
 let editingItem = null; // Track the item being edited
 
-// --------------------
-// Utility helpers
-// --------------------
-
-/**
- * Return normalised size string and numeric width / height based solely on
- * the value typed or chosen inside #sizeInput (MPack only).
- * Accepts formats like "520x445", "520 × 445", "520 x 445" (any whitespace).
- * Returns { size: '520 x 445', width: 520, height: 445 }
- * If parsing fails, returns width/height = 0 but still passes the raw string.
- */
-function getSelectedSize() {
-  // Prefer the text inside the visible input first
-  const sizeInputEl = document.getElementById('sizeInput');
-  let raw = sizeInputEl ? sizeInputEl.value.trim() : '';
-  // If input is empty, fall back to the hidden select (clicked suggestion)
-  if (!raw) {
-    const sizeSelect = document.getElementById('sizeSelect');
-    if (sizeSelect && sizeSelect.options[sizeSelect.selectedIndex] && sizeSelect.value) {
-      raw = sizeSelect.options[sizeSelect.selectedIndex].text.trim();
-    }
-  }
-  if (!raw) {
-    return { size: '', width: 0, height: 0 };
-  }
-  // normalise
-  const match = raw.match(/(\d+)\s*[xX×]\s*(\d+)/);
-  if (match && match.length >= 3) {
-    const w = parseInt(match[1], 10);
-    const h = parseInt(match[2], 10);
-    return { size: `${w} x ${h}`, width: w, height: h };
-  }
-  // fallback – return raw string
-  return { size: raw, width: 0, height: 0 };
-}
-
 // Debug function to log element status
 function logElementStatus(id) {
   const el = document.getElementById(id);
@@ -285,8 +249,16 @@ function getFormData() {
   const gstAmount = priceAfterDiscount * gstRate;
   const finalPrice = priceAfterDiscount + gstAmount;
   
-  // Extract & normalise size (MPack only)
-  const { size: selectedSize, width, height } = getSelectedSize();
+  // Get size from dropdown (like thickness)
+  const selectedSize = sizeSelect.options[sizeSelect.selectedIndex].text;
+  
+  // Parse width and height from the selected size
+  let width = 0, height = 0;
+  const sizeMatch = selectedSize.match(/(\d+)\s*[xX×]\s*(\d+)/);
+  if (sizeMatch && sizeMatch.length >= 3) {
+    width = parseInt(sizeMatch[1].trim());
+    height = parseInt(sizeMatch[2].trim());
+  }
 
   return {
     id: 'mpack_' + Date.now(),
@@ -1007,11 +979,8 @@ async function addMpackToCart() {
     underpackingTypeDisplay = underpackingTypeSelect.options[underpackingTypeSelect.selectedIndex].text;
   }
   
-    // Check that a size exists in #sizeInput
-  const sizeInput = document.getElementById('sizeInput');
-  const hasSize = sizeInput && sizeInput.value.trim();
-  
-  if (!machineSelect.value || !thicknessSelect.value || !hasSize || !sheetInput.value || !underpackingType) {
+  // Check that a size is selected in the dropdown (like thickness)
+  if (!machineSelect.value || !thicknessSelect.value || !sizeSelect.value || !sheetInput.value || !underpackingType) {
     showToast('Error', 'Please fill in all required fields including underpacking type', 'error');
     return;
   }
@@ -1031,11 +1000,15 @@ async function addMpackToCart() {
   const gstAmount = priceAfterDiscount * gstRate;
   const finalPrice = priceAfterDiscount + gstAmount;
 
-  // Extract & normalise size (MPack only)
-  const { size: selectedSize, width, height } = getSelectedSize();
-  if (!selectedSize) {
-    showToast('Error', 'Please select a valid size (e.g., 560x752)', 'error');
-    return;
+  // Get size from dropdown (like thickness)
+  const selectedSize = sizeSelect.options[sizeSelect.selectedIndex].text;
+  
+  // Parse width and height from the selected size
+  let width = 0, height = 0;
+  const sizeMatch = selectedSize.match(/(\d+)\s*[xX×]\s*(\d+)/);
+  if (sizeMatch && sizeMatch.length >= 3) {
+    width = parseInt(sizeMatch[1].trim());
+    height = parseInt(sizeMatch[2].trim());
   }
   
   const product = {

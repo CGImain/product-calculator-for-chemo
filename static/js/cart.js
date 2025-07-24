@@ -1912,8 +1912,18 @@ function updateItemDisplay(item, data) {
         
         // Update unit price display (show only the base price)
         const unitPriceElement = item.querySelector('.unit-price');
-        if (unitPriceElement) {
+        const unitPriceInput = item.querySelector('.unit-price-value');
+        if (unitPriceElement && unitPriceInput) {
             unitPriceElement.textContent = `₹${basePrice.toFixed(2)}`;
+            unitPriceInput.value = basePrice.toFixed(2);
+        }
+        
+        // Update bar price display
+        const barPriceElement = item.querySelector('.bar-price');
+        const barPriceInput = item.querySelector('.bar-price-value');
+        if (barPriceElement && barPriceInput) {
+            barPriceElement.textContent = `+₹${barPrice.toFixed(2)}`;
+            barPriceInput.value = barPrice.toFixed(2);
         }
         
         // Update net price per piece (base + bar price)
@@ -1984,10 +1994,12 @@ function updateItemDisplay(item, data) {
         // Calculate total (after discount + GST)
         const total = totalBeforeGst + gstAmount;
         
-        // Update unit price display
+        // Update unit price display (base price only)
         const unitPriceElement = item.querySelector('.unit-price');
-        if (unitPriceElement) {
+        const unitPriceInput = item.querySelector('.unit-price-value');
+        if (unitPriceElement && unitPriceInput) {
             unitPriceElement.textContent = `₹${unitPrice.toFixed(2)}`;
+            unitPriceInput.value = unitPrice.toFixed(2);
         }
         
         // Update subtotal display

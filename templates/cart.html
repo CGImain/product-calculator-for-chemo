@@ -466,13 +466,16 @@
                                         <div class="price-grid">
                                             <div class="price-row">
                                                 <span class="price-label">Unit Price:</span>
-                                                <span class="price-value unit-price">₹{{ "%.2f"|format(item.unit_price|default(0)) }}</span>
-                                                <input type="hidden" class="unit-price-value" value="{{ item.unit_price|default(0) }}">
+                                                <span class="price-value unit-price">
+                                                    ₹{{ "%.2f"|format((item.unit_price|default(0) - item.bar_price|default(0))|abs) }}
+                                                </span>
+                                                <input type="hidden" class="unit-price-value" value="{{ (item.unit_price|default(0) - item.bar_price|default(0))|abs }}">
                                             </div>
                                             {% if item.bar_price and item.bar_price > 0 %}
                                             <div class="price-row">
                                                 <span class="price-label">Barring:</span>
-                                                <span class="price-value">+₹{{ "%.2f"|format(item.bar_price|default(0)) }}</span>
+                                                <span class="price-value bar-price">+₹{{ "%.2f"|format(item.bar_price|default(0)) }}</span>
+                                                <input type="hidden" class="bar-price-value" value="{{ item.bar_price|default(0) }}">
                                             </div>
                                             {% endif %}
                                             <div class="price-row align-items-center">

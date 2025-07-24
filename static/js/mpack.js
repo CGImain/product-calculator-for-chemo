@@ -4,6 +4,37 @@ let currentDiscount = 0; // Track current discount percentage
 let currentThickness = ''; // Track current thickness
 let editingItem = null; // Track the item being edited
 
+// --------------------
+// Utility helpers
+// --------------------
+
+/**
+ * Return normalised size string and numeric width / height based solely on
+ * the value typed or chosen inside #sizeInput (MPack only).
+ * Accepts formats like "520x445", "520 × 445", "520 x 445" (any whitespace).
+ * Returns { size: '520 x 445', width: 520, height: 445 }
+ * If parsing fails, returns width/height = 0 but still passes the raw string.
+ */
+function getSelectedSize() {
+  const sizeInputEl = document.getElementById('sizeInput');
+  if (!sizeInputEl) {
+    return { size: '', width: 0, height: 0 };
+  }
+  const raw = sizeInputEl.value.trim();
+  if (!raw) {
+    return { size: '', width: 0, height: 0 };
+  }
+  // normalise
+  const match = raw.match(/(\d+)\s*[xX×]\s*(\d+)/);
+  if (match && match.length >= 3) {
+    const w = parseInt(match[1], 10);
+    const h = parseInt(match[2], 10);
+    return { size: `${w} x ${h}`, width: w, height: h };
+  }
+  // fallback – return raw string
+  return { size: raw, width: 0, height: 0 };
+}
+
 // Debug function to log element status
 function logElementStatus(id) {
   const el = document.getElementById(id);
@@ -249,31 +280,8 @@ function getFormData() {
   const gstAmount = priceAfterDiscount * gstRate;
   const finalPrice = priceAfterDiscount + gstAmount;
   
-  // Get the selected size from the input field or the select dropdown
-  // sizeInput is already declared above in validation section
-  let selectedSize = '';
-  
-  // First try to get from the input field (user might have typed or searched)
-  if (sizeInput && sizeInput.value.trim()) {
-    selectedSize = sizeInput.value.trim();
-  } 
-  // If no size from input, try to get it from the select dropdown
-  else if (sizeSelect && sizeSelect.options[sizeSelect.selectedIndex]) {
-    selectedSize = sizeSelect.options[sizeSelect.selectedIndex].text.trim();
-  }
-  
-  // Parse width and height from the selected size
-  let width = 0, height = 0;
-  const sizeMatch = selectedSize.match(/(\d+)\s*[xX×]\s*(\d+)/);
-  if (sizeMatch && sizeMatch.length >= 3) {
-    width = parseInt(sizeMatch[1].trim());
-    height = parseInt(sizeMatch[2].trim());
-    // Ensure consistent format (e.g., '560 x 752')
-    selectedSize = `${width} x ${height}`;
-  } else {
-    // If we couldn't parse the size, use the raw value
-    console.warn('Could not parse size:', selectedSize);
-  }
+  // Extract & normalise size (MPack only)
+  const { size: selectedSize, width, height } = getSelectedSize();
 
   return {
     id: 'mpack_' + Date.now(),
@@ -994,9 +1002,9 @@ async function addMpackToCart() {
     underpackingTypeDisplay = underpackingTypeSelect.options[underpackingTypeSelect.selectedIndex].text;
   }
   
-  // Check for size from either input field or dropdown
+    // Check that a size exists in #sizeInput
   const sizeInput = document.getElementById('sizeInput');
-  const hasSize = (sizeInput && sizeInput.value.trim()) || (sizeSelect && sizeSelect.value);
+  const hasSize = sizeInput && sizeInput.value.trim();
   
   if (!machineSelect.value || !thicknessSelect.value || !hasSize || !sheetInput.value || !underpackingType) {
     showToast('Error', 'Please fill in all required fields including underpacking type', 'error');
@@ -1018,29 +1026,9 @@ async function addMpackToCart() {
   const gstAmount = priceAfterDiscount * gstRate;
   const finalPrice = priceAfterDiscount + gstAmount;
 
-  // Get the selected size from the input field or the select dropdown
-  // sizeInput is already declared above in validation section
-  let selectedSize = '';
-  
-  // First try to get from the input field (user might have typed or searched)
-  if (sizeInput && sizeInput.value.trim()) {
-    selectedSize = sizeInput.value.trim();
-  } 
-  // If no size from input, try to get it from the select dropdown
-  else if (sizeSelect && sizeSelect.options[sizeSelect.selectedIndex]) {
-    selectedSize = sizeSelect.options[sizeSelect.selectedIndex].text.trim();
-  }
-  
-  // Parse width and height from the selected size
-  let width = 0, height = 0;
-  const sizeMatch = selectedSize.match(/(\d+)\s*[xX×]\s*(\d+)/);
-  if (sizeMatch && sizeMatch.length >= 3) {
-    width = parseInt(sizeMatch[1].trim());
-    height = parseInt(sizeMatch[2].trim());
-    // Ensure consistent format (e.g., '560 x 752')
-    selectedSize = `${width} x ${height}`;
-  } else {
-    // If we couldn't parse the size, show an error
+  // Extract & normalise size (MPack only)
+  const { size: selectedSize, width, height } = getSelectedSize();
+  if (!selectedSize) {
     showToast('Error', 'Please select a valid size (e.g., 560x752)', 'error');
     return;
   }

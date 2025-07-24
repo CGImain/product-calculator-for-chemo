@@ -1038,8 +1038,9 @@ async function addMpackToCart() {
     }
   }
 
-  // Prepare the payload
+  // Prepare the payload with all necessary fields
   const payload = {
+    id: isEditMode ? itemId : 'mpack_' + Date.now(),
     type: 'mpack',
     name: underpackingTypeDisplay,
     machine: machineSelect.options[machineSelect.selectedIndex].text,
@@ -1050,6 +1051,8 @@ async function addMpackToCart() {
     unit_price: parseFloat(unitPrice.toFixed(2)),
     discount_percent: discount,
     gst_percent: 12,
+    image: 'images/mpack-placeholder.jpg',
+    added_at: new Date().toISOString(),
     calculations: product.calculations
   };
 

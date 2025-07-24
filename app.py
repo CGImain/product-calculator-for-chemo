@@ -1397,7 +1397,7 @@ def update_cart_item():
     item = products[item_index]
     
     # Update fields from the form data
-    for key in ['quantity', 'length', 'width', 'thickness', 'machine', 'bar_type', 
+    for key in ['quantity', 'length', 'width', 'thickness', 'size', 'machine', 'bar_type', 
                'discount_percent', 'gst_percent', 'unit_price', 'name', 'type']:
         if key in data:
             item[key] = data[key]

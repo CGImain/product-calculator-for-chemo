@@ -250,7 +250,7 @@ function getFormData() {
   const finalPrice = priceAfterDiscount + gstAmount;
   
   // Get the selected size from the input field or the select dropdown
-  const sizeInput = document.getElementById('sizeInput');
+  // sizeInput is already declared above in validation section
   let selectedSize = '';
   
   // First try to get from the input field (user might have typed or searched)
@@ -994,7 +994,11 @@ async function addMpackToCart() {
     underpackingTypeDisplay = underpackingTypeSelect.options[underpackingTypeSelect.selectedIndex].text;
   }
   
-  if (!machineSelect.value || !thicknessSelect.value || !sizeSelect.value || !sheetInput.value || !underpackingType) {
+  // Check for size from either input field or dropdown
+  const sizeInput = document.getElementById('sizeInput');
+  const hasSize = (sizeInput && sizeInput.value.trim()) || (sizeSelect && sizeSelect.value);
+  
+  if (!machineSelect.value || !thicknessSelect.value || !hasSize || !sheetInput.value || !underpackingType) {
     showToast('Error', 'Please fill in all required fields including underpacking type', 'error');
     return;
   }
@@ -1015,7 +1019,7 @@ async function addMpackToCart() {
   const finalPrice = priceAfterDiscount + gstAmount;
 
   // Get the selected size from the input field or the select dropdown
-  const sizeInput = document.getElementById('sizeInput');
+  // sizeInput is already declared above in validation section
   let selectedSize = '';
   
   // First try to get from the input field (user might have typed or searched)

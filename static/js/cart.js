@@ -1586,10 +1586,18 @@ function handleChangeItem(e) {
     const itemType = cartItemElement.getAttribute('data-type');
     const itemName = cartItemElement.getAttribute('data-name');
     const itemMachine = cartItemElement.getAttribute('data-machine');
+    const itemThickness = cartItemElement.getAttribute('data-thickness');
+    const itemSize = cartItemElement.getAttribute('data-size');
     
     console.log('🔄 Handling change item request');
     console.log('Item ID to edit:', itemId);
-    console.log('Item details from DOM:', { itemType, itemName, itemMachine });
+    console.log('Item details from DOM:', { 
+        itemType, 
+        itemName, 
+        itemMachine, 
+        itemThickness,
+        itemSize 
+    });
     
     // Get the cart data
     const cart = getCart();
@@ -2034,14 +2042,57 @@ function updateItemDisplay(item, data) {
             gstAmount = (totalBeforeGst * gstPercent) / 100;
             total = totalBeforeGst + gstAmount;
             
-            // Update the item's data attributes for future reference
-            item.setAttribute('data-unit-price', unitPrice);
-            item.setAttribute('data-quantity', quantity);
-            item.setAttribute('data-discount-percent', discountPercent);
-            item.setAttribute('data-gst-percent', gstPercent);
+            // Update all item data attributes from the data object
+            const dataAttributes = {
+                'data-unit-price': unitPrice,
+                'data-quantity': quantity,
+                'data-discount-percent': discountPercent,
+                'data-gst-percent': gstPercent,
+                'data-thickness': data.thickness || item.getAttribute('data-thickness'),
+                'data-size': data.size || item.getAttribute('data-size'),
+                'data-machine': data.machine || item.getAttribute('data-machine'),
+                'data-type': data.type || item.getAttribute('data-type'),
+                'data-name': data.name || item.getAttribute('data-name')
+            };
+            
+            // Set all data attributes on the item
+            Object.entries(dataAttributes).forEach(([key, value]) => {
+                if (value !== null && value !== undefined) {
+                    item.setAttribute(key, value);
+                }
+            });
             
             // Debug logging
-            console.log('MPack update:', { unitPrice, quantity, subtotal, discountPercent, discountAmount, totalBeforeGst, gstPercent, gstAmount, total });
+            console.log('MPack update:', { 
+                unitPrice, 
+                quantity, 
+                subtotal, 
+                discountPercent, 
+                discountAmount, 
+                totalBeforeGst, 
+                gstPercent, 
+                gstAmount, 
+                total,
+                dataAttributes
+            });
+            
+            // Update the thickness display if it exists
+            const thickness = data.thickness || item.getAttribute('data-thickness');
+            if (thickness) {
+                const thicknessElement = item.querySelector('.thickness-value');
+                if (thicknessElement) {
+                    thicknessElement.textContent = `${thickness} micron`;
+                }
+            }
+            
+            // Update the size display if it exists
+            const size = data.size || item.getAttribute('data-size');
+            if (size) {
+                const sizeElement = item.querySelector('.size-value');
+                if (sizeElement) {
+                    sizeElement.textContent = size;
+                }
+            }
         } catch (error) {
             console.error('Error updating MPack item display:', error);
             showToast('Error', 'Failed to update MPack item. Please refresh the page.', 'error');

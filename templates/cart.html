@@ -481,8 +481,8 @@
                                             <div class="price-row d-flex justify-content-between align-items-center">
                                                 <span class="price-label">Quantity:</span>
                                                 <div class="d-flex align-items-center ms-auto">
-                                                    <div class="input-group" style="width: 120px;">
-                                                        <button class="btn btn-outline-secondary quantity-decrease" type="button" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem;">
+                                                    <div class="input-group quantity-wrapper" style="width: 120px;">
+                                                        <button class="btn btn-outline-secondary quantity-decrease" type="button" data-index="{{ loop.index0 }}" data-action="decrease" style="padding: 0.25rem 0.5rem;">
                                                             <i class="fas fa-minus"></i>
                                                         </button>
                                                         <input type="number" 
@@ -491,7 +491,7 @@
                                                                min="1" 
                                                                data-index="{{ loop.index0 }}" 
                                                                style="border-left: 0; border-right: 0; padding: 0.25rem;">
-                                                        <button class="btn btn-outline-secondary quantity-increase" type="button" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem;">
+                                                        <button class="btn btn-outline-secondary quantity-increase" type="button" data-index="{{ loop.index0 }}" data-action="increase" style="padding: 0.25rem 0.5rem;">
                                                             <i class="fas fa-plus"></i>
                                                         </button>
                                                     </div>
@@ -519,24 +519,26 @@
                                                                    style="padding: 0.25rem;">
                                                             <span class="input-group-text">%</span>
                                                         </div>
+                                                    </div>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="price-value discount-amount" style="min-width: 100px; text-align: right;">
+                                                            {% if item.discount_percent and item.discount_percent > 0 %}
+                                                                -₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}
+                                                            {% else %}
+                                                                -₹0.00
+                                                            {% endif %}
+                                                        </span>
                                                         <button class="btn btn-sm btn-outline-success update-discount-btn ms-2" 
                                                                 data-index="{{ loop.index0 }}" 
                                                                 style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                                                             <i class="fas fa-check"></i>
                                                         </button>
                                                     </div>
-                                                    <span class="price-value discount-amount" style="min-width: 100px; text-align: right;">
-                                                        {% if item.discount_percent and item.discount_percent > 0 %}
-                                                            -₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}
-                                                        {% else %}
-                                                            -₹0.00
-                                                        {% endif %}
-                                                    </span>
                                                 </div>
                                             </div>
 
                                             </div>
-                                             <div class="price-row pre-gst-total border-top pt-2 mt-2">
+                                             <div class="price-row pre-gst-total border-top pt-2 mt-2 d-flex justify-content-between">
                                                 <div class="d-flex justify-content-between w-100">
                                                     <span class="price-label fw-medium">Total (Pre-GST):</span>
                                                     <span class="price-value pre-gst-amount fw-medium">

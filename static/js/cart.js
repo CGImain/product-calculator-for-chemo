@@ -1,4 +1,4 @@
-// Get cart container reference at the top
+﻿// Get cart container reference at the top
 const cartContainer = document.getElementById('cart-container');
 
 // Helper function to round numbers to 2 decimal places
@@ -558,7 +558,7 @@ function checkForDuplicateMpacks() {
             if (!key) return; // Skip if no identifiable key
 
             if (seen.has(key)) {
-                // Duplicate found – only merge if it's truly the same product with same attributes
+                // Duplicate found â€“ only merge if it's truly the same product with same attributes
                 const existing = seen.get(key);
                 const existingAttrs = existing.dataset;
                 const newAttrs = item.dataset;
@@ -617,7 +617,7 @@ function checkForDuplicateBlankets() {
             if (!key) return; // Skip if no identifiable key
 
             if (seen.has(key)) {
-                // Duplicate found – only merge if it's truly the same product with same attributes
+                // Duplicate found â€“ only merge if it's truly the same product with same attributes
                 const existing = seen.get(key);
                 const existingAttrs = existing.dataset;
                 const newAttrs = item.dataset;
@@ -1082,7 +1082,7 @@ function calculateBlanketPrices(item) {
     // Update the displayed subtotal in the item row
     const subtotalElement = item.querySelector('.subtotal-value');
     if (subtotalElement) {
-        subtotalElement.textContent = `₹${displaySubtotal.toFixed(2)}`;
+        subtotalElement.textContent = `â‚¹${displaySubtotal.toFixed(2)}`;
     }
     
     return {
@@ -1157,7 +1157,7 @@ function updateCartTotals() {
                     const itemTotal = discountedSubtotal + gstAmount;
                     
                     // Update running totals
-                    subtotal += displaySubtotal; // Use displaySubtotal for blanket items
+                    subtotal += itemSubtotal; // Use itemSubtotal for MPack items
                     totalDiscount += discountAmount;
                     totalGst += gstAmount;
                     total += itemTotal;
@@ -1193,7 +1193,7 @@ function updateCartTotals() {
                     const itemTotal = discountedSubtotal + gstAmount;
                     
                     // Update running totals
-                    subtotal += displaySubtotal; // Use displaySubtotal for blanket items
+                    subtotal += itemSubtotal; // Use itemSubtotal for MPack items
                     totalDiscount += discountAmount;
                     totalGst += gstAmount;
                     total += itemTotal;
@@ -1235,25 +1235,25 @@ function updateCartTotals() {
                         <div class="mb-2">
                             <div class="d-flex justify-content-between mb-1">
                                 <span>Subtotal (${totalItems} ${totalItems === 1 ? 'item' : 'items'}):</span>
-                                <span>₹${subtotal.toFixed(2)}</span>
+                                <span>â‚¹${subtotal.toFixed(2)}</span>
                             </div>
                             ${totalDiscount > 0 ? `
                             <div class="d-flex justify-content-between mb-1 text-success">
                                 <span>Discount:</span>
-                                <span>-₹${totalDiscount.toFixed(2)}</span>
+                                <span>-â‚¹${totalDiscount.toFixed(2)}</span>
                             </div>` : ''}
                             <div class="d-flex justify-content-between mb-1 fw-medium">
                                 <span>Total (Pre-GST):</span>
-                                <span>₹${(subtotal - totalDiscount).toFixed(2)}</span>
+                                <span>â‚¹${(subtotal - totalDiscount).toFixed(2)}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-1">
                                 <span>GST:</span>
-                                <span>₹${totalGst.toFixed(2)}</span>
+                                <span>â‚¹${totalGst.toFixed(2)}</span>
                             </div>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                             <span class="fw-bold">Total:</span>
-                            <span class="fw-bold fs-5">₹${total.toFixed(2)}</span>
+                            <span class="fw-bold fs-5">â‚¹${total.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>`;
@@ -1590,13 +1590,13 @@ function handleChangeItem(e) {
     
     const button = e.target.closest('.change-item-btn');
     if (!button) {
-        console.error('❌ Invalid change button');
+        console.error('âŒ Invalid change button');
         return;
     }
     
     const cartItemElement = button.closest('.cart-item');
     if (!cartItemElement) {
-        console.error('❌ Could not find cart item element');
+        console.error('âŒ Could not find cart item element');
         return;
     }
     
@@ -1608,7 +1608,7 @@ function handleChangeItem(e) {
     const itemThickness = cartItemElement.getAttribute('data-thickness');
     const itemSize = cartItemElement.getAttribute('data-size');
     
-    console.log('🔄 Handling change item request');
+    console.log('ðŸ”„ Handling change item request');
     console.log('Item ID to edit:', itemId);
     console.log('Item details from DOM:', { 
         itemType, 
@@ -1620,10 +1620,10 @@ function handleChangeItem(e) {
     
     // Get the cart data
     const cart = getCart();
-    console.log(`🛒 Cart loaded with ${cart.products ? cart.products.length : 0} items`);
+    console.log(`ðŸ›’ Cart loaded with ${cart.products ? cart.products.length : 0} items`);
     
     if (!cart.products || !Array.isArray(cart.products)) {
-        console.error('❌ Invalid cart data structure:', cart);
+        console.error('âŒ Invalid cart data structure:', cart);
         showToast('Error', 'Invalid cart data', 'error');
         return;
     }
@@ -1635,7 +1635,7 @@ function handleChangeItem(e) {
     });
     
     if (!item) {
-        console.log('⚠️ Item not found by ID, trying fallback matching...');
+        console.log('âš ï¸ Item not found by ID, trying fallback matching...');
         // Fallback to matching by name, type, and machine
         item = cart.products.find(cartItem => {
             const nameMatch = cartItem.name === itemName;
@@ -1646,7 +1646,7 @@ function handleChangeItem(e) {
     }
     
     if (!item) {
-        console.error('❌ Could not find item in cart');
+        console.error('âŒ Could not find item in cart');
         console.log('Searched with:', { itemId, itemName, itemType, itemMachine });
         console.log('Available items in cart:', cart.products.map((i, idx) => ({
             index: idx,
@@ -1660,7 +1660,7 @@ function handleChangeItem(e) {
         return;
     }
     
-    console.log('✅ Found item for editing:', item);
+    console.log('âœ… Found item for editing:', item);
     
     try {
         // Prepare the redirect URL based on item type
@@ -1732,11 +1732,11 @@ function handleChangeItem(e) {
         // Build the final URL
         const finalUrl = `${baseUrl}?${urlParams.toString()}`;
         
-        console.log('🔗 Redirecting to edit page:', finalUrl);
+        console.log('ðŸ”— Redirecting to edit page:', finalUrl);
         window.location.href = finalUrl;
         
     } catch (error) {
-        console.error('❌ Error preparing item for editing:', error);
+        console.error('âŒ Error preparing item for editing:', error);
         showToast('Error', 'Failed to prepare item for editing', 'error');
     }
 }
@@ -1976,7 +1976,7 @@ function updateItemDisplay(item, data) {
         const unitPriceElement = item.querySelector('.unit-price');
         const unitPriceInput = item.querySelector('.unit-price-value');
         if (unitPriceElement && unitPriceInput) {
-            unitPriceElement.textContent = `₹${basePrice.toFixed(2)}`;
+            unitPriceElement.textContent = `â‚¹${basePrice.toFixed(2)}`;
             unitPriceInput.value = basePrice.toFixed(2);
         }
         
@@ -1984,14 +1984,14 @@ function updateItemDisplay(item, data) {
         const barPriceElement = item.querySelector('.bar-price');
         const barPriceInput = item.querySelector('.bar-price-value');
         if (barPriceElement && barPriceInput) {
-            barPriceElement.textContent = `+₹${barPrice.toFixed(2)}`;
+            barPriceElement.textContent = `+â‚¹${barPrice.toFixed(2)}`;
             barPriceInput.value = barPrice.toFixed(2);
         }
         
         // Update net price per piece (base + bar price)
         const netPriceElement = item.querySelector('.net-price');
         if (netPriceElement) {
-            netPriceElement.textContent = `₹${netPricePerPiece.toFixed(2)} (Base: ₹${basePrice.toFixed(2)} + Bar: ₹${barPrice.toFixed(2)})`;
+            netPriceElement.textContent = `â‚¹${netPricePerPiece.toFixed(2)} (Base: â‚¹${basePrice.toFixed(2)} + Bar: â‚¹${barPrice.toFixed(2)})`;
         }
         
         // Update quantity display
@@ -2000,39 +2000,39 @@ function updateItemDisplay(item, data) {
             quantityDisplayElement.textContent = quantity;
         }
         
-        // Update subtotal (net price × quantity)
+        // Update subtotal (net price Ã— quantity)
         const subtotalDisplayElement = item.querySelector('.subtotal');
         if (subtotalDisplayElement) {
-            subtotalDisplayElement.textContent = `₹${subtotal.toFixed(2)}`;
+            subtotalDisplayElement.textContent = `â‚¹${subtotal.toFixed(2)}`;
         }
         
         // Update discount
         const discountDisplayElement = item.querySelector('.discount-amount');
         if (discountDisplayElement) {
-            discountDisplayElement.textContent = `₹${discountAmount.toFixed(2)}`;
+            discountDisplayElement.textContent = `â‚¹${discountAmount.toFixed(2)}`;
         }
         
         // Update total before GST
         const totalBeforeGstElement = item.querySelector('.total-before-gst');
         if (totalBeforeGstElement) {
-            totalBeforeGstElement.textContent = `₹${totalBeforeGst.toFixed(2)}`;
+            totalBeforeGstElement.textContent = `â‚¹${totalBeforeGst.toFixed(2)}`;
             // Also update any other elements that might be showing the pre-GST total
             const preGstElements = item.querySelectorAll('.pre-gst-total, .total-before-gst');
             preGstElements.forEach(el => {
-                el.textContent = `₹${totalBeforeGst.toFixed(2)}`;
+                el.textContent = `â‚¹${totalBeforeGst.toFixed(2)}`;
             });
         }
         
         // Update GST
         const gstElement = item.querySelector('.gst-amount');
         if (gstElement) {
-            gstElement.textContent = `₹${gstAmount.toFixed(2)}`;
+            gstElement.textContent = `â‚¹${gstAmount.toFixed(2)}`;
         }
         
         // Update total
         const totalElement = item.querySelector('.total-amount') || item.querySelector('.item-total') || item.querySelector('.total-value');
         if (totalElement) {
-            totalElement.textContent = `₹${total.toFixed(2)}`;
+            totalElement.textContent = `â‚¹${total.toFixed(2)}`;
         }
         
         // Update hidden inputs
@@ -2104,7 +2104,7 @@ function updateItemDisplay(item, data) {
             };
 
             // Update all price displays
-            const updatePriceElement = (selector, value, prefix = '₹') => {
+            const updatePriceElement = (selector, value, prefix = 'â‚¹') => {
                 const elements = item.querySelectorAll(selector);
                 elements.forEach(el => {
                     if (el) el.textContent = `${prefix}${value.toFixed(2)}`;
@@ -2196,7 +2196,7 @@ function updateItemDisplay(item, data) {
                                                discountRow.querySelector('.discount-value') ||
                                                discountRow.querySelector('span:last-child');
                     if (discountAmountElement) {
-                        discountAmountElement.textContent = `-₹${discountAmount.toFixed(2)}`;
+                        discountAmountElement.textContent = `-â‚¹${discountAmount.toFixed(2)}`;
                     }
                     const discountPercentElement = discountRow.querySelector('.discount-percent');
                     if (discountPercentElement) {
@@ -2221,7 +2221,7 @@ function updateItemDisplay(item, data) {
             const gstAmountElement = gstRow.querySelector('.gst-amount') || 
                                    gstRow.querySelector('span:last-child');
             if (gstAmountElement) {
-                gstAmountElement.textContent = `₹${gstAmount.toFixed(2)}`;
+                gstAmountElement.textContent = `â‚¹${gstAmount.toFixed(2)}`;
             }
             const gstPercentElement = gstRow.querySelector('.gst-percent');
             if (gstPercentElement) {
@@ -2232,13 +2232,13 @@ function updateItemDisplay(item, data) {
         // Update pre-GST total
         const preGstTotalElement = item.querySelector('.pre-gst-total .pre-gst-amount');
         if (preGstTotalElement) {
-            preGstTotalElement.textContent = `₹${taxableAmount.toFixed(2)}`;
+            preGstTotalElement.textContent = `â‚¹${taxableAmount.toFixed(2)}`;
         }
         
         // Update total
         const totalElement = item.querySelector('.total-value');
         if (totalElement) {
-            totalElement.textContent = `₹${total.toFixed(2)}`;
+            totalElement.textContent = `â‚¹${total.toFixed(2)}`;
         }
     }
     

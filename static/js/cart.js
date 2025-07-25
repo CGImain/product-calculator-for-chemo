@@ -867,13 +867,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up event delegation for quantity buttons and discount updates
     document.addEventListener('click', function(event) {
         // Handle decrease quantity button click
-        if (event.target.closest('.decrease-quantity')) {
-            const input = event.target.closest('.quantity-wrapper').querySelector('.quantity-input');
+        if (event.target.closest('.quantity-decrease') || event.target.classList.contains('quantity-decrease')) {
+            const button = event.target.closest('.quantity-decrease');
+            const quantityControls = button.closest('.quantity-controls');
+            const input = quantityControls ? quantityControls.querySelector('.quantity-input') : null;
+            
             if (input) {
                 let value = parseInt(input.value) || 1;
                 if (value > 1) {
                     input.value = value - 1;
-                    handleQuantityChange({ target: input });
+                    // Trigger change event to update the cart
+                    const changeEvent = new Event('change', { bubbles: true });
+                    input.dispatchEvent(changeEvent);
+                    
                     // Update individual item calculations immediately
                     const cartItem = input.closest('.cart-item');
                     if (cartItem) {
@@ -883,18 +889,26 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else if (itemType === 'blanket') {
                             calculateBlanketPrices(cartItem);
                         }
+                        // Update cart totals
+                        updateCartTotals();
                     }
                 }
             }
         }
         
         // Handle increase quantity button click
-        if (event.target.closest('.increase-quantity')) {
-            const input = event.target.closest('.quantity-wrapper').querySelector('.quantity-input');
+        if (event.target.closest('.quantity-increase') || event.target.classList.contains('quantity-increase')) {
+            const button = event.target.closest('.quantity-increase');
+            const quantityControls = button.closest('.quantity-controls');
+            const input = quantityControls ? quantityControls.querySelector('.quantity-input') : null;
+            
             if (input) {
                 let value = parseInt(input.value) || 1;
                 input.value = value + 1;
-                handleQuantityChange({ target: input });
+                // Trigger change event to update the cart
+                const changeEvent = new Event('change', { bubbles: true });
+                input.dispatchEvent(changeEvent);
+                
                 // Update individual item calculations immediately
                 const cartItem = input.closest('.cart-item');
                 if (cartItem) {

@@ -402,7 +402,8 @@
                                      data-quantity="{{ item.quantity|default(1) }}" 
                                      data-discount-percent="{{ item.discount_percent|default(0) }}" 
                                      data-gst-percent="{{ item.gst_percent|default(18) }}"
-                                        </div>
+                                  {% endif %}>
+
                                         
                                         <!-- Product Details - Fixed Height -->
                                         <div class="product-details mb-3" style="min-height: 120px;">

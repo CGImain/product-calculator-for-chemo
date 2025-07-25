@@ -503,8 +503,7 @@
                                                     ₹{{ "%.2f"|format((((item.unit_price|default(0) - item.bar_price|default(0)) + item.bar_price|default(0)) * item.quantity|default(1))|round(2)) }}
                                                 </span>
                                             </div>
-                                            <!-- Discount input row -->
-                                            <div class="price-row discount-row d-flex justify-content-between align-items-center">
+                                            <div class="price-row discount-row">
                                                 <div class="d-flex justify-content-between w-100">
                                                     <div class="d-flex align-items-center">
                                                         <span class="price-label">Discount:</span>
@@ -520,25 +519,21 @@
                                                                    style="padding: 0.25rem;">
                                                             <span class="input-group-text">%</span>
                                                         </div>
+                                                        <button class="btn btn-sm btn-outline-success update-discount-btn ms-2" 
+                                                                data-index="{{ loop.index0 }}" 
+                                                                style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
                                                     </div>
-                                                    <button class="btn btn-sm btn-outline-success update-discount-btn ms-2" 
-                                                            data-index="{{ loop.index0 }}" 
-                                                            style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <!-- Discount amount row -->
-                                            <div class="price-row d-flex justify-content-between">
-                                                <span class="price-label text-muted">&nbsp;</span>
-                                                <span class="price-value discount-amount" style="min-width: 100px; text-align: right;">
+                                                    <span class="price-value discount-amount" style="min-width: 100px; text-align: right;">
                                                         {% if item.discount_percent and item.discount_percent > 0 %}
                                                             -₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}
                                                         {% else %}
                                                             -₹0.00
                                                         {% endif %}
-                                                </span>
+                                                    </span>
                                                 </div>
+                                            </div>
 
                                             </div>
                                              <div class="price-row pre-gst-total border-top pt-2 mt-2">

@@ -1085,8 +1085,8 @@ function calculateMPackPrices(item) {
         subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
     }
     
-    // Update Pre-GST total
-    const preGstElement = item.querySelector('.pre-gst-total, .total-before-gst');
+    // Update Pre-GST total value element only (span), not the entire row
+    const preGstElement = item.querySelector('.pre-gst-total .pre-gst-amount, .total-before-gst');
     if (preGstElement) {
         preGstElement.textContent = `₹${discountedSubtotal.toFixed(2)}`;
     }
@@ -1146,8 +1146,8 @@ function calculateBlanketPrices(item) {
         subtotalElement.textContent = `₹${displaySubtotal.toFixed(2)}`;
     }
     
-    // Update Pre-GST total for blankets
-    const preGstElement = item.querySelector('.pre-gst-total, .total-before-gst');
+    // Update Pre-GST total value element only (span), not the entire row for blankets
+    const preGstElement = item.querySelector('.pre-gst-total .pre-gst-amount, .total-before-gst');
     if (preGstElement) {
         preGstElement.textContent = `₹${discountedSubtotal.toFixed(2)}`;
     }

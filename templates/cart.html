@@ -518,20 +518,21 @@
                                     </div>
                                     <div class="price-details mt-3 p-3 bg-light rounded w-100">
                                         <div class="price-grid">
-                                            <div class="price-row">
+                                            <div class="price-row d-flex justify-content-between py-1">
                                                 <span class="price-label">Unit Price:</span>
                                                 <span class="price-value unit-price">
                                                     ₹{{ "%.2f"|format((item.unit_price|default(0) - item.bar_price|default(0))|abs) }}
                                                 </span>
-                                                <input type="hidden" class="unit-price-value" value="{{ (item.unit_price|default(0) - item.bar_price|default(0))|abs }}">
                                             </div>
-                                            {% if item.bar_price and item.bar_price > 0 %}
-                                            <div class="price-row">
+                                            <div class="price-row d-flex justify-content-between py-1">
                                                 <span class="price-label">Barring:</span>
-                                                <span class="price-value bar-price">+₹{{ "%.2f"|format(item.bar_price|default(0)) }}</span>
-                                                <input type="hidden" class="bar-price-value" value="{{ item.bar_price|default(0) }}">
+                                                {% set bar_val = item.bar_price|default(0)|float %}
+                                                {% if bar_val > 0 %}
+                                                <span class="price-value bar-price">+₹{{ "%.2f"|format(bar_val) }}</span>
+                                                {% else %}
+                                                <span class="price-value text-muted">—</span>
+                                                {% endif %}
                                             </div>
-                                            {% endif %}
                                             <div class="price-row d-flex justify-content-between align-items-center">
                                                 <span class="price-label">Quantity:</span>
                                                 <span class="price-value">

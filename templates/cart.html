@@ -179,6 +179,14 @@
     
     .cart-item .card-body {
         padding: 1.5rem;
+        display: flex;               /* allow sections to stretch */
+        flex-direction: column;
+    }
+
+    /* allow the price section to grow and push footer buttons down */
+    .price-details {
+        flex-grow: 1;
+        min-height: 240px; /* keeps every card roughly same size even if some rows absent */
     }
 
     /* Ensure all cart items have the same structure */

@@ -519,7 +519,7 @@
                                                 <div class="d-flex justify-content-between w-100">
                                                     <div class="d-flex align-items-center">
                                                         <span class="price-label">Discount:</span>
-                                                        <div class="input-group ms-2" style="width: 120px;">
+                                                        <div class="input-group ms-2" style="width: 160px;">
                                                             <input type="number" 
                                                                    class="form-control discount-input text-center" 
                                                                    value="{{ item.discount_percent|default(0) }}" 
@@ -530,26 +530,26 @@
                                                                    data-item-id="{{ item.id or item._id }}"
                                                                    style="padding: 0.25rem;">
                                                             <span class="input-group-text">%</span>
+                                                            <button class="btn btn-outline-success update-discount-btn" 
+                                                                    type="button"
+                                                                    data-index="{{ loop.index0 }}" 
+                                                                    style="padding: 0 0.5rem;">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <button class="btn btn-sm btn-outline-success update-discount-btn ms-2" 
-                                                            data-index="{{ loop.index0 }}" 
-                                                            style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
                                                 </div>
                                             </div>
                                             <!-- Discount amount row -->
-                                            <div class="price-row d-flex justify-content-between">
-                                                <span class="price-label text-muted">&nbsp;</span>
+                                            <div class="price-row d-flex justify-content-end">
                                                 <span class="price-value discount-amount" style="min-width: 100px; text-align: right;">
-                                                        {% if item.discount_percent and item.discount_percent > 0 %}
-                                                            -₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}
-                                                        {% else %}
-                                                            -₹0.00
-                                                        {% endif %}
+                                                    {% if item.discount_percent and item.discount_percent > 0 %}
+                                                        -₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}
+                                                    {% else %}
+                                                        -₹0.00
+                                                    {% endif %}
                                                 </span>
-                                                </div>
+                                            </div>
 
                                             </div>
                                              <div class="price-row pre-gst-total border-top pt-2 mt-2">

@@ -386,12 +386,11 @@
             </div>
         </div>
 
-        <div id="cartItems" class="cart-items-container" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
+        <div id="cartItems" class="cart-items" {% if not cart.products or cart.products|length == 0 %}style="display: none;"{% endif %}>
             {% if cart.products %}
                 {% for item in cart.products %}
                 {% if item %}
-                <div class="col-12 col-lg-10 mx-auto">
-                    <div class="cart-item mb-4" 
+                    <div class="cart-item" 
                          data-type="{{ item.type }}" 
                          data-index="{{ loop.index0 }}"
                          data-item-id="{{ item.id or item._id }}"
@@ -598,13 +597,9 @@
                                         </button>
                                     </div>
                                 </div>
-
-
-                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                                 {% endif %}
                             {% endfor %}
                         {% else %}

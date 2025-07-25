@@ -164,10 +164,11 @@
         width: 100%;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 15px;
+        padding: 0; /* remove side padding so cards align */
     }
     
     .cart-item .card {
+        width: 100%; /* ensure full width so every card is identical */
         border: 1px solid #e9ecef;
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.06);

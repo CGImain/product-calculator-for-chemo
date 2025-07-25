@@ -534,23 +534,23 @@
                                             {% endif %}
                                             <div class="price-row d-flex justify-content-between align-items-center">
                                                 <span class="price-label">Quantity:</span>
-                                                <div class="d-flex align-items-center ms-auto">
+                                                <span class="price-value">
                                                     <div class="input-group quantity-wrapper" style="width: 120px;">
                                                         <button class="btn btn-outline-secondary quantity-decrease" type="button" data-index="{{ loop.index0 }}" data-action="decrease" style="padding: 0.25rem 0.5rem;">
                                                             <i class="fas fa-minus"></i>
                                                         </button>
-                                                        <input type="number" 
-                                                               class="form-control text-center quantity-input" 
-                                                               value="{{ item.quantity }}" 
-                                                               min="1" 
-                                                               style="width: 60px;" 
-                                                               data-index="{{ loop.index0 }}" 
+                                                        <input type="number"
+                                                               class="form-control text-center quantity-input"
+                                                               value="{{ item.quantity }}"
+                                                               min="1"
+                                                               style="width: 60px;"
+                                                               data-index="{{ loop.index0 }}"
                                                                data-item-id="{{ item.id or item._id }}">
                                                         <button class="btn btn-outline-secondary quantity-increase" type="button" data-index="{{ loop.index0 }}" data-action="increase" style="padding: 0.25rem 0.5rem;">
                                                             <i class="fas fa-plus"></i>
                                                         </button>
                                                     </div>
-                                                </div>
+                                                </span>
                                             </div>
                                             <!-- Subtotal -->
                                             <div class="price-row d-flex justify-content-between py-1">

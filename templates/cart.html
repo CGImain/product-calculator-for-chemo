@@ -382,87 +382,139 @@
                             {% for item in cart.products %}
                             {% if item %}
                             <div class="cart-item" 
-                         data-type="{{ item.type }}" 
-                         data-index="{{ loop.index0 }}"
-                         data-item-id="{{ item.id or item._id }}"
-                         data-name="{{ item.name }}"
-                         data-quantity="{{ item.quantity }}"
-                         {% if item.type == 'blanket' %}
-                         data-base-price="{{ item.base_price }}"
-                         data-bar-price="{{ item.bar_price }}"
-                         data-gst-percent="{{ item.gst_percent or 18 }}"
-                         {% else %}
-                         data-unit-price="{{ item.unit_price }}"
-                         data-gst-percent="{{ item.gst_percent or 12 }}"
-                         {% endif %}
-                         data-discount-percent="{{ item.discount_percent or 0 }}"
-                         {% if item.type == 'blanket' %}
-                             data-base-price="{{ item.base_price|default(0) }}" 
-                             data-bar-price="{{ item.bar_price|default(0) }}" 
-                             data-quantity="{{ item.quantity|default(1) }}" 
-                             data-discount-percent="{{ item.discount_percent|default(0) }}" 
-                             data-gst-percent="{{ item.gst_percent|default(18) }}"
-                             data-rate-per-sqmt="{{ item.rate_per_sqmt|default(0) }}"
-                             {% if item.machine %}data-machine="{{ item.machine }}"{% endif %}
-                             {% if item.thickness %}data-thickness="{{ item.thickness }}"{% endif %}
-                         {% elif item.type == 'mpack' %}
-                             data-unit-price="{{ item.unit_price|default(0) }}" 
-                             data-quantity="{{ item.quantity|default(1) }}" 
-                             data-discount-percent="{{ item.discount_percent|default(0) }}" 
-                             data-gst-percent="{{ item.gst_percent|default(12) }}"
-                         {% endif %}>
+                                 data-type="{{ item.type }}" 
+                                 data-index="{{ loop.index0 }}"
+                                 data-item-id="{{ item.id or item._id }}"
+                                 data-name="{{ item.name }}"
+                                 data-quantity="{{ item.quantity }}"
+                                 {% if item.type == 'blanket' %}
+                                 data-base-price="{{ item.base_price }}"
+                                 data-bar-price="{{ item.bar_price }}"
+                                 data-gst-percent="{{ item.gst_percent or 18 }}"
+                                 {% else %}
+                                 data-unit-price="{{ item.unit_price }}"
+                                 data-gst-percent="{{ item.gst_percent or 12 }}"
+                                 {% endif %}
+                                 data-discount-percent="{{ item.discount_percent or 0 }}"
+                                 {% if item.type == 'blanket' %}
+                                     data-base-price="{{ item.base_price|default(0) }}" 
+                                     data-bar-price="{{ item.bar_price|default(0) }}" 
+                                     data-quantity="{{ item.quantity|default(1) }}" 
+                                     data-discount-percent="{{ item.discount_percent|default(0) }}" 
+                                     data-gst-percent="{{ item.gst_percent|default(18) }}"
+                                     data-rate-per-sqmt="{{ item.rate_per_sqmt|default(0) }}"
+                                     {% if item.machine %}data-machine="{{ item.machine }}"{% endif %}
+                                     {% if item.thickness %}data-thickness="{{ item.thickness }}"{% endif %}
+                                 {% elif item.type == 'mpack' %}
+                                     data-unit-price="{{ item.unit_price|default(0) }}" 
+                                     data-quantity="{{ item.quantity|default(1) }}" 
+                                     data-discount-percent="{{ item.discount_percent|default(0) }}" 
+                                     data-gst-percent="{{ item.gst_percent|default(12) }}"
+                                 {% endif %}>
                     <div class="card h-100">
                         <div class="card-body">
-                            <div class="item-details w-100">
-                                <div class="product-item w-100">
-                                    <div class="d-flex flex-column w-100">
-                                        <h5 class="product-title">
-                                            {% if item.type == 'blanket' %}
-                                                {{ item.name }}
+                            <!-- Item Header -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="product-title mb-0">
+                                    {{ item.name if item.type == 'blanket' else item.name|default('MPack') }}
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-from-cart" 
+                                        data-item-id="{{ item.id or item._id }}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Product Details Grid -->
+                            <div class="row g-2 mb-3">
+                                {% if item.machine %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Machine:</span>
+                                        <span class="detail-value">{{ item.machine }}</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if item.underpacking_type %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Type:</span>
+                                        <span class="detail-value">
+                                            {% if item.underpacking_type == 'mtech_mpack' %}
+                                                Mtech Mpack
+                                            {% elif item.underpacking_type == 'mark3zet' %}
+                                                Mark3zet
                                             {% else %}
-                                                {{ item.name|default('MPack') }}
+                                                {{ item.underpacking_type|title }}
                                             {% endif %}
-                                        </h5>
-                                        <div class="product-details mb-3">
-                                            {% if item.machine %}
-                                                <p class="mb-1"><strong>Machine:</strong> {{ item.machine }}</p>
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if item.thickness %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Thickness:</span>
+                                        <span class="detail-value">
+                                            {% if item.type == 'blanket' %}
+                                                {{ item.thickness }}mm
+                                            {% else %}
+                                                {% set thickness = item.thickness|string %}
+                                                {{ thickness }}{% if not (thickness.endswith('mm') or thickness.endswith('in') or thickness.endswith('cm') or thickness.endswith('micron')) %}{% if thickness|float >= 1 %}mm{% else %}micron{% endif %}{% endif %}
                                             {% endif %}
-                                            
-                                            {% if item.underpacking_type %}
-                                                <p class="mb-1"><strong>Type:</strong> 
-                                                    {% if item.underpacking_type == 'mtech_mpack' %}
-                                                        Mtech Mpack
-                                                    {% elif item.underpacking_type == 'mark3zet' %}
-                                                        Mark3zet
-                                                    {% else %}
-                                                        {{ item.underpacking_type|title }}
-                                                    {% endif %}
-                                                </p>
-                                            {% endif %}
-                                            
-                                            {% if item.thickness %}
-                                                <p class="mb-1">
-                                                    <strong>Thickness:</strong> 
-                                                    {% if item.type == 'blanket' %}
-                                                        {{ item.thickness }}mm
-                                                    {% else %}
-                                                        {% set thickness = item.thickness|string %}
-                                                        {{ thickness }}{% if not (thickness.endswith('mm') or thickness.endswith('in') or thickness.endswith('cm') or thickness.endswith('micron')) %}{% if thickness|float >= 1 %}mm{% else %}micron{% endif %}{% endif %}
-                                                    {% endif %}
-                                                </p>
-                                            {% endif %}
-                                            
-                                            {% if item.type == 'mpack' and item.size %}
-                                                <p class="mb-1 size-display"><strong>Size:</strong> {{ item.size }}</p>
-                                            {% elif item.length and item.width %}
-                                                <p class="mb-1"><strong>Dimensions:</strong> {{ item.length }}mm x {{ item.width }}mm ({{ "%.2f"|format((item.length|float / 1000)) }}m x {{ "%.2f"|format((item.width|float / 1000)) }}m)</p>
-                                                <p class="mb-1"><strong>Area:</strong> {{ "%.2f"|format((item.length|float * item.width|float) / 1000000) }} m² ({{ "%.2f"|format((item.length|float * item.width|float)) }} mm²)</p>
-                                            {% endif %}
-                                            
-                                            {% if item.bar_type %}
-                                                <p class="mb-1"><strong>Barring:</strong> {{ item.bar_type }}</p>
-                                            {% endif %}
-                                        </div>
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if item.type == 'mpack' and item.size %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Size:</span>
+                                        <span class="detail-value">{{ item.size }}</span>
+                                    </div>
+                                </div>
+                                {% elif item.length and item.width %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Dimensions:</span>
+                                        <span class="detail-value">{{ item.length }}mm × {{ item.width }}mm</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Area:</span>
+                                        <span class="detail-value">{{ "%.2f"|format((item.length|float * item.width|float) / 1000000) }} m²</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if item.bar_type %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Barring:</span>
+                                        <span class="detail-value">{{ item.bar_type }}</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Quantity Controls -->
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="me-2"><strong>Quantity:</strong></span>
+                                <div class="quantity-controls">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quantity-decrease">-</button>
+                                    <input type="number" class="form-control quantity-input text-center" 
+                                           value="{{ item.quantity }}" min="1" style="width: 60px;"
+                                           data-index="{{ loop.index0 }}" data-item-id="{{ item.id or item._id }}">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quantity-increase">+</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary update-quantity-btn" 
+                                            data-item-id="{{ item.id or item._id }}">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </div>
+                            </div>
                                     </div>
                                     <div class="price-details mt-3 p-3 bg-light rounded w-100">
                                         <div class="price-grid">
@@ -491,70 +543,58 @@
                                                                class="form-control text-center quantity-input" 
                                                                value="{{ item.quantity }}" 
                                                                min="1" 
-                                                               data-index="{{ loop.index0 }}" 
-                                                               style="border-left: 0; border-right: 0; padding: 0.25rem;">
-                                                        <button class="btn btn-outline-secondary quantity-increase" type="button" data-index="{{ loop.index0 }}" data-action="increase" style="padding: 0.25rem 0.5rem;">
-                                                            <i class="fas fa-plus"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="price-row">
                                                 <span class="price-label">Subtotal:</span>
-                                                <span class="price-value subtotal-value">
-                                                    ₹{{ "%.2f"|format((((item.unit_price|default(0) - item.bar_price|default(0)) + item.bar_price|default(0)) * item.quantity|default(1))|round(2)) }}
+                                                <span class="price-value subtotal">
+                                                    ₹{{ "%.2f"|format((item.unit_price|default(0) * item.quantity|default(1))|abs) }}
                                                 </span>
                                             </div>
-                                            <div class="price-row discount-row">
-                                                <div class="d-flex justify-content-between w-100">
+                                            
+                                            <!-- Discount -->
+                                            <div class="price-row discount-row py-2 border-top border-bottom">
+                                                <div class="d-flex justify-content-between align-items-center">
                                                     <div class="d-flex align-items-center">
-                                                        <span class="price-label">Discount:</span>
-                                                        <div class="input-group ms-2" style="width: 120px;">
-                                                            <input type="number" 
-                                                                   class="form-control discount-input text-center" 
+                                                        <span class="price-label me-2">Discount:</span>
+                                                        <div class="input-group input-group-sm" style="width: 140px;">
+                                                            <input type="number" class="form-control discount-percent" 
                                                                    value="{{ item.discount_percent|default(0) }}" 
-                                                                   min="0" 
-                                                                   max="100"
-                                                                   step="0.1"
-                                                                   data-index="{{ loop.index0 }}"
-                                                                   data-item-id="{{ item.id or item._id }}"
-                                                                   style="padding: 0.25rem;">
+                                                                   min="0" max="100" step="0.01">
                                                             <span class="input-group-text">%</span>
+                                                            <button type="button" class="btn btn-outline-primary apply-discount" 
+                                                                    data-item-id="{{ item.id or item._id }}">
+                                                                Apply
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <div class="d-flex align-items-center">
-                                                        <span class="price-value discount-amount" style="min-width: 100px; text-align: right;">
-                                                            {% if item.discount_percent and item.discount_percent > 0 %}
-                                                                -₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (item.discount_percent|default(0)) / 100) }}
-                                                            {% else %}
-                                                                -₹0.00
-                                                            {% endif %}
-                                                        </span>
-                                                        <button class="btn btn-sm btn-outline-success update-discount-btn ms-2" 
-                                                                data-index="{{ loop.index0 }}" 
-                                                                style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                                                            <i class="fas fa-check"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            </div>
-                                             <div class="price-row pre-gst-total border-top pt-2 mt-2">
-                                                <div class="d-flex justify-content-between w-100">
-                                                    <span class="price-label fw-medium">Total (Pre-GST):</span>
-                                                    <span class="price-value pre-gst-amount fw-medium">
-                                                        ₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100)) }}
+                                                    <span class="price-value discount-amount">
+                                                        -₹{{ "%.2f"|format((item.unit_price|default(0) * item.quantity|default(1) * (item.discount_percent|default(0) / 100))|abs) }}
                                                     </span>
                                                 </div>
                                             </div>
-                                             <div class="price-row gst-row">
-                                                  <span class="price-label">GST (<span class="gst-percent">{{ item.gst_percent|default(18) }}</span>%):</span>
-                                                  <span class="price-value gst-amount">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (item.gst_percent|default(18)) / 100) }}</span>
-                                             </div>
-                                            <div class="price-row fw-bold border-top mt-2 pt-2">
-                                                <span>Total:</span>
-                                                <span class="total-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100) * (1 + (item.gst_percent|default(18)) / 100)) }}</span>
+                                            
+                                            <!-- Pre-GST Total -->
+                                            <div class="price-row d-flex justify-content-between py-1">
+                                                <span class="price-label">Pre-GST Total:</span>
+                                                <span class="price-value pre-gst-total">
+                                                    <span class="pre-gst-amount">
+                                                        ₹{{ "%.2f"|format((item.unit_price|default(0) * item.quantity|default(1) * (1 - (item.discount_percent|default(0) / 100)))|abs) }}
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            
+                                            <!-- GST -->
+                                            <div class="price-row d-flex justify-content-between py-1">
+                                                <span class="price-label">GST ({{ item.gst_percent|default(18) }}%):</span>
+                                                <span class="price-value gst-amount">
+                                                    ₹{{ "%.2f"|format((item.unit_price|default(0) * item.quantity|default(1) * (1 - (item.discount_percent|default(0) / 100)) * (item.gst_percent|default(18) / 100))|abs) }}
+                                                </span>
+                                            </div>
+                                            
+                                            <!-- Total -->
+                                            <div class="price-row d-flex justify-content-between py-1 fw-bold border-top mt-2 pt-2">
+                                                <span class="price-label">Total:</span>
+                                                <span class="price-value total-amount">
+                                                    ₹{{ "%.2f"|format((item.unit_price|default(0) * item.quantity|default(1) * (1 - (item.discount_percent|default(0) / 100)) * (1 + (item.gst_percent|default(18) / 100)))|abs) }}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -562,7 +602,6 @@
                                         <button type="button" 
                                                 class="btn btn-outline-primary btn-sm change-item-btn" 
                                                 data-item-id="{{ item.id or item._id }}" 
-                                                data-index="{{ loop.index0 }}"
                                                 data-type="{{ item.type }}"
                                                 {% if item.type == 'blanket' %}
                                                     {% if item.machine %}data-item-machine="{{ item.machine }}"{% endif %}

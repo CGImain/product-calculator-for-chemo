@@ -2045,10 +2045,16 @@ function updateItemDisplay(item, data) {
             subtotalDisplayElement.textContent = `₹${subtotal.toFixed(2)}`;
         }
         
-        // Update discount
+        // Update discount amount and after discount value
         const discountDisplayElement = item.querySelector('.discount-amount');
         if (discountDisplayElement) {
-            discountDisplayElement.textContent = `₹${discountAmount.toFixed(2)}`;
+            discountDisplayElement.textContent = `-₹${discountAmount.toFixed(2)}`;
+        }
+        
+        // Update after discount value
+        const afterDiscountElement = item.querySelector('.after-discount-amount');
+        if (afterDiscountElement) {
+            afterDiscountElement.textContent = `₹${(subtotal - discountAmount).toFixed(2)}`;
         }
         
         // Update total before GST
@@ -2237,12 +2243,25 @@ function updateItemDisplay(item, data) {
                     if (discountAmountElement) {
                         discountAmountElement.textContent = `-₹${discountAmount.toFixed(2)}`;
                     }
+                    
+                    // Update after discount value for MPack items
+                    const afterDiscountElement = item.querySelector('.after-discount-amount');
+                    if (afterDiscountElement) {
+                        afterDiscountElement.textContent = `₹${(subtotal - discountAmount).toFixed(2)}`;
+                    }
+                    
                     const discountPercentElement = discountRow.querySelector('.discount-percent');
                     if (discountPercentElement) {
                         discountPercentElement.textContent = `${discountPercent}%`;
                     }
                 } else {
                     discountRow.style.display = 'none';
+                    
+                    // Reset after discount value when no discount
+                    const afterDiscountElement = item.querySelector('.after-discount-amount');
+                    if (afterDiscountElement) {
+                        afterDiscountElement.textContent = `₹${subtotal.toFixed(2)}`;
+                    }
                 }
             }
             

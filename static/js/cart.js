@@ -1157,7 +1157,7 @@ function updateCartTotals() {
                     const itemTotal = discountedSubtotal + gstAmount;
                     
                     // Update running totals
-                    subtotal += displaySubtotal; // Using displaySubtotal for consistency
+                    subtotal += itemSubtotal; // Use itemSubtotal for MPack items
                     totalDiscount += discountAmount;
                     totalGst += gstAmount;
                     total += itemTotal;
@@ -1193,7 +1193,7 @@ function updateCartTotals() {
                     const itemTotal = discountedSubtotal + gstAmount;
                     
                     // Update running totals
-                    subtotal += displaySubtotal; // Using displaySubtotal for consistency
+                    subtotal += itemSubtotal; // Use itemSubtotal for MPack items
                     totalDiscount += discountAmount;
                     totalGst += gstAmount;
                     total += itemTotal;

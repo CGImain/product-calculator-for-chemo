@@ -162,11 +162,15 @@
     /* Cart item container */
     .cart-item {
         width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0; /* remove side padding so cards align */
+        padding: 0; /* remove side padding ensures alignment */
+        margin-bottom: 25px;
     }
-    
+
+    /* Force card to occupy full width */
+    .cart-item .card {
+        width: 100%;
+    }
+
     .cart-item .card {
         width: 100%; /* ensure full width so every card is identical */
         border: 1px solid #e9ecef;
@@ -179,11 +183,11 @@
     
     .cart-item .card-body {
         padding: 1.5rem;
-        display: flex;               /* allow sections to stretch */
+        display: flex;
         flex-direction: column;
     }
 
-    /* allow the price section to grow and push footer buttons down */
+    /* price section stretches to keep consistent heights */
     .price-details {
         flex-grow: 1;
         min-height: 240px; /* keeps every card roughly same size even if some rows absent */
@@ -294,13 +298,12 @@
         padding: 0.25rem;
     }
 
-    /* Cart items grid */
+    /* Cart items container: stack items vertically */
     .cart-items {
         margin-top: 20px;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 20px;
-        align-items: start;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
     }
 
     @media (max-width: 768px) {

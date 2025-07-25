@@ -874,6 +874,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (value > 1) {
                     input.value = value - 1;
                     handleQuantityChange({ target: input });
+                    // Update individual item calculations immediately
+                    const cartItem = input.closest('.cart-item');
+                    if (cartItem) {
+                        const itemType = cartItem.getAttribute('data-type');
+                        if (itemType === 'mpack') {
+                            calculateMPackPrices(cartItem);
+                        } else if (itemType === 'blanket') {
+                            calculateBlanketPrices(cartItem);
+                        }
+                    }
                 }
             }
         }
@@ -885,6 +895,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 let value = parseInt(input.value) || 1;
                 input.value = value + 1;
                 handleQuantityChange({ target: input });
+                // Update individual item calculations immediately
+                const cartItem = input.closest('.cart-item');
+                if (cartItem) {
+                    const itemType = cartItem.getAttribute('data-type');
+                    if (itemType === 'mpack') {
+                        calculateMPackPrices(cartItem);
+                    } else if (itemType === 'blanket') {
+                        calculateBlanketPrices(cartItem);
+                    }
+                }
             }
         }
         
@@ -898,6 +918,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('change', function(event) {
         if (event.target.classList.contains('quantity-input')) {
             handleQuantityChange(event);
+            // Update individual item calculations immediately
+            const cartItem = event.target.closest('.cart-item');
+            if (cartItem) {
+                const itemType = cartItem.getAttribute('data-type');
+                if (itemType === 'mpack') {
+                    calculateMPackPrices(cartItem);
+                } else if (itemType === 'blanket') {
+                    calculateBlanketPrices(cartItem);
+                }
+            }
         }
     });
     
@@ -912,6 +942,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(event) {
         if (event.target.classList.contains('discount-input') && event.key === 'Enter') {
             handleDiscountKeyDown(event);
+        }
+    });
+    
+    // Handle discount input changes for immediate calculation updates
+    document.addEventListener('input', function(event) {
+        if (event.target.classList.contains('discount-input')) {
+            const cartItem = event.target.closest('.cart-item');
+            if (cartItem) {
+                const itemType = cartItem.getAttribute('data-type');
+                // Update discount percent in data attribute for calculations
+                const discountValue = parseFloat(event.target.value) || 0;
+                cartItem.setAttribute('data-discount-percent', discountValue);
+                
+                if (itemType === 'mpack') {
+                    calculateMPackPrices(cartItem);
+                } else if (itemType === 'blanket') {
+                    calculateBlanketPrices(cartItem);
+                }
+            }
         }
     });
     
@@ -1030,6 +1079,18 @@ function calculateMPackPrices(item) {
     const gstAmount = (discountedSubtotal * gstPercent) / 100;
     const total = discountedSubtotal + gstAmount;
     
+    // Update the displayed subtotal in the item row
+    const subtotalElement = item.querySelector('.subtotal-value, .item-subtotal');
+    if (subtotalElement) {
+        subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+    }
+    
+    // Update Pre-GST total
+    const preGstElement = item.querySelector('.pre-gst-total, .total-before-gst');
+    if (preGstElement) {
+        preGstElement.textContent = `₹${discountedSubtotal.toFixed(2)}`;
+    }
+    
     return {
         subtotal: round(subtotal, 2),
         discountAmount: round(discountAmount, 2),
@@ -1080,9 +1141,15 @@ function calculateBlanketPrices(item) {
     });
     
     // Update the displayed subtotal in the item row
-    const subtotalElement = item.querySelector('.subtotal-value');
+    const subtotalElement = item.querySelector('.subtotal-value, .item-subtotal');
     if (subtotalElement) {
         subtotalElement.textContent = `₹${displaySubtotal.toFixed(2)}`;
+    }
+    
+    // Update Pre-GST total for blankets
+    const preGstElement = item.querySelector('.pre-gst-total, .total-before-gst');
+    if (preGstElement) {
+        preGstElement.textContent = `₹${discountedSubtotal.toFixed(2)}`;
     }
     
     return {
@@ -1379,39 +1446,11 @@ function updateCartItemDiscount(index, discountPercent, itemId) {
         return Promise.reject(error);
     })
     .finally(() => {
-        // Use a small timeout to ensure any pending UI updates are complete
-        setTimeout(() => {
-            try {
-                // Check if the button still exists in the DOM
-                if (updateButton && document.body.contains(updateButton)) {
-                    updateButton.disabled = false;
-                    updateButton.innerHTML = originalHtml || 'Update';
-                } else if (updateButton && updateButton.parentNode) {
-                    // If the button is not in the main document but still has a parent
-                    // (might be in a removed but not yet garbage collected element)
-                    updateButton.disabled = false;
-                    updateButton.innerHTML = originalHtml || 'Update';
-                }
-                
-                // Force a reflow to ensure the button state is updated
-                if (updateButton) {
-                    updateButton.offsetHeight;
-                }
-            } catch (e) {
-                console.error('Error resetting update button:', e);
-                
-                // As a last resort, try to find the button again by its data attributes
-                try {
-                    const newButton = document.querySelector(`.update-discount-btn[data-item-id="${itemId}"]`);
-                    if (newButton && document.body.contains(newButton)) {
-                        newButton.disabled = false;
-                        newButton.innerHTML = originalHtml || 'Update';
-                    }
-                } catch (innerError) {
-                    console.error('Failed to recover button state:', innerError);
-                }
-            }
-        }, 100);
+        // Simplified button state restoration
+        if (updateButton) {
+            updateButton.disabled = false;
+            updateButton.innerHTML = originalHtml || 'Update';
+        }
     });
 }
 

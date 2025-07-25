@@ -485,22 +485,7 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Quantity Controls -->
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="me-2"><strong>Quantity:</strong></span>
-                                            <div class="quantity-controls">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary quantity-decrease">-</button>
-                                                <input type="number" class="form-control quantity-input text-center" 
-                                                       value="{{ item.quantity }}" min="1" style="width: 60px;"
-                                                       data-index="{{ loop.index0 }}" data-item-id="{{ item.id or item._id }}">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary quantity-increase">+</button>
-                                                <button type="button" class="btn btn-sm btn-outline-primary update-quantity-btn" 
-                                                        data-item-id="{{ item.id or item._id }}">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
+                                                                                
                                         <!-- Price Details - Uniform Structure -->
                                         <div class="price-details mt-auto p-3 bg-light rounded">
                                             <div class="price-grid">

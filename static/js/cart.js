@@ -1052,36 +1052,42 @@ function calculateBlanketPrices(item) {
         basePrice, barPrice, quantity, discountPercent, gstPercent
     });
     
-    // Calculate unit price (base + bar) - matches backend logic
+    // Calculate unit price (base + bar)
     const unitPrice = basePrice + barPrice;
     
-    // Calculate subtotal (unit_price * quantity) - matches backend logic
-    const subtotal = unitPrice * quantity;
+    // Calculate subtotal as (base + bar) * quantity for display
+    const displaySubtotal = (basePrice + barPrice) * quantity;
     
-    // Calculate discount amount - matches backend logic
-    const discountAmount = subtotal * (discountPercent / 100);
+    // Calculate discount amount on the subtotal
+    const discountAmount = displaySubtotal * (discountPercent / 100);
     
-    // Calculate discounted subtotal - matches backend logic
-    const discountedSubtotal = subtotal - discountAmount;
+    // Calculate discounted subtotal
+    const discountedSubtotal = displaySubtotal - discountAmount;
     
-    // Calculate GST on discounted subtotal - matches backend logic
+    // Calculate GST on discounted subtotal
     const gstAmount = (discountedSubtotal * gstPercent) / 100;
     
-    // Calculate final total - matches backend logic
+    // Calculate final total
     const finalTotal = discountedSubtotal + gstAmount;
     
     console.log('Blanket calculation (updated):', {
         basePrice, barPrice, unitPrice, quantity, discountPercent,
-        subtotal: round(subtotal, 2),
+        displaySubtotal: round(displaySubtotal, 2),
         discountAmount: round(discountAmount, 2),
         discountedSubtotal: round(discountedSubtotal, 2),
         gstAmount: round(gstAmount, 2),
         finalTotal: round(finalTotal, 2)
     });
     
+    // Update the displayed subtotal in the item row
+    const subtotalElement = item.querySelector('.subtotal-value');
+    if (subtotalElement) {
+        subtotalElement.textContent = `₹${displaySubtotal.toFixed(2)}`;
+    }
+    
     return {
         unitPrice: round(unitPrice, 2),
-        subtotal: round(subtotal, 2),
+        subtotal: round(displaySubtotal, 2),
         discountAmount: round(discountAmount, 2),
         totalBeforeGst: round(discountedSubtotal, 2),
         gstAmount: round(gstAmount, 2),
@@ -1151,7 +1157,7 @@ function updateCartTotals() {
                     const itemTotal = discountedSubtotal + gstAmount;
                     
                     // Update running totals
-                    subtotal += itemSubtotal;
+                    subtotal += displaySubtotal; // Using displaySubtotal for consistency
                     totalDiscount += discountAmount;
                     totalGst += gstAmount;
                     total += itemTotal;
@@ -1180,14 +1186,14 @@ function updateCartTotals() {
                     
                     // Calculate prices
                     const pricePerUnit = basePrice + barPrice;
-                    const itemSubtotal = pricePerUnit * validQuantity;
-                    const discountAmount = itemSubtotal * (discountPercent / 100);
-                    const discountedSubtotal = itemSubtotal - discountAmount;
+                    const displaySubtotal = (basePrice + barPrice) * validQuantity;
+                    const discountAmount = displaySubtotal * (discountPercent / 100);
+                    const discountedSubtotal = displaySubtotal - discountAmount;
                     const gstAmount = (discountedSubtotal * gstPercent) / 100;
                     const itemTotal = discountedSubtotal + gstAmount;
                     
                     // Update running totals
-                    subtotal += itemSubtotal;
+                    subtotal += displaySubtotal; // Using displaySubtotal for consistency
                     totalDiscount += discountAmount;
                     totalGst += gstAmount;
                     total += itemTotal;
@@ -2240,3 +2246,4 @@ function updateItemDisplay(item, data) {
 }
 
 // End of file
+

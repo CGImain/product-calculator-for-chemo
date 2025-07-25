@@ -499,7 +499,9 @@
                                             </div>
                                             <div class="price-row">
                                                 <span class="price-label">Subtotal:</span>
-                                                <span class="price-value subtotal-value">₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1))) }}</span>
+                                                <span class="price-value subtotal-value">
+                                                    ₹{{ "%.2f"|format((((item.unit_price|default(0) - item.bar_price|default(0)) + item.bar_price|default(0)) * item.quantity|default(1))|round(2)) }}
+                                                </span>
                                             </div>
                                             <div class="price-row discount-row align-items-center">
                                                 <span class="price-label">Discount:</span>

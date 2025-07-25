@@ -533,9 +533,9 @@
                                                         {% endif %}
                                                     </span>
                                                 </div>
-                                                <div class="w-100 mt-1 d-flex justify-content-between">
-                                                    <span class="price-label text-muted" style="font-size: 0.9em;">After Discount:</span>
-                                                    <span class="price-value after-discount-amount text-muted" style="font-size: 0.9em;">
+                                                <div class="w-100 mt-1 d-flex justify-content-end">
+                                                    <span class="price-label text-muted me-2" style="font-size: 0.9em;">After Discount:</span>
+                                                    <span class="price-value after-discount-amount text-muted" style="font-size: 0.9em; min-width: 100px; text-align: right;">
                                                         ₹{{ "%.2f"|format((item.unit_price|default(0)) * (item.quantity|default(1)) * (1 - (item.discount_percent|default(0)) / 100)) }}
                                                     </span>
                                                 </div>

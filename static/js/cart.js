@@ -968,28 +968,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-            const button = event.target.closest('.quantity-increase');
-            const quantityControls = button.closest('.quantity-controls');
-            const input = quantityControls ? quantityControls.querySelector('.quantity-input') : null;
-            
-            if (input) {
-                let value = parseInt(input.value) || 1;
-                input.value = value + 1;
-                // Trigger change event to update the cart
-                const changeEvent = new Event('change', { bubbles: true });
-                input.dispatchEvent(changeEvent);
-                
-                // Update individual item calculations immediately
-                const cartItem = input.closest('.cart-item');
-                if (cartItem) {
-                    const itemType = cartItem.getAttribute('data-type');
-                    if (itemType === 'mpack') {
-                        calculateMPackPrices(cartItem);
-                    } else if (itemType === 'blanket') {
-                        calculateBlanketPrices(cartItem);
-                    }
-                }
-            }
         }
         
         // Handle update discount button click

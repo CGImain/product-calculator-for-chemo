@@ -1472,6 +1472,7 @@ function updateCartItemDiscount(index, discountPercent, itemId) {
 function handleQuantityChange(event) {
     const input = event.target;
     const index = input.getAttribute('data-index');
+    const cartItem = input.closest('.cart-item');
     
     if (index === null) {
         console.error('Could not find cart item index');
@@ -1483,6 +1484,17 @@ function handleQuantityChange(event) {
     if (isNaN(newQuantity) || newQuantity < 1) {
         newQuantity = 1;
         input.value = 1;
+    }
+    
+    // Add loading state
+    input.disabled = true;
+    const buttons = cartItem.querySelectorAll('.quantity-decrease, .quantity-increase');
+    buttons.forEach(btn => btn.disabled = true);
+    
+    // Add loading class to parent for visual feedback
+    const quantityControls = input.closest('.input-group');
+    if (quantityControls) {
+        quantityControls.classList.add('loading');
     }
 
     // Update the cart item quantity
@@ -1509,6 +1521,10 @@ function updateCartItemQuantity(index, newQuantity, type) {
         for (const item of allCartItems) {
             if (item.getAttribute('data-index') === index) {
                 cartItem = item;
+                // Update the index in case we found by item_id
+                if (itemId && !cartItem.getAttribute('data-index')) {
+                    cartItem.setAttribute('data-index', index);
+                }
                 break;
             }
         }
@@ -1587,14 +1603,21 @@ function updateCartItemQuantity(index, newQuantity, type) {
         // Revert to original value on error and re-enable input
         if (quantityInput) {
             quantityInput.value = originalValue;
-            quantityInput.disabled = false;
         }
         showToast('Error', error.message || 'An error occurred while updating quantity', 'error');
     })
     .finally(() => {
-        if (quantityInput) {
-            quantityInput.disabled = false;
-        }
+        // Re-enable all quantity controls
+        const quantityControls = document.querySelectorAll('.quantity-input, .quantity-decrease, .quantity-increase');
+        quantityControls.forEach(control => {
+            control.disabled = false;
+        });
+        
+        // Remove loading state
+        const loadingGroups = document.querySelectorAll('.input-group.loading');
+        loadingGroups.forEach(group => {
+            group.classList.remove('loading');
+        });
     });
 }
 

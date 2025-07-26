@@ -8,9 +8,56 @@
     .quantity-controls {
         display: flex;
         align-items: center;
-        margin: 0;
-        padding: 0;
-        min-width: 100px;
+        gap: 4px;
+    }
+    
+    .input-group.loading {
+        position: relative;
+    }
+    
+    .input-group.loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: 5;
+        border-radius: 4px;
+    }
+    
+    .quantity-input {
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+    
+    .quantity-input:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .quantity-decrease,
+    .quantity-increase {
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .quantity-decrease:active,
+    .quantity-increase:active {
+        transform: scale(0.95);
+    }
+    
+    .quantity-decrease:disabled,
+    .quantity-increase:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .quantity-decrease:hover:not(:disabled),
+    .quantity-increase:hover:not(:disabled) {
+        background-color: #f8f9fa;
     }
     
     .quantity-controls .btn {
@@ -493,7 +540,7 @@
                                                 <span class="price-label">Quantity:</span>
                                                 <div class="d-flex align-items-center ms-auto">
                                                     <div class="input-group" style="width: 120px;">
-                                                        <button class="btn btn-outline-secondary quantity-decrease" type="button" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem;">
+                                                        <button class="btn btn-outline-secondary quantity-decrease" type="button" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem; min-width: 36px; transition: all 0.2s ease;">
                                                             <i class="fas fa-minus"></i>
                                                         </button>
                                                         <input type="number" 
@@ -502,7 +549,7 @@
                                                                min="1" 
                                                                data-index="{{ loop.index0 }}" 
                                                                style="border-left: 0; border-right: 0; padding: 0.25rem;">
-                                                        <button class="btn btn-outline-secondary quantity-increase" type="button" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem;">
+                                                        <button class="btn btn-outline-secondary quantity-increase" type="button" data-index="{{ loop.index0 }}" style="padding: 0.25rem 0.5rem; min-width: 36px; transition: all 0.2s ease;">
                                                             <i class="fas fa-plus"></i>
                                                         </button>
                                                     </div>

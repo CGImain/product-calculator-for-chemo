@@ -878,29 +878,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (input) {
                 let value = parseInt(input.value) || 1;
                 if (value > 1) {
-                    // Add loading state
-                    input.disabled = true;
-                    button.disabled = true;
-                    
                     // Update the value
                     input.value = value - 1;
                     
-                    // Add loading class for visual feedback
-                    if (inputGroup) {
-                        inputGroup.classList.add('loading');
-                    }
-                    
-                    // Get cart item details
+                    // Update the UI immediately for better responsiveness
                     const cartItem = input.closest('.cart-item');
-                    const index = input.getAttribute('data-index');
-                    const newQuantity = parseInt(input.value);
-                    
-                    if (cartItem && index) {
-                        // Update the cart item quantity
-                        updateCartItemQuantity(index, newQuantity);
-                    } else {
-                        // Fallback to direct calculation if updateCartItemQuantity fails
-                        const itemType = cartItem ? cartItem.getAttribute('data-type') : null;
+                    if (cartItem) {
+                        const index = input.getAttribute('data-index');
+                        const newQuantity = parseInt(input.value);
+                        
+                        // Update UI immediately
+                        const itemType = cartItem.getAttribute('data-type');
                         if (itemType === 'mpack') {
                             calculateMPackPrices(cartItem);
                         } else if (itemType === 'blanket') {
@@ -908,17 +896,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         updateCartTotals();
                         
-                        // Remove loading state
-                        input.disabled = false;
-                        button.disabled = false;
-                        if (inputGroup) {
-                            inputGroup.classList.remove('loading');
+                        // Update server in the background
+                        if (index) {
+                            updateCartItemQuantity(index, newQuantity);
                         }
                     }
                 }
             }
         }
-        
         // Handle increase quantity button click
         else if (event.target.closest('.quantity-increase') || event.target.classList.contains('quantity-increase')) {
             event.preventDefault();
@@ -929,30 +914,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const input = inputGroup ? inputGroup.querySelector('.quantity-input') : null;
             
             if (input) {
-                // Add loading state
-                input.disabled = true;
-                button.disabled = true;
-                
                 // Get current value and increment
                 let value = parseInt(input.value) || 1;
                 input.value = value + 1;
                 
-                // Add loading class for visual feedback
-                if (inputGroup) {
-                    inputGroup.classList.add('loading');
-                }
-                
-                // Get cart item details
+                // Update the UI immediately for better responsiveness
                 const cartItem = input.closest('.cart-item');
-                const index = input.getAttribute('data-index');
-                const newQuantity = parseInt(input.value);
-                
-                if (cartItem && index) {
-                    // Update the cart item quantity
-                    updateCartItemQuantity(index, newQuantity);
-                } else {
-                    // Fallback to direct calculation if updateCartItemQuantity fails
-                    const itemType = cartItem ? cartItem.getAttribute('data-type') : null;
+                if (cartItem) {
+                    const index = input.getAttribute('data-index');
+                    const newQuantity = parseInt(input.value);
+                    
+                    // Update UI immediately
+                    const itemType = cartItem.getAttribute('data-type');
                     if (itemType === 'mpack') {
                         calculateMPackPrices(cartItem);
                     } else if (itemType === 'blanket') {
@@ -960,14 +933,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     updateCartTotals();
                     
-                    // Remove loading state
-                    input.disabled = false;
-                    button.disabled = false;
-                    if (inputGroup) {
-                        inputGroup.classList.remove('loading');
+                    // Update server in the background
+                    if (index) {
+                        updateCartItemQuantity(index, newQuantity);
                     }
                 }
             }
+        }
         }
         
         // Handle update discount button click

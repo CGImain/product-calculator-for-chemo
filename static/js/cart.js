@@ -868,36 +868,106 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(event) {
         // Handle decrease quantity button click
         if (event.target.closest('.quantity-decrease') || event.target.classList.contains('quantity-decrease')) {
+            event.preventDefault();
+            event.stopPropagation();
+            
             const button = event.target.closest('.quantity-decrease');
-            const quantityControls = button.closest('.quantity-controls');
-            const input = quantityControls ? quantityControls.querySelector('.quantity-input') : null;
+            const inputGroup = button.closest('.input-group');
+            const input = inputGroup ? inputGroup.querySelector('.quantity-input') : null;
             
             if (input) {
                 let value = parseInt(input.value) || 1;
                 if (value > 1) {
-                    input.value = value - 1;
-                    // Trigger change event to update the cart
-                    const changeEvent = new Event('change', { bubbles: true });
-                    input.dispatchEvent(changeEvent);
+                    // Add loading state
+                    input.disabled = true;
+                    button.disabled = true;
                     
-                    // Update individual item calculations immediately
+                    // Update the value
+                    input.value = value - 1;
+                    
+                    // Add loading class for visual feedback
+                    if (inputGroup) {
+                        inputGroup.classList.add('loading');
+                    }
+                    
+                    // Get cart item details
                     const cartItem = input.closest('.cart-item');
-                    if (cartItem) {
-                        const itemType = cartItem.getAttribute('data-type');
+                    const index = input.getAttribute('data-index');
+                    const newQuantity = parseInt(input.value);
+                    
+                    if (cartItem && index) {
+                        // Update the cart item quantity
+                        updateCartItemQuantity(index, newQuantity);
+                    } else {
+                        // Fallback to direct calculation if updateCartItemQuantity fails
+                        const itemType = cartItem ? cartItem.getAttribute('data-type') : null;
                         if (itemType === 'mpack') {
                             calculateMPackPrices(cartItem);
                         } else if (itemType === 'blanket') {
                             calculateBlanketPrices(cartItem);
                         }
-                        // Update cart totals
                         updateCartTotals();
+                        
+                        // Remove loading state
+                        input.disabled = false;
+                        button.disabled = false;
+                        if (inputGroup) {
+                            inputGroup.classList.remove('loading');
+                        }
                     }
                 }
             }
         }
         
         // Handle increase quantity button click
-        if (event.target.closest('.quantity-increase') || event.target.classList.contains('quantity-increase')) {
+        else if (event.target.closest('.quantity-increase') || event.target.classList.contains('quantity-increase')) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const button = event.target.closest('.quantity-increase');
+            const inputGroup = button.closest('.input-group');
+            const input = inputGroup ? inputGroup.querySelector('.quantity-input') : null;
+            
+            if (input) {
+                // Add loading state
+                input.disabled = true;
+                button.disabled = true;
+                
+                // Get current value and increment
+                let value = parseInt(input.value) || 1;
+                input.value = value + 1;
+                
+                // Add loading class for visual feedback
+                if (inputGroup) {
+                    inputGroup.classList.add('loading');
+                }
+                
+                // Get cart item details
+                const cartItem = input.closest('.cart-item');
+                const index = input.getAttribute('data-index');
+                const newQuantity = parseInt(input.value);
+                
+                if (cartItem && index) {
+                    // Update the cart item quantity
+                    updateCartItemQuantity(index, newQuantity);
+                } else {
+                    // Fallback to direct calculation if updateCartItemQuantity fails
+                    const itemType = cartItem ? cartItem.getAttribute('data-type') : null;
+                    if (itemType === 'mpack') {
+                        calculateMPackPrices(cartItem);
+                    } else if (itemType === 'blanket') {
+                        calculateBlanketPrices(cartItem);
+                    }
+                    updateCartTotals();
+                    
+                    // Remove loading state
+                    input.disabled = false;
+                    button.disabled = false;
+                    if (inputGroup) {
+                        inputGroup.classList.remove('loading');
+                    }
+                }
+            }
             const button = event.target.closest('.quantity-increase');
             const quantityControls = button.closest('.quantity-controls');
             const input = quantityControls ? quantityControls.querySelector('.quantity-input') : null;
@@ -922,32 +992,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Handle discount update button
-        if (event.target.closest('.update-discount-btn')) {
+        // Handle update discount button click
+        else if (event.target.closest('.update-discount-btn')) {
             handleDiscountUpdate(event);
         }
-    });
-    
-    // Set up input change handler for direct input
-    document.addEventListener('change', function(event) {
-        if (event.target.classList.contains('quantity-input')) {
-            handleQuantityChange(event);
-            // Update individual item calculations immediately
-            const cartItem = event.target.closest('.cart-item');
-            if (cartItem) {
-                const itemType = cartItem.getAttribute('data-type');
-                if (itemType === 'mpack') {
-                    calculateMPackPrices(cartItem);
-                } else if (itemType === 'blanket') {
-                    calculateBlanketPrices(cartItem);
-                }
-            }
-        }
-    });
-    
-    // Handle change item button clicks using event delegation
-    document.addEventListener('click', function(event) {
-        if (event.target.closest('.change-item-btn')) {
+        
+        // Handle change item button click
+        else if (event.target.closest('.change-item-btn')) {
             handleChangeItem(event);
         }
     });

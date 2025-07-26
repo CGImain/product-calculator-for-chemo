@@ -878,68 +878,33 @@ document.addEventListener('DOMContentLoaded', function() {
             if (input) {
                 let value = parseInt(input.value) || 1;
                 if (value > 1) {
-                    // Update the value
+                    // Update the value locally
                     input.value = value - 1;
                     
-                    // Update the UI immediately for better responsiveness
-                    const cartItem = input.closest('.cart-item');
-                    if (cartItem) {
-                        const index = input.getAttribute('data-index');
-                        const newQuantity = parseInt(input.value);
-                        
-                        // Update UI immediately
-                        const itemType = cartItem.getAttribute('data-type');
-                        if (itemType === 'mpack') {
-                            calculateMPackPrices(cartItem);
-                        } else if (itemType === 'blanket') {
-                            calculateBlanketPrices(cartItem);
-                        }
-                        updateCartTotals();
-                        
-                        // Update server in the background
-                        if (index) {
-                            updateCartItemQuantity(index, newQuantity);
-                        }
-                    }
+                    // Schedule the update to happen after a short delay
+                    // This allows for multiple quick clicks without sending multiple requests
+                    scheduleQuantityUpdate(input);
                 }
             }
         }
+        
         // Handle increase quantity button click
         else if (event.target.closest('.quantity-increase') || event.target.classList.contains('quantity-increase')) {
             event.preventDefault();
             event.stopPropagation();
             
             const button = event.target.closest('.quantity-increase');
-            const inputGroup = button.closest('.input-group');
-            const input = inputGroup ? inputGroup.querySelector('.quantity-input') : null;
+            const input = button.closest('.input-group')?.querySelector('.quantity-input');
             
             if (input) {
                 // Get current value and increment
                 let value = parseInt(input.value) || 1;
                 input.value = value + 1;
                 
-                // Update the UI immediately for better responsiveness
-                const cartItem = input.closest('.cart-item');
-                if (cartItem) {
-                    const index = input.getAttribute('data-index');
-                    const newQuantity = parseInt(input.value);
-                    
-                    // Update UI immediately
-                    const itemType = cartItem.getAttribute('data-type');
-                    if (itemType === 'mpack') {
-                        calculateMPackPrices(cartItem);
-                    } else if (itemType === 'blanket') {
-                        calculateBlanketPrices(cartItem);
-                    }
-                    updateCartTotals();
-                    
-                    // Update server in the background
-                    if (index) {
-                        updateCartItemQuantity(index, newQuantity);
-                    }
-                }
+                // Schedule the update to happen after a short delay
+                // This allows for multiple quick clicks without sending multiple requests
+                scheduleQuantityUpdate(input);
             }
-        }
         }
         
         // Handle update discount button click
@@ -953,12 +918,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Handle discount input on Enter key
+    // Handle quantity input on Enter key and blur
     document.addEventListener('keydown', function(event) {
+        // Handle discount input Enter key
         if (event.target.classList.contains('discount-input') && event.key === 'Enter') {
             handleDiscountKeyDown(event);
         }
+        // Handle quantity input Enter key
+        else if (event.target.classList.contains('quantity-input') && event.key === 'Enter') {
+            event.preventDefault();
+            updateQuantity(event.target);
+        }
     });
+    
+    // Handle quantity input blur (when user clicks away)
+    document.addEventListener('focusout', function(event) {
+        if (event.target.classList.contains('quantity-input')) {
+            updateQuantity(event.target);
+        }
+    });
+    
+    // Track pending quantity updates
+    const pendingUpdates = new Map();
+    
+    // Function to update quantity with loading state
+    function updateQuantity(input) {
+        const cartItem = input.closest('.cart-item');
+        const index = input.getAttribute('data-index');
+        const inputGroup = input.closest('.input-group');
+        const buttons = cartItem?.querySelectorAll('.quantity-decrease, .quantity-increase');
+        
+        if (!cartItem || !index) return;
+        
+        // Add loading state
+        input.disabled = true;
+        buttons.forEach(btn => btn.disabled = true);
+        if (inputGroup) inputGroup.classList.add('loading');
+        
+        // Get and validate the quantity
+        let newQuantity = parseInt(input.value);
+        if (isNaN(newQuantity) || newQuantity < 1) {
+            newQuantity = 1;
+            input.value = 1;
+        }
+        
+        // Update the cart item quantity
+        updateCartItemQuantity(index, newQuantity);
+    }
+    
+    // Function to schedule a quantity update with debouncing
+    function scheduleQuantityUpdate(input) {
+        const index = input.getAttribute('data-index');
+        const cartItem = input.closest('.cart-item');
+        
+        if (!index || !cartItem) return;
+        
+        // Clear any pending update for this input
+        if (pendingUpdates.has(index)) {
+            clearTimeout(pendingUpdates.get(index));
+        }
+        
+        // Schedule a new update after a delay
+        pendingUpdates.set(index, setTimeout(() => {
+            updateQuantity(input);
+            pendingUpdates.delete(index);
+        }, 500)); // 500ms delay
+    }
+    
+
     
     // Handle discount input changes for immediate calculation updates
     document.addEventListener('input', function(event) {
